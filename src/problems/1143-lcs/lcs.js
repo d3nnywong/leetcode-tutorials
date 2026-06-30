@@ -56,3 +56,8 @@ new DpTable(document.querySelector('#dp-mount'), {
   text1: 'abcde',
   text2: 'ace',
 })
+
+// 「返回题目列表」链接：站内链接必须用 BASE_URL 拼接，否则项目页部署会 404
+// （Vite 不会重写 HTML 里 <a> 的 href，所以这里在运行时设置）
+const backLink = document.querySelector('#back-link')
+if (backLink) backLink.href = `${import.meta.env.BASE_URL}index.html`
