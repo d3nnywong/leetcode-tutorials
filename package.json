@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "零基础友好的 LeetCode 解题思路教程站",
   "type": "module",
+  "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
