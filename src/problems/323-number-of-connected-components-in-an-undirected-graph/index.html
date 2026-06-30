@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>323. 无向图中连通分量的数目 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 323 无向图中连通分量的数目：什么是连通分量、DFS 染色为什么可行、并查集（Union-Find）如何用「找根 + 合并」一遍边扫描求出分量数，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/323-number-of-connected-components-in-an-undirected-graph/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一张图被边连成了几块「孤岛」？这道题就是在问这件事。看完你会明白：
+          只要拿一个「并查集」边扫描边「认祖宗」，就能一遍把分量数算出来。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：「连通分量」到底是什么</h2>
+        <p>
+          给你 <code>n</code> 个节点（编号 <code>0 ~ n-1</code>），和一些 <code>edges</code>
+          ——每条边把两个节点连起来。把这些节点和边画成一张图，<strong>顺着边能互相走到的节点</strong>
+          就算一伙的，这一伙叫一个<strong>连通分量</strong>。题目要你数一数，图被分成了几伙（几座孤岛）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">n</span><code>5</code></div>
+          <div><span class="example-box__label">edges</span><code>[[0,1],[1,2],[3,4]]</code></div>
+          <p class="example-box__note">
+            0—1—2 顺着边能互相到达，是一伙；3—4 是另一伙；没有边能把这两伙连起来 → 答案 <code>2</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 洞察：两种思路 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直观的办法——DFS/BFS 染色</h2>
+        <p>
+          最容易想到的：先把 <code>edges</code> 建成「邻接表」（每个节点连着哪些节点）。
+          然后从节点 0 开始，挨个找还没访问过的节点，每碰到一个就做一次 DFS/BFS，
+          把这次能走到的所有节点都「染上同一种颜色」标记为已访问。<strong>染色的次数</strong>就是连通分量数。
+        </p>
+        <div class="callout callout--warn">
+          <strong>能做，但要先建图：</strong>这个办法是对的，时间复杂度也是 <code>O(n + e)</code>，
+          但要先花空间建出邻接表，再维护一个「访问标记」数组和递归/队列。
+          有没有更「轻」的办法，不用真的建图，边读边知道分量数？
+        </div>
+      </section>
+
+      <!-- 3. 并查集 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：并查集——边扫描边「认祖宗」</h2>
+        <p>
+          换个角度：一开始让每个节点<strong>自己当自己的根</strong>（<code>parent[i] = i</code>），
+          这时候有 <code>n</code> 个分量。然后依次看每条边 <code>(a, b)</code>：
+          分别顺着 <code>parent</code> 往上找到 <code>a</code>、<code>b</code> 各自所在分量的「根」——这叫
+          <code>find</code>。
+        </p>
+        <p>
+          如果两个根<strong>不一样</strong>，说明这条边把两个原本不相通的分量焊接到了一起：
+          把其中一个根接到另一个根下面，分量数 <strong>−1</strong>。
+          如果两个根<strong>已经一样</strong>，说明 <code>a</code>、<code>b</code> 早就在同一伙了，
+          这条边是多余的，直接跳过。边扫完，剩下的分量数就是答案——全程不用建邻接表。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前处理的边 / 端点</span>
+          <span><i class="sw sw--src"></i> 已处理且合并成功的边</span>
+          <span><i class="sw sw--bad"></i> 跳过的边（端点已同分量）</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把边改成一条链 <code>0-1,1-2,2-3,3-4</code>，看分量数怎么从 5 一路减到 1。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> countComponents(<span class="ty">int</span> n, <span class="ty">int</span>[][] edges) {
+        <span class="ty">int</span>[] parent = <span class="kw">new</span> <span class="ty">int</span>[n];
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; n; i++) parent[i] = i; <span class="cm">// 初始时每个节点是自己的根</span>
+
+        <span class="ty">int</span> count = n; <span class="cm">// 一开始有 n 个连通分量</span>
+        <span class="kw">for</span> (<span class="ty">int</span>[] e : edges) {
+            <span class="ty">int</span> ra = find(parent, e[<span class="nm">0</span>]);
+            <span class="ty">int</span> rb = find(parent, e[<span class="nm">1</span>]);
+            <span class="kw">if</span> (ra != rb) {
+                parent[ra] = rb; <span class="cm">// 把两个分量焊接成一个</span>
+                count--;         <span class="cm">// 分量数减一</span>
+            }
+        }
+        <span class="kw">return</span> count;
+    }
+
+    <span class="kw">private</span> <span class="ty">int</span> find(<span class="ty">int</span>[] parent, <span class="ty">int</span> x) {
+        <span class="kw">while</span> (parent[x] != x) {
+            parent[x] = parent[parent[x]]; <span class="cm">// 路径压缩（隔代压缩），把树压扁</span>
+            x = parent[x];
+        }
+        <span class="kw">return</span> x;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n + e·α(n))</code>
+            <p>初始化 n 个节点 O(n)，扫描 e 条边，每条边的 find/union 在路径压缩下接近 O(1)（α 是反阿克曼函数，可视为常数）。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>只需要一个长度为 n 的 parent 数组，不用建邻接表。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「图里有多少个互相连通的小团体」这类问题，
+          并查集是比 DFS/BFS 染色更轻量的工具——不用建图，边读边「认祖宗」、顺手合并，
+          一遍扫描就知道答案。这个套路在判环、最小生成树（Kruskal）、账户合并等题里都会反复出现。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/323-number-of-connected-components-in-an-undirected-graph/page.js"></script>
+  </body>
+</html>

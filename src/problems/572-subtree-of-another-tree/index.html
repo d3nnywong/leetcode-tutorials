@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>572. 另一棵树的子树 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 572 另一棵树的子树：怎么把问题拆成『把 root 的每个节点当候选根，复用 100 题的 isSameTree』、候选失败为什么还要接着往下找、可交互的 DFS 动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/572-subtree-of-another-tree/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          这题是 100「相同的树」的延伸：不再只比较两个固定的根，而是要在一棵大树里
+          <strong>挨个挑候选根</strong>，每挑一个就复用一次「判断两棵树是否相同」。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你两棵二叉树 <code>root</code> 和 <code>subRoot</code>，问 <code>root</code> 里有没有
+          某个节点，<strong>从它往下长出来的那一整棵子树</strong>，跟 <code>subRoot</code>
+          长得一模一样（结构相同 + 每个对应位置的值也相同）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[3,4,5,1,2]</code></div>
+          <div><span class="example-box__label">subRoot</span><code>[4,1,2]</code></div>
+          <p class="example-box__note">
+            root 里节点 4（带着它的孩子 1、2）单独拎出来看，正好是「4 → 左 1、右 2」，
+            和 subRoot 完全一样 → 答案 <code>true</code>。
+          </p>
+        </div>
+        <p>
+          注意「子树」的定义：必须是<strong>某个节点和它的全部后代</strong>，不能是树中间随便截一段。
+          另外 <code>tree</code> 也算它自己的子树——也就是说 <code>root</code> 整棵和
+          <code>subRoot</code> 整棵相同，也算数。
+        </p>
+      </section>
+
+      <!-- 2. 洞察：复用 100 题 -->
+      <section class="article__section">
+        <h2>💡 第二步：把它拆成「逐个候选根」+「判断相同」</h2>
+        <p>
+          直接想「root 里有没有和 subRoot 一样的子树」会觉得无从下手，但只要换个角度：
+          <strong>root 的每一个节点，都可能是那个「子树的根」</strong>。我们只要把 root 的节点
+          一个一个挑出来当候选根，每挑一个，就整体比较一次——这正是 100「相同的树」里
+          写过的 <code>isSameTree</code>。
+        </p>
+        <ul>
+          <li>挑到候选根 <code>node</code>，调用 <code>isSameTree(node, subRoot)</code>。</li>
+          <li>比上了 → 直接返回 <strong>true</strong>，不用再找别的候选根。</li>
+          <li>
+            没比上 → 这个候选根<strong>本身</strong>不行，但它的左右孩子还各自可能是更小一棵
+            「以自己为根」的子树，<strong>继续往它们那里找下一个候选</strong>。
+          </li>
+          <li>root 所有节点都试过还是没找到，才返回 <strong>false</strong>。</li>
+        </ul>
+        <div class="callout callout--warn">
+          <strong>容易搞混的地方：</strong>候选根比对失败 ≠ 整道题失败，它只代表「以这个节点为根」
+          这一种可能性不行；root 里还有别的节点可以再当候选根。这也是为什么算法要对 root
+          做一次<strong>遍历</strong>（外层 DFS），每到一个节点就调用一次<strong>完整的</strong>
+          isSameTree（内层比较）——是两层递归叠在一起。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：动画看「挑候选根 → 整体比较 → 换下一个」</h2>
+        <p>
+          下面用先序遍历 root：每走到一个新节点，就把它当成候选根（高亮），和右边的
+          subRoot 整体比较一次。比对失败的候选根会变暗、标出第一次出现不同的位置，
+          然后动画继续走向它的左右孩子，换下一个候选；一旦比上，整段匹配的子树会一起变绿。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前候选根</span>
+          <span><i class="sw sw--src"></i> 已淘汰的候选根</span>
+          <span><i class="sw sw--bad"></i> 这一步第一次出现不同</span>
+          <span><i class="sw sw--ok"></i> 完全匹配的子树</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          默认例子会在节点 4 处匹配成功（结果 <code>true</code>）；试试把 root 改成
+          <code>3,4,5,1,2,null,null,null,null,0</code>（subRoot 不变），看候选根 4 为什么这次会
+          因为多出来的节点 0 而比对失败、改成 <code>false</code>。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> isSubtree(<span class="ty">TreeNode</span> root, <span class="ty">TreeNode</span> subRoot) {
+        <span class="kw">if</span> (root == <span class="kw">null</span>) {
+            <span class="cm">// root 都走完了，没找到；题目保证 subRoot 非空，所以这里只能是 false</span>
+            <span class="kw">return</span> <span class="kw">false</span>;
+        }
+        <span class="cm">// 把当前节点当候选根，整体比较一次</span>
+        <span class="kw">if</span> (isSameTree(root, subRoot)) {
+            <span class="kw">return</span> <span class="kw">true</span>;
+        }
+        <span class="cm">// 这个候选根不行，去它的左右子树里继续找下一个候选根</span>
+        <span class="kw">return</span> isSubtree(root.left, subRoot) || isSubtree(root.right, subRoot);
+    }
+
+    <span class="cm">// 100. 相同的树：判断两个节点为根的两棵树是否完全相同</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> isSameTree(<span class="ty">TreeNode</span> p, <span class="ty">TreeNode</span> q) {
+        <span class="kw">if</span> (p == <span class="kw">null</span> &amp;&amp; q == <span class="kw">null</span>) {
+            <span class="kw">return</span> <span class="kw">true</span>;
+        }
+        <span class="kw">if</span> (p == <span class="kw">null</span> || q == <span class="kw">null</span>) {
+            <span class="kw">return</span> <span class="kw">false</span>;
+        }
+        <span class="kw">return</span> p.val == q.val
+            &amp;&amp; isSameTree(p.left, q.left)
+            &amp;&amp; isSameTree(p.right, q.right);
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m · n)</code>
+            <p>
+              m、n 分别是 root、subRoot 的节点数：最坏情况 root 的每个节点都要当一次候选根，
+              每次 isSameTree 比较最多要看完 subRoot 那么多节点。
+            </p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(h₁ + h₂)</code>
+            <p>
+              h₁、h₂ 分别是 root、subRoot 的高度：外层 isSubtree 的递归栈深度跟 root 的高度有关，
+              它调用到的 isSameTree 又会再压一层最深到 subRoot 高度的栈。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「在一棵大结构里找有没有某个小结构」，可以想想能不能拆成
+          「枚举每一个可能的起点（候选根）」<strong>+</strong>「复用一个已经会写的『判断是否相同』函数」。
+          这道题就是 100「相同的树」套上一层遍历——把熟悉的递归当作积木，往往比从零想新算法更快。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/572-subtree-of-another-tree/page.js"></script>
+  </body>
+</html>

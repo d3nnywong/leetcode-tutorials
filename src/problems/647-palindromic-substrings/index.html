@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>647. 回文子串 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 647 回文子串：暴力枚举所有子串为什么慢、中心扩展法如何把时间降到 O(n²)、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/647-palindromic-substrings/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          数一数字符串里有多少个回文子串。关键洞察是：每个回文串都有唯一的「中心」，
+          与其去检查每个子串是不是回文，不如反过来——从每个可能的中心向两边扩展，看能扩多远。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个字符串 <code>s</code>，统计它一共包含多少个<strong>回文子串</strong>。
+          子串必须是<strong>连续</strong>的一段；同样的内容出现在不同位置要分别计数
+          （比如 <code>"aaa"</code> 里两个独立的 <code>"a"</code> 算两个）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">s</span><code>"aaa"</code></div>
+          <p class="example-box__note">
+            回文子串一共 6 个：<code>"a"</code>、<code>"a"</code>、<code>"a"</code>、
+            <code>"aa"</code>、<code>"aa"</code>、<code>"aaa"</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 + 洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：笨办法，以及更聪明的角度</h2>
+        <p>
+          最直接的想法：枚举所有 <code>O(n²)</code> 个子串，对每个子串再花 <code>O(n)</code>
+          去判断它是不是回文（左右指针往中间夹），合计 <code>O(n³)</code>。n 能到 1000，
+          十亿次起步，太慢。
+        </p>
+        <div class="callout callout--warn">
+          <strong>换个角度想：</strong>与其问「这段子串是不是回文」，不如反过来问
+          「以<em>这个位置</em>为中心，能往两边扩出多长的回文」。
+          一个回文串永远关于它的正中心对称——可能是<strong>一个字符</strong>（奇数长度，比如
+          <code>"aba"</code> 中心是 <code>b</code>），也可能是<strong>两个字符之间的缝隙</strong>
+          （偶数长度，比如 <code>"abba"</code> 中心在两个 <code>b</code> 之间）。
+          长度为 n 的字符串正好有 <code>2n − 1</code> 个这样的中心。
+        </div>
+      </section>
+
+      <!-- 3. 中心扩展 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：从每个中心向外扩展</h2>
+        <p>
+          对每个中心摆好左右指针 L、R（单字符中心 L = R；缝隙中心 L、R 相邻），
+          只要 <code>s[L] == s[R]</code>，这一段就是回文，<strong>计数 +1</strong>，
+          然后继续往外扩一格（L−1、R+1）；一旦越界或者两边字符不相等，
+          说明从这个中心出发不能再扩了，换下一个中心继续。把 <code>2n − 1</code>
+          个中心都扫一遍，每个中心最多扩 <code>O(n)</code> 步，合计 <code>O(n²)</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 当前中心（固定不动）</span>
+          <span><i class="sw sw--hi"></i> 正在比较的左右指针 L / R</span>
+          <span><i class="sw sw--ok"></i> 确认命中，计入回文子串</span>
+          <span><i class="sw sw--bad"></i> 不相等，扩展到此为止</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把字符串改成 <code>aaa</code> 或 <code>abba</code>，对比奇数中心和偶数中心分别怎么扩展。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> countSubstrings(<span class="ty">String</span> s) {
+        <span class="ty">int</span> n = s.length();
+        <span class="ty">int</span> count = <span class="nm">0</span>;
+        <span class="cm">// center 编号 0..2n-2：偶数是单字符中心，奇数是两字符之间的中心</span>
+        <span class="kw">for</span> (<span class="ty">int</span> center = <span class="nm">0</span>; center &lt;= <span class="nm">2</span> * n - <span class="nm">2</span>; center++) {
+            <span class="ty">int</span> l = center / <span class="nm">2</span>;
+            <span class="ty">int</span> r = l + center % <span class="nm">2</span>;
+            <span class="cm">// 两边相等就计数，再继续往外扩；越界或不相等就停</span>
+            <span class="kw">while</span> (l &gt;= <span class="nm">0</span> &amp;&amp; r &lt; n &amp;&amp; s.charAt(l) == s.charAt(r)) {
+                count++;
+                l--;
+                r++;
+            }
+        }
+        <span class="kw">return</span> count;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n²)</code>
+            <p><code>2n − 1</code> 个中心，每个中心最多扩展 <code>O(n)</code> 步。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了几个指针变量，没有额外数组。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>回文问题经常用「枚举中心，向两边扩展」来代替「枚举区间，逐个验证」——
+          因为回文天生关于中心对称，扩展过程本身就在验证。同样的思路稍加一个数组记忆化，
+          就能升级成「最长回文子串」（5 题）的二维动态规划解法。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/647-palindromic-substrings/page.js"></script>
+  </body>
+</html>

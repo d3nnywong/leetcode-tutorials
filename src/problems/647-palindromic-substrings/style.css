@@ -1,0 +1,115 @@
+/* 647. 回文子串 —— 动画舞台专属样式 */
+
+.ps__center {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  min-height: 1.4em;
+}
+.ps__center code {
+  background: var(--color-surface-2);
+}
+
+.ps__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ps__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.ps__ch {
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+.ps__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+
+/* 回文中心（固定不动，贯穿这一组扩展） */
+.ps__cell.is-center {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+/* 当前比较的左右指针 */
+.ps__cell.is-l,
+.ps__cell.is-r {
+  border-color: var(--hi);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+/* 本步确认命中的整段回文区间 */
+.ps__cell.is-range {
+  background: var(--ok-bg);
+  border-color: var(--ok);
+}
+/* 不相等，扩展到此为止 */
+.ps__cell.is-bad {
+  background: var(--bad-bg);
+  border-color: var(--bad);
+}
+
+.ps__stats {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.ps__stats strong {
+  color: var(--color-accent);
+}
+
+.ps__foundlabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.ps__found {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.ps__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.ps__chip.is-new {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  font-weight: 700;
+}
+.ps__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 560px) {
+  .ps__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps__cell {
+    transition: none;
+  }
+}

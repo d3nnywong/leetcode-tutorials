@@ -1,0 +1,134 @@
+/* 271. 字符串的编码与解码 —— 动画舞台专属样式 */
+
+.eds__row {
+  display: grid;
+  gap: var(--space-2);
+}
+.eds__label {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+
+/* 顶部「原始数组」/ 底部「解码结果」：胶囊状 chip */
+.eds__arr,
+.eds__res {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-height: 2.8rem;
+}
+.eds__chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.6rem;
+  height: 2.6rem;
+  padding: 0 0.7em;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.eds__chip-idx {
+  position: absolute;
+  bottom: -1.15rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.eds__chip.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.08);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.eds__chip.is-done {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.eds__chip--empty {
+  border-style: dashed;
+  color: var(--color-text-soft);
+}
+
+/* 中间「编码后的单一字符串」：逐字符格子 */
+.eds__enc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: var(--space-2) 0 var(--space-4);
+}
+.eds__char {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 1.7rem;
+}
+.eds__char-val {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.eds__char-idx {
+  margin-top: 2px;
+  font-size: 0.55rem;
+  color: var(--color-text-soft);
+}
+.eds__char.is-hash .eds__char-val {
+  font-weight: 800;
+  color: var(--gold);
+}
+.eds__char.is-current .eds__char-val {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.18);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.eds__char.is-done .eds__char-val {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.eds__char.is-pending .eds__char-val {
+  opacity: 0.4;
+}
+
+@media (max-width: 560px) {
+  .eds__chip {
+    min-width: 3rem;
+    height: 2.3rem;
+    font-size: 0.8rem;
+  }
+  .eds__char {
+    width: 1.45rem;
+  }
+  .eds__char-val {
+    width: 1.35rem;
+    height: 1.35rem;
+    font-size: 0.72rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eds__chip,
+  .eds__char-val {
+    transition: none;
+  }
+}

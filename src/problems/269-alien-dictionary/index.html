@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>269. 火星词典 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 269 火星词典（Alien Dictionary）：如何只比较相邻单词建出字母顺序图、拓扑排序（Kahn 算法）怎么把图变成一串合法顺序、如何判定无解，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/269-alien-dictionary/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一份排好序的外星词典，藏着字母之间「谁排在谁前面」的线索。
+          把这些线索连成一张图，再做一次<strong>拓扑排序</strong>，就能还原出整套字母表。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          有一门外星语言，字母表跟英语一样还是 26 个字母，但<strong>顺序变了</strong>——
+          我们不知道是 a、b、c… 这样，还是别的排法。
+        </p>
+        <p>
+          题目给了一份<strong>已经按这门外星语言排好序</strong>的词典（一个字符串数组
+          <code>words</code>）。我们要做的是：从这份排好序的词典里，<strong>反推</strong>出
+          字母表的顺序，拼成一个字符串返回；如果词典里的排列本身就自相矛盾（不存在任何
+          合法顺序），返回空字符串 <code>""</code>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">words</span><code>["wrt","wrf","er","ett","rftt"]</code></div>
+          <p class="example-box__note">
+            "wrt" 排在 "wrf" 前面 → 说明 t 在 f 前面；"wrf" 排在 "er" 前面 → 说明 w 在 e 前面……
+            把所有这种「谁在谁前面」的线索拼起来，就能还原出一种合法顺序：<code>"wertf"</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 洞察：只比相邻单词 -->
+      <section class="article__section">
+        <h2>💡 第二步：线索藏在「相邻两个单词」里</h2>
+        <p>
+          直觉上好像得把每两个单词两两比较才能挖出所有线索，那是 <code>O(n²)</code> 次比较。
+          但仔细想想：词典已经整体排好序了，<strong>相邻的两个单词</strong>之间的比较，
+          其实已经包含了「为什么这一个排在那一个前面」最直接的证据——
+          它们从第一个不同的字母开始分道扬镳，那个字母谁先出现，谁就该排在字母表更靠前。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键技巧：</strong>只需要扫一遍<strong>相邻单词对</strong>（一共 n−1 对），
+          每对找到第一个不同的字母，就能确定一条「字母 a 必须排在字母 b 前面」的关系——
+          这正好是一条<strong>有向边</strong> <code>a → b</code>。不相邻的单词之间的顺序，
+          会通过这些边在图上自动传递，不需要再单独比较。
+        </div>
+        <p>
+          还有一种特殊情况要小心：如果两个单词前面所有字母都一样，<strong>更长</strong>的那个
+          却排在了<strong>更短</strong>的（也就是它自己前缀）后面——比如 <code>"abc"</code>
+          排在 <code>"ab"</code> 前面——这在任何字母表下都不可能成立，直接判定无解。
+        </p>
+        <p>
+          把所有线索连成图之后，问题就变成了图论里的经典任务：<strong>拓扑排序</strong>——
+          把图里的节点排成一条线，使得每条边 <code>a → b</code> 里 a 都出现在 b 前面。
+          如果图里有环（比如 a 必须在 b 前面，b 又必须在 a 前面），就说明没有合法顺序。
+        </p>
+      </section>
+
+      <!-- 3. 建图 + 拓扑排序 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：建图 + 拓扑排序（Kahn 算法）</h2>
+        <p>
+          整体分两步走：
+        </p>
+        <ol>
+          <li>
+            <strong>建图：</strong>依次比较相邻两个单词，找到第一个不同的字母对
+            <code>(a, b)</code>，连一条边 <code>a → b</code>，并把 b 的<strong>入度</strong>
+            （指向它的边数）加一。途中若发现「更长的词排在自己前缀后面」，直接判无解。
+          </li>
+          <li>
+            <strong>拓扑排序（Kahn / BFS）：</strong>把所有<strong>入度为 0</strong>
+            （没有别的字母必须排在它前面）的字母放进队列；每次从队列取出一个字母加进结果，
+            再把它指向的字母入度都减一——减到 0 就说明「挡着它的字母都排完了」，
+            可以入队了。如果最后还有字母没能排进结果，说明图中存在环，无解。
+          </li>
+        </ol>
+
+        <div class="viz-legend">
+          <span><i class="sw" style="border-color:var(--hi);background:var(--hi-bg)"></i> 当前比较 / 当前出队的字母</span>
+          <span><i class="sw sw--gold"></i> 新连边的目标字母</span>
+          <span><i class="sw sw--src"></i> 已入队（入度为 0）</span>
+          <span><i class="sw sw--ok"></i> 已排进结果顺序</span>
+          <span><i class="sw sw--bad"></i> 卡住（存在环）</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把单词改成 <code>z,x,z</code>（含矛盾顺序）或 <code>abc,ab</code>
+          （前缀违规），看看动画怎么判定无解；点「下一步」可以看到建图和拓扑排序两个阶段。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">String</span> alienOrder(<span class="ty">String</span>[] words) {
+        <span class="ty">Map</span>&lt;<span class="ty">Character</span>, <span class="ty">Set</span>&lt;<span class="ty">Character</span>&gt;&gt; adj = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+        <span class="ty">Map</span>&lt;<span class="ty">Character</span>, <span class="ty">Integer</span>&gt; inDegree = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">String</span> w : words) {
+            <span class="kw">for</span> (<span class="ty">char</span> c : w.toCharArray()) {
+                adj.putIfAbsent(c, <span class="kw">new</span> <span class="ty">HashSet</span>&lt;&gt;());
+                inDegree.putIfAbsent(c, <span class="nm">0</span>);
+            }
+        }
+
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; words.length - <span class="nm">1</span>; i++) {
+            <span class="ty">String</span> w1 = words[i], w2 = words[i + <span class="nm">1</span>];
+            <span class="ty">int</span> len = <span class="ty">Math</span>.min(w1.length(), w2.length());
+            <span class="ty">boolean</span> foundDiff = <span class="kw">false</span>;
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">0</span>; j &lt; len; j++) {
+                <span class="ty">char</span> a = w1.charAt(j), b = w2.charAt(j);
+                <span class="kw">if</span> (a != b) {
+                    <span class="kw">if</span> (!adj.get(a).contains(b)) {
+                        adj.get(a).add(b);
+                        inDegree.put(b, inDegree.get(b) + <span class="nm">1</span>);
+                    }
+                    foundDiff = <span class="kw">true</span>;
+                    <span class="kw">break</span>;
+                }
+            }
+            <span class="kw">if</span> (!foundDiff &amp;&amp; w1.length() &gt; w2.length()) <span class="kw">return</span> <span class="st">""</span>;
+        }
+
+        <span class="ty">Queue</span>&lt;<span class="ty">Character</span>&gt; queue = <span class="kw">new</span> <span class="ty">LinkedList</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">char</span> c : inDegree.keySet()) {
+            <span class="kw">if</span> (inDegree.get(c) == <span class="nm">0</span>) queue.offer(c);
+        }
+
+        <span class="ty">StringBuilder</span> sb = <span class="kw">new</span> <span class="ty">StringBuilder</span>();
+        <span class="kw">while</span> (!queue.isEmpty()) {
+            <span class="ty">char</span> u = queue.poll();
+            sb.append(u);
+            <span class="kw">for</span> (<span class="ty">char</span> v : adj.get(u)) {
+                <span class="ty">int</span> d = inDegree.get(v) - <span class="nm">1</span>;
+                inDegree.put(v, d);
+                <span class="kw">if</span> (d == <span class="nm">0</span>) queue.offer(v); <span class="cm">// 入度归零，挡着它的字母都排完了</span>
+            }
+        }
+
+        <span class="kw">return</span> sb.length() == inDegree.size() ? sb.toString() : <span class="st">""</span>; <span class="cm">// 没排全说明有环</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(C)</code>
+            <p>C 是所有单词的总字母数。建图要扫一遍相邻单词对，拓扑排序每条边、每个节点各访问一次。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>字母最多 26 个，图、入度表、队列的大小都被字母表大小（常数）卡死。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>看到「一组元素存在某种偏序关系，要还原出一个满足所有关系的排列」，
+          先想能不能把关系画成一张<strong>有向图</strong>，再用<strong>拓扑排序</strong>
+          （Kahn 算法靠入度判定，或 DFS 靠递归栈判环）求解。判断「无解」的关键就是看
+          能不能把所有节点都排进结果——排不全，必有环。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/269-alien-dictionary/page.js"></script>
+  </body>
+</html>

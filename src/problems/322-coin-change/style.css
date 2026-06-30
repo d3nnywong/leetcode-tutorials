@@ -1,0 +1,139 @@
+/* 322. 零钱兑换 —— 动画舞台专属样式 */
+
+.cc__coins-row,
+.cc__dp-row,
+.cc__candidates-row {
+  display: grid;
+  gap: var(--space-2);
+}
+.cc__label {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+
+/* 硬币面额 chips */
+.cc__coins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.cc__coin {
+  display: grid;
+  place-items: center;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.cc__coin.is-tried {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.cc__coin.is-used {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+}
+
+/* dp 数组 */
+.cc__dp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-bottom: 1.1rem; /* 给下标留空间 */
+}
+.cc__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.cc__val {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.cc__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.cc__cell.is-base {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.cc__cell.is-source {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.cc__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.cc__cell.is-final {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+
+/* 候选转移面板 */
+.cc__candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2.2rem;
+  align-items: center;
+}
+.cc__cand {
+  font-size: 0.85rem;
+  padding: 0.25em 0.6em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.cc__cand.is-best {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  font-weight: 700;
+}
+.cc__cand.is-dead {
+  color: var(--color-text-soft);
+  text-decoration: line-through;
+}
+.cc__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 560px) {
+  .cc__coin,
+  .cc__cell {
+    width: 2.4rem;
+    height: 2.4rem;
+    min-width: 2.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc__coin,
+  .cc__cell {
+    transition: none;
+  }
+}

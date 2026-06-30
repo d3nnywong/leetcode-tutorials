@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>295. 数据流的中位数 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 295 数据流的中位数：暴力排序为什么慢、对顶双堆（大顶堆 + 小顶堆）怎么把插入做到 O(log n)、取中位数做到 O(1)，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/295-find-median-from-data-stream/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          数据像流水一样一个个进来，还要随时能报出「目前为止的中位数」。
+          看完你会明白：两个堆顶顶在一起，怎么把插入做到 O(log n)、取中位数做到 O(1)。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          要你设计一个结构，支持源源不断地 <code>addNum(num)</code> 往里加数，
+          并且随时可以调用 <code>findMedian()</code> 拿到<strong>目前为止所有数的中位数</strong>。
+          中位数就是把所有数从小到大排好后，正中间的那个数；个数是偶数时，是中间两个数的平均值。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">操作</span><code>addNum(1) → addNum(2) → findMedian()</code></div>
+          <p class="example-box__note">
+            目前的数是 [1, 2]，排好序中间两个数是 1 和 2，中位数 = (1 + 2) / 2 =
+            <code>1.5</code>。再 <code>addNum(3)</code> 后变成 [1, 2, 3]，中位数就是正中间的
+            <code>2.0</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 vs 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想想笨办法，再看为什么要用堆</h2>
+        <p>
+          最直接的想法：每来一个数就插入一个<strong>有序数组</strong>（或者全存下来，
+          每次 <code>findMedian</code> 现场排序），中位数直接看中间位置的值。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>往有序数组中间插入一个数，后面的元素都要整体挪动，是
+          <code>O(n)</code>；现场排序更是每次 <code>O(n log n)</code>。题目最多调用
+          <code>5 × 10⁴</code> 次，数一多就很容易超时。
+        </div>
+        <p>
+          关键洞察：我们<strong>并不需要整个数组都有序</strong>，只需要随时知道「比中间小的那一半」
+          里的最大值、和「比中间大的那一半」里的最小值——这正好是两个堆的堆顶能做的事：
+          一个<strong>大顶堆</strong>存较小的一半（堆顶是这一半的最大值），一个<strong>小顶堆</strong>
+          存较大的一半（堆顶是这一半的最小值）。这种「两堆顶在中间」的结构，俗称<strong>对顶堆</strong>。
+        </p>
+      </section>
+
+      <!-- 3. 对顶堆 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：对顶双堆，怎么插入、怎么找中位数</h2>
+        <p>
+          维护两个堆，并始终让两边数量<strong>最多相差 1</strong>：
+        </p>
+        <ul>
+          <li><strong>大顶堆（max-heap）</strong>：存「较小的一半」，堆顶是这一半里最大的数。</li>
+          <li><strong>小顶堆（min-heap）</strong>：存「较大的一半」，堆顶是这一半里最小的数。</li>
+        </ul>
+        <p>
+          每来一个新数 <code>num</code>：先和大顶堆堆顶比较，<strong>更小（或大顶堆为空）</strong>
+          就放进大顶堆，否则放进小顶堆。放完后如果两堆数量差超过 1，就把数量较多那堆的堆顶
+          挪给较少的那堆，重新拉平到相差不超过 1。
+        </p>
+        <p>
+          这样大顶堆堆顶永远是「下半区」最大值、小顶堆堆顶永远是「上半区」最小值——两堆数量相等时，
+          中位数就是两个堆顶的平均值；数量相差 1 时，中位数就是数量较多那堆的堆顶。插入是
+          <code>O(log n)</code>（堆的上浮/下沉），取中位数是 <code>O(1)</code>（直接看堆顶）。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 刚插入的新数</span>
+          <span><i class="sw sw--src"></i> 当前堆顶</span>
+          <span><i class="sw sw--ok"></i> 再平衡时被挪动的数</span>
+          <span><i class="sw sw--gold"></i> 决定中位数的堆顶</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          默认演示依次对 <code>5, 2, 8, 1, 9, 3</code> 调用 addNum，每次之后都求一次中位数。
+          试试把序列改成 <code>1,2,3,4,5</code>，看两堆怎么始终保持「左堆最多比右堆多 1 个」。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">MedianFinder</span> {
+    <span class="cm">// 大顶堆：存较小的一半，堆顶是这一半里的最大值</span>
+    <span class="kw">private</span> <span class="ty">PriorityQueue</span>&lt;<span class="ty">Integer</span>&gt; small =
+        <span class="kw">new</span> <span class="ty">PriorityQueue</span>&lt;&gt;(<span class="ty">Collections</span>.reverseOrder());
+    <span class="cm">// 小顶堆：存较大的一半，堆顶是这一半里的最小值</span>
+    <span class="kw">private</span> <span class="ty">PriorityQueue</span>&lt;<span class="ty">Integer</span>&gt; large = <span class="kw">new</span> <span class="ty">PriorityQueue</span>&lt;&gt;();
+
+    <span class="kw">public</span> <span class="ty">MedianFinder</span>() {
+    }
+
+    <span class="kw">public</span> <span class="ty">void</span> addNum(<span class="ty">int</span> num) {
+        <span class="cm">// 先决定新数进哪个堆：不大于大顶堆堆顶（或大顶堆为空）就进大顶堆</span>
+        <span class="kw">if</span> (small.isEmpty() || num &lt;= small.peek()) {
+            small.offer(num);
+        } <span class="kw">else</span> {
+            large.offer(num);
+        }
+        <span class="cm">// 再平衡：让两堆数量差不超过 1</span>
+        <span class="kw">if</span> (small.size() - large.size() &gt; <span class="nm">1</span>) {
+            large.offer(small.poll());
+        } <span class="kw">else</span> <span class="kw">if</span> (large.size() - small.size() &gt; <span class="nm">1</span>) {
+            small.offer(large.poll());
+        }
+    }
+
+    <span class="kw">public</span> <span class="ty">double</span> findMedian() {
+        <span class="kw">if</span> (small.size() == large.size()) {
+            <span class="cm">// 数量相等：中位数是两堆堆顶的平均值</span>
+            <span class="kw">return</span> (small.peek() + large.peek()) / <span class="nm">2.0</span>;
+        }
+        <span class="cm">// 数量较多的那堆堆顶就是中位数</span>
+        <span class="kw">return</span> small.size() &gt; large.size() ? small.peek() : large.peek();
+    }
+}
+
+<span class="cm">/**
+ * Your MedianFinder object will be instantiated and called as such:
+ * MedianFinder obj = new MedianFinder();
+ * obj.addNum(num);
+ * double param_2 = obj.findMedian();
+ */</span></code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>addNum O(log n)，findMedian O(1)</code>
+            <p>插入堆要做上浮/下沉，最坏 O(log n)；找中位数只看堆顶，O(1)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>两个堆加起来要存下所有插入过的数。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当你只关心一组数据里「中间附近」的值，而不需要整体有序时，
+          用<strong>对顶堆</strong>把数据一分为二，靠两个堆顶随时反映「中间状态」——
+          这比维护整体有序便宜得多。这个套路还能推广到滑动窗口中位数、Top-K
+          这类只关心局部极值的问题。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/295-find-median-from-data-stream/page.js"></script>
+  </body>
+</html>

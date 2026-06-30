@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>300. 最长递增子序列 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 300 最长递增子序列：O(n²) 动态规划怎么想出来、贪心 + 二分查找如何把复杂度降到 O(n log n)，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/300-longest-increasing-subsequence/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          这是动态规划里最经典的入门题之一，也是从「逐对比较」走向「贪心 + 二分查找」的代表题。
+          看完你会明白：先用 O(n²) 的笨办法把思路想通，再看怎么用一个排好序的「影子数组」
+          把复杂度压到 O(n log n)。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个整数数组 <code>nums</code>，要你找出最长的一段「<strong>严格递增</strong>子序列」，
+          只要返回它的<strong>长度</strong>就行（不用还原出具体是哪几个数）。
+        </p>
+        <p>
+          注意「子序列」和「子数组」不一样：子序列<strong>不要求连续</strong>，
+          只要求在原数组里删掉一些元素后，剩下的元素<strong>相对顺序不变</strong>就行。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[10, 9, 2, 5, 3, 7, 101, 18]</code></div>
+          <p class="example-box__note">
+            挑出 <code>2, 3, 7, 101</code>（下标 2、4、5、6），它们在原数组里依次出现且一个比一个大，
+            长度为 4，这就是最长的一种 → 答案 <code>4</code>。这几个数在原数组里并不挨着，
+            中间还夹着 9、5、18 等数，这正是「子序列」允许的。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力/动态规划思路 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想一个能做出来的办法——动态规划</h2>
+        <p>
+          最直接的想法：对每个位置 <code>i</code>，定义 <code>dp[i]</code> 表示
+          <strong>「以 nums[i] 结尾」的最长递增子序列长度</strong>。
+        </p>
+        <p>
+          要算 <code>dp[i]</code>，就去看它前面所有位置 <code>j &lt; i</code>：
+          如果 <code>nums[j] &lt; nums[i]</code>，说明 <code>nums[i]</code> 可以接在那段以
+          <code>nums[j]</code> 结尾的子序列后面，让长度变成 <code>dp[j] + 1</code>。
+          把所有满足条件的 <code>j</code> 都试一遍，取最大值：
+        </p>
+        <div class="example-box">
+          <div><code>dp[i] = max(dp[j] + 1)</code>，其中 <code>0 ≤ j &lt; i</code> 且 <code>nums[j] &lt; nums[i]</code></div>
+          <p class="example-box__note">
+            如果没有任何 <code>j</code> 满足条件，<code>dp[i]</code> 就是 1（自己单独成一段）。
+            算完所有 <code>dp[i]</code>，答案就是它们里的最大值。
+          </p>
+        </div>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>外层 i、内层 j 各扫一遍，是 <code>O(n²)</code>。
+          题目里 n 能到 2500，约六百万次比较还能接受，但官方明确「进阶」要求降到
+          <code>O(n log n)</code>——问题就出在每算一个 <code>dp[i]</code> 都要把前面<strong>重新扫一遍</strong>。
+        </div>
+      </section>
+
+      <!-- 3. 贪心 + 二分查找 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：贪心维护一个「最小结尾」数组 + 二分查找</h2>
+        <p>
+          换个角度：维护一个数组 <code>tails</code>，<code>tails[k]</code> 表示
+          「长度为 <code>k+1</code> 的递增子序列」里，<strong>结尾数字能取到的最小值</strong>。
+          结尾越小，以后就越容易接上更多的数——这就是贪心的核心想法。
+        </p>
+        <p>
+          可以证明 <code>tails</code> 本身始终是<strong>严格递增</strong>的，这正是它能用二分查找的前提。
+          从左到右扫一遍 <code>nums</code>，对每个数 <code>x</code>：
+        </p>
+        <ul>
+          <li>在 <code>tails</code> 里二分查找<strong>第一个 ≥ x</strong> 的位置 <code>pos</code>；</li>
+          <li>如果 <code>pos</code> 等于 <code>tails</code> 的长度（<code>x</code> 比所有结尾都大）：
+            把 <code>x</code> 接在末尾，<code>tails</code> 变长 → 当前最长长度 +1；</li>
+          <li>否则：用更小的 <code>x</code> 把 <code>tails[pos]</code> 原地替换掉，长度不变，
+            但给「以后接上更多数」留了更大的空间。</li>
+        </ul>
+        <p>
+          全程 <code>tails.length</code> 就是「当前看到的最长递增子序列长度」；扫完整个数组即为答案。
+          二分查找把「找位置」从 <code>O(n)</code> 的线性扫描换成了 <code>O(log n)</code>，这就是
+          <code>O(n log n)</code> 的关键。
+        </p>
+
+        <div class="callout">
+          <strong>提醒：</strong><code>tails</code> 数组本身<strong>不是</strong>一条真实存在的递增子序列
+          （它的元素可能来自原数组里互不相邻、甚至顺序颠倒的位置），它只是用来「记录长度」的辅助结构。
+          下面的动画会在扫描结束后，额外用 <code>prev</code> 指针回溯还原出一条真正合法的最长递增子序列，
+          在原数组里用金色标出。
+        </div>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前 nums[i] / 二分查找的 mid</span>
+          <span><i class="sw sw--src"></i> tails（派生出的「最小结尾」数组）</span>
+          <span><i class="sw sw--ok"></i> mid 可能是答案 / 新接到末尾</span>
+          <span><i class="sw sw--bad"></i> mid 太小，需要往右收紧</span>
+          <span><i class="sw sw--gold"></i> 原地替换 / 还原出的最长递增子序列</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>0,1,0,3,2,3</code>，看看 tails 是怎么一边变长、一边被更小的数替换的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> lengthOfLIS(<span class="ty">int</span>[] nums) {
+        <span class="ty">int</span>[] tails = <span class="kw">new</span> <span class="ty">int</span>[nums.length]; <span class="cm">// tails[k]：长度 k+1 的递增子序列的最小结尾</span>
+        <span class="ty">int</span> len = <span class="nm">0</span>; <span class="cm">// tails 当前的有效长度，也就是已知最长递增子序列长度</span>
+
+        <span class="kw">for</span> (<span class="ty">int</span> x : nums) {
+            <span class="cm">// 在 tails[0, len) 里二分查找第一个 >= x 的位置（lower bound）</span>
+            <span class="ty">int</span> lo = <span class="nm">0</span>, hi = len;
+            <span class="kw">while</span> (lo &lt; hi) {
+                <span class="ty">int</span> mid = (lo + hi) &gt;&gt;&gt; <span class="nm">1</span>;
+                <span class="kw">if</span> (tails[mid] &lt; x) {
+                    lo = mid + <span class="nm">1</span>; <span class="cm">// mid 太小，答案在右边</span>
+                } <span class="kw">else</span> {
+                    hi = mid; <span class="cm">// mid 可能就是答案，收紧右边界</span>
+                }
+            }
+
+            tails[lo] = x; <span class="cm">// 新增到末尾，或原地替换成更小的结尾</span>
+            <span class="kw">if</span> (lo == len) {
+                len++; <span class="cm">// 比所有结尾都大，长度真的变长了</span>
+            }
+        }
+        <span class="kw">return</span> len;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n log n)</code>
+            <p>外层扫一遍数组是 O(n)，内层二分查找是 O(log n)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>额外用了一个长度不超过 n 的 tails 数组。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当动态规划的「逐一比较」太慢时，可以想想能不能找到一个
+          <strong>单调（有序）的辅助结构</strong>，把「线性查找」换成「二分查找」。
+          这道题里 <code>tails</code> 数组的贪心思想（也叫「耐心排序」patience sorting）
+          在很多「最长 XX 子序列 / 区间调度」类问题里都会反复出现，值得记住。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/300-longest-increasing-subsequence/page.js"></script>
+  </body>
+</html>

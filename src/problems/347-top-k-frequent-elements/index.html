@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>347. 前 K 个高频元素 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 347 前 K 个高频元素：为什么直接排序是 O(n log n)、桶排序如何把它降到 O(n)、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/347-top-k-frequent-elements/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          给一堆数字，找出出现次数最多的 K 个。先学会用哈希表「边走边记」，
+          再看怎么用一个巧妙的「桶排序」把它从 O(n log n) 降到 O(n)。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个数组 <code>nums</code>，里面的数字会重复出现。再给你一个整数
+          <code>k</code>，要你找出<strong>出现次数最多的 <code>k</code> 个不同数字</strong>，
+          顺序随意。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[1, 1, 1, 2, 2, 3]</code></div>
+          <div><span class="example-box__label">k</span><code>2</code></div>
+          <p class="example-box__note">
+            1 出现 3 次，2 出现 2 次，3 出现 1 次。出现次数前 2 高的是 1 和 2 →
+            返回 <code>[1, 2]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力到洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的办法，以及它的瓶颈</h2>
+        <p>
+          第一反应通常是：先用哈希表把每个数字出现的次数统计出来（值 → 次数），
+          再把这些「值-次数」对按次数<strong>从大到小排序</strong>，取前 <code>k</code> 个的值。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>统计本身只要 <code>O(n)</code>，但排序要
+          <code>O(u log u)</code>（<code>u</code> 是不同数字的个数，最坏 <code>u = n</code>）。
+          题目「进阶」明确要求做到<strong>优于</strong> <code>O(n log n)</code> ——
+          我们其实<strong>不需要把所有数字都排好序</strong>，只需要找出排在前 <code>k</code> 的那一小撮，
+          这就给了「桶排序」可乘之机。
+        </div>
+        <p>
+          关键观察：一个数字最多能出现 <code>n</code> 次（数组总长度），出现次数的范围是
+          <code>[1, n]</code>，是一个<strong>有限且已知</strong>的小区间。次数本身可以当「下标」用——
+          这正是桶排序的适用场景：当「排序的键」范围有限时，开一个数组按键直接归位，不用比较，
+          一次扫描就能按键的大小分好组。
+        </p>
+      </section>
+
+      <!-- 3. 桶排序 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用「桶排序」一遍搞定</h2>
+        <p>
+          做法分三步：
+        </p>
+        <ol>
+          <li>扫一遍 <code>nums</code>，用哈希表统计每个数字出现的次数。</li>
+          <li>
+            开一个大小为 <code>n + 1</code> 的「桶」数组，<strong>下标就是出现次数</strong>。
+            每个数字按它的出现次数，被放进对应下标的桶里（同一个桶可能有多个数字，
+            因为它们出现的次数一样多）。
+          </li>
+          <li>
+            从下标最大（出现次数最多）的桶开始，往下标小的桶扫，边扫边把桶里的数字收进答案，
+            凑够 <code>k</code> 个就停下。
+          </li>
+        </ol>
+        <p>
+          因为桶的数量是 <code>O(n)</code>，每个数字只会进一个桶，整个过程没有任何比较排序，
+          时间复杂度是 <code>O(n)</code>——比 <code>O(n log n)</code> 更优，正好满足进阶要求。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在处理</span>
+          <span><i class="sw sw--src"></i> 已装进桶 / 已统计</span>
+          <span><i class="sw sw--ok"></i> 已收集进最终答案</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>1,2,1,2,1,2,3,1,3,2</code>、k 改成 <code>2</code>，
+          看出现次数相同的数字怎么被装进同一个桶。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span>[] topKFrequent(<span class="ty">int</span>[] nums, <span class="ty">int</span> k) {
+        <span class="cm">// 1) 统计频率：值 -> 次数</span>
+        <span class="ty">Map</span>&lt;<span class="ty">Integer</span>, <span class="ty">Integer</span>&gt; freq = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">int</span> x : nums) {
+            freq.put(x, freq.getOrDefault(x, <span class="nm">0</span>) + <span class="nm">1</span>);
+        }
+
+        <span class="cm">// 2) 按频率装桶：下标即出现次数，桶里放达到该频率的数字</span>
+        <span class="ty">int</span> n = nums.length;
+        <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;[] buckets = <span class="kw">new</span> <span class="ty">List</span>[n + <span class="nm">1</span>];
+        <span class="kw">for</span> (<span class="ty">Map.Entry</span>&lt;<span class="ty">Integer</span>, <span class="ty">Integer</span>&gt; e : freq.entrySet()) {
+            <span class="ty">int</span> count = e.getValue();
+            <span class="kw">if</span> (buckets[count] == <span class="kw">null</span>) {
+                buckets[count] = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+            }
+            buckets[count].add(e.getKey());
+        }
+
+        <span class="cm">// 3) 从高频桶往低频桶收集，凑够 k 个就停</span>
+        <span class="ty">int</span>[] result = <span class="kw">new</span> <span class="ty">int</span>[k];
+        <span class="ty">int</span> idx = <span class="nm">0</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> count = n; count &gt;= <span class="nm">1</span> &amp;&amp; idx &lt; k; count--) {
+            <span class="kw">if</span> (buckets[count] == <span class="kw">null</span>) <span class="kw">continue</span>;
+            <span class="kw">for</span> (<span class="ty">int</span> val : buckets[count]) {
+                result[idx++] = val;
+                <span class="kw">if</span> (idx == k) <span class="kw">break</span>;
+            }
+        }
+        <span class="kw">return</span> result;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>统计频率一遍、装桶一遍、收集一遍，全程没有比较排序。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>哈希表和桶数组最坏情况下都要存下接近 n 个元素。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当你要排序的「键」（这里是出现次数）的取值范围
+          <strong>有限且已知</strong>时，不一定要用通用的比较排序，可以考虑「桶排序」——
+          把键直接当下标，开桶分组，一次扫描搞定。这道题还告诉我们：
+          题目只要前 <code>k</code> 个，往往意味着<strong>不需要把全部元素都排好序</strong>，
+          能省的功夫尽量省。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/347-top-k-frequent-elements/page.js"></script>
+  </body>
+</html>

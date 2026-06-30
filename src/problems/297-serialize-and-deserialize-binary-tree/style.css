@@ -1,0 +1,156 @@
+/* 297. 二叉树的序列化与反序列化 —— 动画舞台专属样式 */
+
+.sdt__panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.sdt__panel {
+  display: grid;
+  gap: var(--space-2);
+}
+.sdt__panel-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+.sdt__chartwrap {
+  overflow-x: auto;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+}
+.sdt__svg {
+  width: 100%;
+  min-width: 240px;
+  max-height: 280px;
+  display: block;
+}
+
+/* 连线 */
+.sdt-edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: opacity var(--duration) var(--ease), stroke var(--duration) var(--ease);
+}
+.sdt-edge.is-hidden {
+  opacity: 0;
+}
+.sdt-edge.is-final {
+  stroke: var(--ok);
+}
+
+/* 节点（真实节点圆圈 + null 占位虚线方块） */
+.sdt-node {
+  transition: opacity var(--duration) var(--ease);
+}
+.sdt-node.is-hidden {
+  opacity: 0;
+}
+.sdt-circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.sdt-val {
+  fill: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+.sdt-null {
+  fill: var(--color-surface);
+  stroke: var(--color-text-soft);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+
+.sdt-node.is-current .sdt-circle,
+.sdt-node.is-current .sdt-null {
+  stroke: var(--hi);
+  fill: var(--hi-bg);
+  stroke-width: 3;
+  transform: scale(1.15);
+}
+.sdt-node.is-built .sdt-circle,
+.sdt-node.is-built .sdt-null {
+  stroke: var(--src);
+  fill: var(--src-bg);
+}
+.sdt-node.is-final .sdt-circle,
+.sdt-node.is-final .sdt-null {
+  stroke: var(--ok);
+}
+
+/* 序列化字符串纸带 */
+.sdt__tapewrap {
+  display: grid;
+  gap: var(--space-2);
+}
+.sdt__tape-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+.sdt__tape {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.sdt-tok {
+  min-width: 2.4rem;
+  height: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+  background: var(--color-surface);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    opacity var(--duration) var(--ease);
+}
+.sdt-tok.is-written {
+  color: var(--color-text);
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.sdt-tok.is-read {
+  opacity: 0.5;
+}
+.sdt-tok.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  color: var(--color-text);
+  font-weight: 700;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sdt-edge,
+  .sdt-node,
+  .sdt-circle,
+  .sdt-null,
+  .sdt-tok {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .sdt__panels {
+    grid-template-columns: 1fr;
+  }
+}

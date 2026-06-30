@@ -1,0 +1,110 @@
+/* 424. 替换后的最长重复字符 —— 动画舞台专属样式 */
+
+.lrc__strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.lrc__cell {
+  position: relative;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.lrc__ch {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.lrc__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+
+/* 当前窗口 [left, right] */
+.lrc__cell.is-window {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+/* 右指针刚扫到的字符 */
+.lrc__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 2;
+}
+/* 本步因收缩而移出窗口的字符 */
+.lrc__cell.is-out {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+}
+/* 历史最优子串 */
+.lrc__cell.is-best {
+  border-color: var(--gold);
+}
+.lrc__cell.is-best:not(.is-window):not(.is-current) {
+  background: var(--gold-bg);
+}
+
+.lrc__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.lrc__answer strong {
+  color: var(--color-accent);
+}
+
+.lrc__countslabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.lrc__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.lrc__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.lrc__chip.is-max {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  font-weight: 700;
+}
+.lrc__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lrc__cell {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .lrc__cell {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+}

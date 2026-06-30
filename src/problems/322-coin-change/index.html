@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>322. 零钱兑换 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 322 零钱兑换：为什么贪心会出错、暴力递归如何重复计算子问题、自底向上一维 DP 怎样把问题降到 O(amount·n)，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/322-coin-change/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一道「完全背包」的经典变体：每种硬币能用无限次，求凑出目标金额所需的最少硬币数。
+          看完你会明白：为什么贪心会踩坑、自底向上的一维 DP 又是怎么把它稳稳解决的。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你几种硬币的面额 <code>coins</code>（每种硬币可以用<strong>无限次</strong>），
+          以及一个目标金额 <code>amount</code>。问：最少用<strong>几枚</strong>硬币能正好凑出
+          <code>amount</code>？凑不出就返回 <code>-1</code>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">coins</span><code>[1, 2, 5]</code></div>
+          <div><span class="example-box__label">amount</span><code>11</code></div>
+          <p class="example-box__note">
+            11 = 5 + 5 + 1，用了 3 枚硬币，是最少的方案 → 返回 <code>3</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力/洞察：贪心会错、暴力递归会重复 -->
+      <section class="article__section">
+        <h2>🐢 第二步：贪心会踩坑，暴力又太慢</h2>
+        <p>
+          第一反应常常是「贪心」：每次都拿能用的<strong>最大面额</strong>。但贪心在这题上是
+          <strong>错的</strong>——
+        </p>
+        <div class="callout callout--warn">
+          <strong>反例：</strong><code>coins = [1, 3, 4]</code>，<code>amount = 6</code>。
+          贪心会先拿 4，剩 2，再拿 1、1 → 一共 <strong>3</strong> 枚（4+1+1）。
+          但其实 <code>3 + 3 = 6</code> 只需要 <strong>2</strong> 枚。贪心只看眼前最大，
+          不会回头比较，所以会错过更优解。
+        </div>
+        <p>
+          那就只能枚举所有组合：每一步都试遍每种硬币，递归地问「凑出剩下的金额最少要几枚」。
+          这样能保证对，但同一个「剩下的金额」会被<strong>反复递归</strong>很多次——
+          比如凑 11 可能先减 5 再减 2 剩 4，也可能先减 2 再减 5 剩 4，两条路都会重新算一遍
+          「凑出 4 最少要几枚」。子问题大量重叠，暴力递归会指数级爆炸。
+        </p>
+      </section>
+
+      <!-- 3. 动态规划 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：自底向上，把重复子问题只算一次</h2>
+        <p>
+          既然「凑出金额 j 最少要几枚硬币」会被反复问到，那就把答案<strong>记下来</strong>，
+          而且按金额从小到大依次算好——这样轮到大金额时，它需要的小金额答案早就现成了。
+        </p>
+        <p>
+          定义 <code>dp[j]</code> = 凑出金额 <code>j</code> 所需的最少硬币数（凑不出记为 ∞）。
+        </p>
+        <ul>
+          <li><strong>边界：</strong><code>dp[0] = 0</code>（凑 0 元不需要任何硬币）。</li>
+          <li>
+            <strong>转移：</strong>对每个面额 <code>c ≤ j</code>，如果用一枚 <code>c</code>，
+            剩下的 <code>j − c</code> 已经算好了，那么
+            <code>dp[j] = min(dp[j], dp[j − c] + 1)</code>。
+          </li>
+        </ul>
+        <p>
+          因为 <code>j − c &lt; j</code>，只要按 <code>j</code> 从小到大算，算到 <code>j</code>
+          时所有 <code>dp[j − c]</code> 都已经是确定值——这就是「自底向上」。最终答案就是
+          <code>dp[amount]</code>，如果还是 ∞ 就返回 <code>-1</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在计算的 dp[j]</span>
+          <span><i class="sw sw--src"></i> 被参考的来源格 dp[j−c]</span>
+          <span><i class="sw sw--ok"></i> 本步选中的最优转移</span>
+          <span><i class="sw sw--gold"></i> 最终答案 dp[amount]</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把面额改成 <code>1,3,4</code>、amount 改成 <code>6</code>，亲眼看看为什么
+          <code>dp[6]</code> 会选 <code>3 + 3</code> 而不是贪心的 <code>4 + 1 + 1</code>。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> coinChange(<span class="ty">int</span>[] coins, <span class="ty">int</span> amount) {
+        <span class="cm">// dp[j]：凑出金额 j 所需的最少硬币数；先全部设成「凑不出」</span>
+        <span class="ty">int</span>[] dp = <span class="kw">new</span> <span class="ty">int</span>[amount + <span class="nm">1</span>];
+        <span class="ty">Arrays</span>.fill(dp, <span class="ty">Integer</span>.MAX_VALUE);
+        dp[<span class="nm">0</span>] = <span class="nm">0</span>; <span class="cm">// 边界：凑 0 元不需要任何硬币</span>
+
+        <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">1</span>; j &lt;= amount; j++) {
+            <span class="kw">for</span> (<span class="ty">int</span> c : coins) {
+                <span class="kw">if</span> (c &lt;= j &amp;&amp; dp[j - c] != <span class="ty">Integer</span>.MAX_VALUE) {
+                    dp[j] = <span class="ty">Math</span>.min(dp[j], dp[j - c] + <span class="nm">1</span>);
+                }
+            }
+        }
+        <span class="kw">return</span> dp[amount] == <span class="ty">Integer</span>.MAX_VALUE ? -<span class="nm">1</span> : dp[amount];
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(amount · n)</code>
+            <p>外层金额从 1 到 amount，内层遍历 n 种面额。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(amount)</code>
+            <p>只需要一个长度为 amount + 1 的一维 dp 数组。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>这是「完全背包」的最少件数变体——每种物品（硬币）可以重复选，
+          求凑出目标值的最少数量。核心都是同一句话：<strong>把子问题的答案存下来，按规模从小到大递推</strong>，
+          就能把指数级的暴力递归压成一遍多项式时间的扫描。遇到「贪心直觉不靠谱、子问题又有重叠」的题，
+          先想想能不能这样定义 dp 数组、写出转移方程。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/322-coin-change/page.js"></script>
+  </body>
+</html>

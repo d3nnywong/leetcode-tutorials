@@ -1,0 +1,140 @@
+/* 371. 两整数之和 —— 动画舞台专属样式 */
+
+.soi__caption {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-2);
+}
+.soi__caption code {
+  font-family: var(--font-mono);
+}
+
+.soi__board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.soi__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.soi__label {
+  width: 2.6rem;
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  text-align: right;
+}
+.soi__row--r .soi__label {
+  color: var(--color-text);
+}
+
+.soi__bits {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding-block: 2px;
+}
+
+.soi__cell {
+  flex: 0 0 auto;
+  width: 1.3rem;
+  height: 1.55rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.72rem;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.soi__cell--group {
+  margin-right: var(--space-2);
+}
+
+/* a / b 行：异或阶段标出「不同的位」，进位阶段标出「同为 1 的位」 */
+.soi__cell.is-diff {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.1);
+  z-index: 1;
+}
+.soi__cell.is-and {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+/* 结果行：本步算出的值里为 1 的位 */
+.soi__cell.is-bit {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+.soi__cell.is-final {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  box-shadow: var(--shadow);
+  transform: scale(1.15);
+  z-index: 1;
+}
+
+.soi__dec {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  min-width: 4.5rem;
+}
+
+.soi__opline {
+  padding-left: 2.6rem;
+}
+.soi__op {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}
+
+.soi__rule {
+  margin-left: 2.6rem;
+  height: 2px;
+  width: 100%;
+  max-width: 38rem;
+  background: var(--color-border);
+}
+
+.soi__roundinfo {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+@media (max-width: 640px) {
+  .soi__cell {
+    width: 1.05rem;
+    height: 1.3rem;
+    font-size: 0.62rem;
+  }
+  .soi__label {
+    width: 2rem;
+  }
+  .soi__dec {
+    min-width: 3.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soi__cell {
+    transition: none;
+  }
+}

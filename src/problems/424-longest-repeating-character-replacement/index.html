@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>424. 替换后的最长重复字符 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 424 替换后的最长重复字符：暴力枚举子串为什么慢、滑动窗口配合「窗口内出现次数最多的字母」如何把时间降到 O(n)、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/424-longest-repeating-character-replacement/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一道经典的「滑动窗口」题：窗口要扩张到多大，才能用最多 k 次替换把窗口里的字符都变成同一个？
+          看完你会明白，答案藏在一个不起眼的小技巧里——<strong>maxCount 只增不减</strong>。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个只含大写字母的字符串 <code>s</code>，你有 <code>k</code> 次「魔法」机会，
+          每次可以把字符串里<strong>任意一个</strong>字符改成<strong>任意其他</strong>大写字母。
+          用最多 <code>k</code> 次魔法之后，整个字符串里能拼出的「<strong>同一个字母连续重复</strong>」的最长一段有多长？
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">s</span><code>"AABABBA"</code></div>
+          <div><span class="example-box__label">k</span><code>1</code></div>
+          <p class="example-box__note">
+            把中间那个 'A' 改成 'B'，字符串变成 <code>"AABBBBA"</code>，
+            其中 <code>"BBBB"</code> 是连续 4 个相同字母 → 答案 <code>4</code>。
+          </p>
+        </div>
+        <p>
+          注意：题目要的是「替换之后」的最长<strong>子串</strong>（连续的一段），不是子序列；
+          而且我们不需要真的把字符串改出来，只要算出这个最长长度即可。
+        </p>
+      </section>
+
+      <!-- 2. 暴力 / 洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：从暴力到「窗口要满足的条件」</h2>
+        <p>
+          最直接的想法：枚举所有子串 <code>s[l..r]</code>，数一数里面出现次数最多的字母有几个
+          （记作 <code>maxCount</code>），剩下 <code>(r − l + 1) − maxCount</code> 个字符就是
+          需要替换成那个最多字母的数量。如果这个数量 <code>≤ k</code>，这个子串就「合法」
+          （能在 k 次内变成全同一字母）。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>枚举所有子串是 <code>O(n²)</code>，每个子串再数一遍字母出现次数又是
+          <code>O(n)</code>，总共 <code>O(n³)</code>（哪怕优化到边扩展边统计也是 <code>O(n²)</code>）。
+          数组长度能到 10⁵，这样肯定超时。
+        </div>
+        <p>
+          关键洞察：判断一个窗口合不合法只需要一个公式——
+          <code>窗口长度 − maxCount ≤ k</code>。
+          于是想法变成：用一个<strong>滑动窗口</strong> <code>[left, right]</code>，
+          一边向右扩张一边维护这个公式，不合法就收缩左边界，<strong>全程只扫一遍</strong>。
+        </p>
+      </section>
+
+      <!-- 3. 滑动窗口 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：滑动窗口 + 「maxCount 只增不减」</h2>
+        <p>
+          维护一个窗口 <code>[left, right]</code> 和一个 26 个字母的计数数组 <code>count</code>。
+          <code>right</code> 每右移一格，就把新字符计入 <code>count</code>，并顺手更新
+          <code>maxCount = max(maxCount, count[新字符])</code>。
+        </p>
+        <p>
+          只要 <code>(right − left + 1) − maxCount &gt; k</code>，说明这个窗口光靠 k 次替换凑不出
+          「全同一字母」，就把 <code>left</code> 右移一格（把移出窗口的字符计数减一）。
+          每一步结束，<code>right − left + 1</code> 就是当前合法窗口的长度，取这些长度里的最大值就是答案。
+        </p>
+        <p>
+          <strong>为什么 maxCount 可以「只增不减」、不用每次重新扫一遍找最大值？</strong>
+          因为我们的目标不是「让窗口始终合法」，而是「找到出现过的最长合法窗口长度」。
+          就算 <code>maxCount</code> 用的是过期的（其实当前窗口里最多字母数已经变少）也没关系——
+          它最多让窗口<strong>少收缩一次</strong>，窗口长度也就<strong>原地不变，不会变长</strong>，
+          所以不会把错误答案当成更优答案；而它确实曾经达到过那个 <code>maxCount</code>，
+          说明「答案至少有这么长」是成立的。这样窗口长度只增不减（最多回退 1），扫一遍就够。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前 right 指向的字符</span>
+          <span><i class="sw sw--src"></i> 当前窗口 [left, right]</span>
+          <span><i class="sw sw--bad"></i> 收缩时移出窗口的字符</span>
+          <span><i class="sw sw--gold"></i> 目前为止最优子串</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把字符串改成 <code>ABAB</code>、k 改成 <code>2</code>，看窗口怎么一路扩张到整个字符串都不用收缩。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> characterReplacement(<span class="ty">String</span> s, <span class="ty">int</span> k) {
+        <span class="ty">int</span>[] count = <span class="kw">new</span> <span class="ty">int</span>[<span class="nm">26</span>]; <span class="cm">// 窗口内每个大写字母出现的次数</span>
+        <span class="ty">int</span> left = <span class="nm">0</span>, maxCount = <span class="nm">0</span>, ans = <span class="nm">0</span>;
+
+        <span class="kw">for</span> (<span class="ty">int</span> right = <span class="nm">0</span>; right &lt; s.length(); right++) {
+            <span class="ty">int</span> idx = s.charAt(right) - <span class="st">'A'</span>;
+            count[idx]++;
+            maxCount = <span class="ty">Math</span>.max(maxCount, count[idx]); <span class="cm">// 只增不减，无需重新扫描</span>
+
+            <span class="cm">// 窗口长度 - maxCount 就是需要替换的字符数，超过 k 就收缩左边界</span>
+            <span class="kw">while</span> (right - left + <span class="nm">1</span> - maxCount &gt; k) {
+                count[s.charAt(left) - <span class="st">'A'</span>]--;
+                left++;
+            }
+
+            ans = <span class="ty">Math</span>.max(ans, right - left + <span class="nm">1</span>);
+        }
+        <span class="kw">return</span> ans;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>
+              <code>left</code> 和 <code>right</code> 各自只会向右移动，加起来最多移动 2n 次。
+            </p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>计数数组固定 26 个大写字母，大小不随输入变化。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当题目里出现「最多操作 k 次」「连续子串」这类条件时，
+          先想想能不能把它转成一个<strong>滑动窗口的合法性判断公式</strong>——
+          本题就是 <code>窗口长度 − maxCount ≤ k</code>。一旦能写出这样的公式，
+          就可以一边扩张窗口一边维护统计量，不合法就收缩，整个过程线性扫描搞定，
+          这是「最长连续子串」类问题的通用解法。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/424-longest-repeating-character-replacement/page.js"></script>
+  </body>
+</html>

@@ -1,0 +1,126 @@
+/* 323. 无向图中连通分量的数目 —— 动画舞台专属样式（并查集 union-find，前缀 ucc__） */
+
+.ucc__graph {
+  display: flex;
+  justify-content: center;
+}
+.ucc__svg {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+}
+
+/* 边 */
+.ucc__edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: stroke var(--duration) var(--ease), stroke-width var(--duration) var(--ease),
+    opacity var(--duration) var(--ease);
+}
+.ucc__edge.is-done {
+  stroke: var(--src);
+  stroke-width: 3;
+}
+.ucc__edge.is-current {
+  stroke: var(--hi);
+  stroke-width: 4;
+  filter: drop-shadow(0 0 3px var(--hi));
+}
+.ucc__edge.is-skip {
+  stroke: var(--bad);
+  stroke-width: 3;
+  stroke-dasharray: 6 5;
+}
+
+/* 节点 */
+.ucc__node circle {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  fill: var(--color-surface);
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.ucc__node text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--color-text);
+  pointer-events: none;
+}
+.ucc__node.is-current circle {
+  stroke-width: 3;
+  transform: scale(1.18);
+  filter: drop-shadow(0 0 4px var(--hi));
+}
+
+/* 分量配色：按「当前根节点」轮转取色 */
+.ucc__node.ucc-c0 circle {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+}
+.ucc__node.ucc-c1 circle {
+  fill: var(--src-bg);
+  stroke: var(--src);
+}
+.ucc__node.ucc-c2 circle {
+  fill: var(--ok-bg);
+  stroke: var(--ok);
+}
+.ucc__node.ucc-c3 circle {
+  fill: var(--bad-bg);
+  stroke: var(--bad);
+}
+.ucc__node.ucc-c4 circle {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+}
+
+/* 信息区：分量计数 + parent 数组 */
+.ucc__info {
+  display: grid;
+  gap: var(--space-2);
+}
+.ucc__count {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.ucc__count strong {
+  color: var(--color-text);
+}
+.ucc__parentlabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.ucc__parent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.ucc__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.ucc__chip.is-hit {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ucc__edge,
+  .ucc__node circle {
+    transition: none;
+  }
+  .ucc__node.is-current circle {
+    transform: none;
+  }
+}

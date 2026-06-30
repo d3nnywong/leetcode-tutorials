@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>297. 二叉树的序列化与反序列化 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 297 二叉树的序列化与反序列化：为什么光记值不够、前序遍历 + null 占位符为什么能把一棵树原样写成字符串又读回来，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/297-serialize-and-deserialize-binary-tree/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一棵二叉树活在内存里，全靠一个个指针互相牵着。怎么把它原样存进一个文件、
+          或者从网络那头原样收回来？这道「设计」难题的答案，其实只是两句话：
+          按固定顺序走一遍树，连「没有孩子」也老老实实写下来。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：「序列化」到底要干什么</h2>
+        <p>
+          二叉树存在内存里的时候，节点之间全靠 <code>left</code> / <code>right</code> 指针互相牵着。
+          <strong>序列化（serialize）</strong> 就是把这棵「指针搭起来的树」压成<strong>一个普通字符串</strong>，
+          这样就能写进文件、存进数据库，或者通过网络发给另一台机器。
+          <strong>反序列化（deserialize）</strong> 则是反过来——拿到这个字符串，
+          原样重建出<strong>结构、节点值都一模一样</strong>的那棵树。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[1,2,3,null,null,4,5]</code></div>
+          <p class="example-box__note">
+            根节点 1，左孩子 2（2 没有孩子），右孩子 3，3 又有左孩子 4、右孩子 5。
+            目标：把这棵树变成一个字符串，再保证从这个字符串能<strong>精确地</strong>还原出同一棵树
+            ——不能多一个节点、不能少一个节点，更不能左右孩子认错。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🔑 第二步：光记节点值，为什么不够</h2>
+        <p>
+          最直接的想法：把树「拍平」成一串数字不就行了？比如中序遍历一遍，把每个节点的值依次写下来。
+          但这里有个致命问题——<strong>同一串数字，可能对应好几棵长得完全不同的树</strong>。
+          光看值的序列，根本不知道谁是谁的孩子、谁挂在左边、谁挂在右边。
+        </p>
+        <div class="callout callout--warn">
+          <p>
+            <strong>关键洞察：</strong>要让字符串能被<strong>唯一</strong>还原回原来的树，
+            光写「有什么节点」不够，还必须写清楚「树的形状」——也就是<strong>每个节点的孩子在哪、
+            哪里没有孩子</strong>。做法是：
+          </p>
+          <ul style="margin-top: var(--space-3)">
+            <li>
+              按<strong>前序遍历</strong>（根 → 左子树 → 右子树）的顺序访问节点——这样第一个写下来的值，
+              永远是「当前这棵（子）树」的根，反序列化时一读就知道从哪里开始建。
+            </li>
+            <li>
+              每当走到一个<strong>空位置</strong>（某个节点没有左孩子或右孩子），也明确写一个
+              <code>null</code> 占位——它告诉反序列化「这里到此为止，不用再往下读」。
+            </li>
+          </ul>
+        </div>
+        <p>
+          有了 null 占位符，前序序列就变成了<strong>唯一</strong>对应一棵树的「编码」：
+          反序列化时只要按写入的顺序依次读 token，读到数字就建节点、再递归建它的左右子树，
+          读到 <code>null</code> 就直接返回——读的顺序和写的顺序天然对得上，一气呵成。
+        </p>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：看动画——先「前序写」，再「前序读」</h2>
+        <p>
+          左边是原始的树：动画按前序顺序逐个访问真实节点（写入它的值）和空位置（写入
+          <code>null</code>），下方的「纸带」会同步把字符串一格一格填出来。
+          写完之后，右边的空白区域开始按<strong>完全相同的顺序</strong>读这条纸带，
+          每读到一个数字就新建一个节点、挂回它原来的位置，直到整棵树重新长出来。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 正在访问 / 正在新建的节点</span>
+          <span><i class="sw sw--src"></i> 已写入字符串 / 已重建好的节点</span>
+          <span><i class="sw sw--ok"></i> 反序列化全部完成</span>
+        </div>
+        <p class="dp-step__hint" style="margin-top: calc(var(--space-3) * -1)">
+          图中带虚线边框的小方块代表 <code>null</code> 占位（这个位置没有孩子），
+          它和真实节点一样会被写进字符串、也会被读回来。
+        </p>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把输入改成 <code>1,2</code>，看一条「歪脖子」链是怎么靠 null 占位区分左右孩子的；
+          也可以把输入框清空（<code>[]</code>），看看空树怎么一个 <code>null</code> 就搞定往返。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">Codec</span> {
+
+    <span class="cm">// 序列化：前序遍历，每到一个节点写它的值，每到空位置写 "null"</span>
+    <span class="kw">public</span> <span class="ty">String</span> serialize(<span class="ty">TreeNode</span> root) {
+        <span class="ty">StringBuilder</span> sb = <span class="kw">new</span> <span class="ty">StringBuilder</span>();
+        buildString(root, sb);
+        <span class="kw">return</span> sb.toString();
+    }
+
+    <span class="kw">private</span> <span class="kw">void</span> buildString(<span class="ty">TreeNode</span> node, <span class="ty">StringBuilder</span> sb) {
+        <span class="kw">if</span> (node == <span class="kw">null</span>) {
+            sb.append(<span class="st">"null,"</span>); <span class="cm">// 空位置也要老老实实记下来</span>
+            <span class="kw">return</span>;
+        }
+        sb.append(node.val).append(<span class="st">","</span>);
+        buildString(node.left, sb);  <span class="cm">// 先写左子树</span>
+        buildString(node.right, sb); <span class="cm">// 再写右子树</span>
+    }
+
+    <span class="cm">// 反序列化：按写入时同样的前序顺序，从一个队列里依次取 token 重建</span>
+    <span class="kw">public</span> <span class="ty">TreeNode</span> deserialize(<span class="ty">String</span> data) {
+        <span class="ty">Deque</span>&lt;<span class="ty">String</span>&gt; queue = <span class="kw">new</span> <span class="ty">ArrayDeque</span>&lt;&gt;(<span class="ty">Arrays</span>.asList(data.split(<span class="st">","</span>)));
+        <span class="kw">return</span> buildTree(queue);
+    }
+
+    <span class="kw">private</span> <span class="ty">TreeNode</span> buildTree(<span class="ty">Deque</span>&lt;<span class="ty">String</span>&gt; queue) {
+        <span class="ty">String</span> val = queue.poll(); <span class="cm">// 队首永远是「下一个该读」的 token</span>
+        <span class="kw">if</span> (<span class="st">"null"</span>.equals(val)) {
+            <span class="kw">return</span> <span class="kw">null</span>; <span class="cm">// 读到占位符，这里没有节点</span>
+        }
+        <span class="ty">TreeNode</span> node = <span class="kw">new</span> <span class="ty">TreeNode</span>(<span class="ty">Integer</span>.parseInt(val));
+        node.left = buildTree(queue);  <span class="cm">// 接着读的就是它的左子树</span>
+        node.right = buildTree(queue); <span class="cm">// 左子树读完之后，紧接着就是右子树</span>
+        <span class="kw">return</span> node;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>序列化、反序列化都只把每个真实节点（和每个空位置）访问一次。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>
+              序列化字符串本身长度是 O(n)；反序列化的队列也存了 O(n) 个 token；
+              另外递归调用栈最坏是 O(n)（树退化成链），平衡树是 O(log n)。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>这是一道「设计」题，没有唯一的标准答案——只要序列化和反序列化
+          能配成一对、互相还原就行。前序遍历 + null 占位符是最直观的一种：第一个 token 永远是
+          「当前（子）树的根」，天然适合递归重建。你也完全可以换成<strong>层序遍历（BFS）</strong>，
+          用队列代替递归调用栈，思路是一样的：写的时候记下每个节点的孩子（包括 null），
+          读的时候按同样的顺序把节点和它们的孩子一一对上。<strong>核心只有一句话：
+          只要写入和读取的顺序、规则严格对称，结构信息就不会丢。</strong>
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/297-serialize-and-deserialize-binary-tree/page.js"></script>
+  </body>
+</html>

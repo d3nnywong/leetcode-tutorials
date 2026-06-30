@@ -1,0 +1,156 @@
+/* 295. 数据流的中位数 —— 动画舞台专属样式 */
+
+.mf__stream-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+.mf__stream {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+.mf__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  opacity: 0.5;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.mf__cell-val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.mf__cell-idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.mf__cell.is-done {
+  opacity: 0.45;
+  border-style: dashed;
+}
+.mf__cell.is-current {
+  opacity: 1;
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+.mf__heaps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.mf__heap {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.mf__panel-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-2);
+}
+.mf__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-height: 2.6rem;
+}
+.mf__chip {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  padding: 0.35em 0.7em;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  transition: border-color var(--duration) var(--ease), background var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.mf__chip small {
+  font-weight: 400;
+  font-size: 0.62rem;
+  color: var(--color-text-soft);
+}
+.mf__chip.is-top {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.mf__chip.is-top-hi {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  transform: scale(1.08);
+}
+.mf__chip.is-new {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+}
+.mf__chip.is-moving {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  transform: translateY(-3px);
+}
+.mf__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+.mf__median {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.mf__median-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  color: var(--color-text-soft);
+}
+.mf__median-value.is-ready {
+  color: var(--gold);
+  font-size: 1.4rem;
+}
+.mf__pending {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf__cell,
+  .mf__chip {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .mf__heaps {
+    grid-template-columns: 1fr;
+  }
+  .mf__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}

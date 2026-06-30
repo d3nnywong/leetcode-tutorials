@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>417. 太平洋大西洋水流问题 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 417 太平洋大西洋水流问题：为什么正着模拟每个格子很慢、反向多源 BFS 从两个海岸线逆流而上如何一次扫描求出答案，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/417-pacific-atlantic-water-flow/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一座岛，左边和上边挨着太平洋，右边和下边挨着大西洋。雨水往低处（或一样高）流，
+          哪些格子的水<strong>两个海洋都能流到</strong>？正着模拟很慢，
+          <strong>反过来从海岸线往高处逆流</strong>，一次扫描就能求出答案。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个 <code>m × n</code> 的高度矩阵 <code>heights</code>，代表一座岛。
+          岛的<strong>左边界和上边界</strong>挨着<strong>太平洋</strong>，
+          <strong>右边界和下边界</strong>挨着<strong>大西洋</strong>。
+          雨水可以从一个格子流向<strong>上下左右</strong>相邻、且高度
+          <strong>小于或等于</strong>自己的格子（水往低处流，一样高也能流）。
+          紧挨着海洋的格子，水可以直接流进海洋。
+        </p>
+        <p>
+          问：哪些格子的雨水，顺着流，<strong>既能流到太平洋，又能流到大西洋</strong>？
+          把这些格子的坐标 <code>[r, c]</code> 都找出来。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">heights</span><code>[[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]</code></div>
+          <p class="example-box__note">
+            比如格子 <code>(0,4)</code> 高度是 5，本身就贴着太平洋（第 0 行）和大西洋（最后一列），
+            两边都能直接流到 → 它是答案之一。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力会怎样 -->
+      <section class="article__section">
+        <h2>🐢 第二步：直接模拟为什么慢</h2>
+        <p>
+          最直接的想法：对<strong>每一个格子</strong>，都从它出发做一次 DFS/BFS，
+          顺着「能流向更低或相等的邻居」往外扩散，看看扩散的范围能不能同时摸到
+          第 0 行/第 0 列（太平洋）和最后一行/最后一列（大西洋）。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>网格有 <code>m × n</code> 个格子，每个格子都要做一次最坏
+          <code>O(m × n)</code> 的搜索，总复杂度 <code>O((m × n)²)</code>。
+          200 × 200 的网格能到 16 亿次级别——本质问题是：我们对「水流方向」
+          <strong>正着想，每个格子都要重新走一遍完整的路</strong>，没有任何复用。
+        </div>
+      </section>
+
+      <!-- 3. 反向多源 BFS + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：反过来想——从海岸线倒着「逆流」</h2>
+        <p>
+          关键洞察：与其对每个格子分别判断「它能不能流到海」，不如<strong>反过来</strong>——
+          直接从海岸线出发，找「谁能流到我这里」。水从高处流到低（或相等）处，
+          那反过来从低处「爬」到高（或相等）处，正好就是「正着能流过来」的所有格子。
+        </p>
+        <p>
+          于是：把<strong>第 0 行和第 0 列</strong>（挨着太平洋的格子）都作为起点，做一次
+          <strong>多源 BFS</strong>，只要邻居高度 <code>≥</code> 当前格子就标记并入队——
+          摸到的所有格子，就是「能流到太平洋」的格子。
+          再把<strong>最后一行和最后一列</strong>（挨着大西洋的格子）作为起点，
+          照样做一次，得到「能流到大西洋」的格子。
+          最后两边<strong>都摸到</strong>的格子，就是答案。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前出队处理的格子</span>
+          <span><i class="sw sw--src"></i> 能流到太平洋（蓝色，左/上有蓝色描边的是海岸）</span>
+          <span><i class="sw sw--ok"></i> 能流到大西洋（绿色，右/下有绿色描边的是海岸）</span>
+          <span><i class="sw sw--gold"></i> 两边都能流到 = 答案</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把矩阵改成官方示例 2 的 <code>1</code>（单格小岛，两边都能直接流到），
+          或者改小一点的 <code>1,2;1,2</code>，更容易跟着每一步看清楚「逆流」的方向。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">private</span> <span class="ty">int</span>[][] heights;
+    <span class="kw">private</span> <span class="ty">int</span> rows, cols;
+    <span class="kw">private</span> <span class="kw">static</span> <span class="kw">final</span> <span class="ty">int</span>[][] DIRS = {{-<span class="nm">1</span>, <span class="nm">0</span>}, {<span class="nm">1</span>, <span class="nm">0</span>}, {<span class="nm">0</span>, -<span class="nm">1</span>}, {<span class="nm">0</span>, <span class="nm">1</span>}};
+
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; pacificAtlantic(<span class="ty">int</span>[][] heights) {
+        <span class="kw">this</span>.heights = heights;
+        rows = heights.length;
+        cols = heights[<span class="nm">0</span>].length;
+        <span class="ty">boolean</span>[][] pacific = <span class="kw">new</span> <span class="ty">boolean</span>[rows][cols];
+        <span class="ty">boolean</span>[][] atlantic = <span class="kw">new</span> <span class="ty">boolean</span>[rows][cols];
+
+        <span class="cm">// 第 0 行/最后一行：分别贴着太平洋 / 大西洋</span>
+        <span class="kw">for</span> (<span class="ty">int</span> c = <span class="nm">0</span>; c &lt; cols; c++) {
+            dfs(<span class="nm">0</span>, c, pacific);
+            dfs(rows - <span class="nm">1</span>, c, atlantic);
+        }
+        <span class="cm">// 第 0 列/最后一列：分别贴着太平洋 / 大西洋</span>
+        <span class="kw">for</span> (<span class="ty">int</span> r = <span class="nm">0</span>; r &lt; rows; r++) {
+            dfs(r, <span class="nm">0</span>, pacific);
+            dfs(r, cols - <span class="nm">1</span>, atlantic);
+        }
+
+        <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; result = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">int</span> r = <span class="nm">0</span>; r &lt; rows; r++) {
+            <span class="kw">for</span> (<span class="ty">int</span> c = <span class="nm">0</span>; c &lt; cols; c++) {
+                <span class="kw">if</span> (pacific[r][c] &amp;&amp; atlantic[r][c]) {
+                    result.add(<span class="ty">Arrays</span>.asList(r, c));
+                }
+            }
+        }
+        <span class="kw">return</span> result;
+    }
+
+    <span class="cm">// 从海岸线格子 (r, c) 出发「逆流」：邻居高度 >= 当前格子就说明水能从那倒流过来</span>
+    <span class="kw">private</span> <span class="kw">void</span> dfs(<span class="ty">int</span> r, <span class="ty">int</span> c, <span class="ty">boolean</span>[][] visited) {
+        visited[r][c] = <span class="kw">true</span>;
+        <span class="kw">for</span> (<span class="ty">int</span>[] d : DIRS) {
+            <span class="ty">int</span> nr = r + d[<span class="nm">0</span>], nc = c + d[<span class="nm">1</span>];
+            <span class="kw">if</span> (nr &lt; <span class="nm">0</span> || nr &gt;= rows || nc &lt; <span class="nm">0</span> || nc &gt;= cols || visited[nr][nc]) <span class="kw">continue</span>;
+            <span class="kw">if</span> (heights[nr][nc] &lt; heights[r][c]) <span class="kw">continue</span>; <span class="cm">// 比当前还低，水流不过来，跳过</span>
+            dfs(nr, nc, visited);
+        }
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m × n)</code>
+            <p>太平洋和大西洋各做一次搜索，每个格子在每次搜索里最多被访问一次。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(m × n)</code>
+            <p>两个 <code>visited</code> 布尔矩阵，加上递归（或队列）最坏 O(m × n) 的深度。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当「从每个点出发判断能否到达终点」要做 <code>n</code> 次重复搜索时，
+          想想能不能<strong>反过来，从终点（或多个终点）出发</strong>，一次多源 BFS/DFS
+          把所有「能到达」的点标出来。这道题的两次反向 BFS，加上动画里看到的「双层标记取交集」，
+          是网格连通性问题里非常通用的一个技巧。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/417-pacific-atlantic-water-flow/page.js"></script>
+  </body>
+</html>

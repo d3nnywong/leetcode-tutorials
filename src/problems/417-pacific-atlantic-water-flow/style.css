@@ -1,0 +1,133 @@
+/* 417. 太平洋大西洋水流问题 —— 动画舞台专属样式 */
+
+.paw__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.paw__stats strong {
+  color: var(--color-text);
+}
+.paw__pos {
+  font-family: var(--font-mono);
+}
+
+.paw__grid {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 36rem;
+}
+
+.paw__cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition:
+    background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease),
+    box-shadow var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+
+/* 永久标记：哪条边挨着太平洋（上/左），哪条边挨着大西洋（下/右） */
+.paw__cell.edge-top {
+  border-top: 3px solid var(--src);
+}
+.paw__cell.edge-left {
+  border-left: 3px solid var(--src);
+}
+.paw__cell.edge-bottom {
+  border-bottom: 3px solid var(--ok);
+}
+.paw__cell.edge-right {
+  border-right: 3px solid var(--ok);
+}
+
+.paw__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* 左上角「P」「能流到太平洋」徽标、右下角「A」「能流到大西洋」徽标，默认隐藏 */
+.paw__p,
+.paw__a {
+  position: absolute;
+  font-size: 0.6rem;
+  font-weight: 800;
+  opacity: 0;
+  transition: opacity var(--duration) var(--ease);
+}
+.paw__p {
+  top: 2px;
+  left: 3px;
+  color: var(--src);
+}
+.paw__a {
+  bottom: 2px;
+  right: 3px;
+  color: var(--ok);
+}
+
+.paw__cell.is-pacific {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.paw__cell.is-pacific .paw__p {
+  opacity: 1;
+}
+.paw__cell.is-atlantic {
+  background: var(--ok-bg);
+  border-color: var(--ok);
+}
+.paw__cell.is-atlantic .paw__a {
+  opacity: 1;
+}
+.paw__cell.is-both {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+}
+.paw__cell.is-both .paw__p,
+.paw__cell.is-both .paw__a {
+  opacity: 1;
+}
+.paw__cell.is-both .paw__val {
+  color: var(--gold);
+}
+
+/* 当前正在处理（出队）的格子：内描边高亮 + 放大 */
+.paw__cell.is-current {
+  box-shadow: 0 0 0 3px var(--hi) inset;
+  transform: scale(1.1);
+  z-index: 1;
+}
+/* 本步新标记、压入队列的格子 */
+.paw__cell.is-frontier {
+  box-shadow: 0 0 0 2px var(--hi-bg) inset;
+}
+.paw__cell.is-current.is-frontier {
+  box-shadow: 0 0 0 3px var(--hi) inset;
+}
+
+@media (max-width: 560px) {
+  .paw__val {
+    font-size: 0.9rem;
+  }
+  .paw__p,
+  .paw__a {
+    font-size: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paw__cell {
+    transition: none;
+  }
+}

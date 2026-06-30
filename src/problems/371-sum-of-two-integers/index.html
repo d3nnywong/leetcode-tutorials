@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>371. 两整数之和 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 371 两整数之和：不用 + 和 - 运算符，如何用按位异或算「无进位和」、按位与再左移算「进位」，反复推进直到进位归零，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/371-sum-of-two-integers/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          不让用 <code>+</code> 和 <code>-</code>，加法还能怎么做？
+          这道题逼你把「加法」拆开来看：原来它从来就是「异或算和、与并左移算进位」反复来回，
+          这正是计算机里加法器真正的工作原理。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你两个整数 <code>a</code> 和 <code>b</code>，要你算出它们的和——但不准用
+          <code>+</code>，也不准用 <code>-</code>。也就是说，平时写
+          <code>a + b</code> 这一个字符就能搞定的事，现在只能靠
+          <strong>按位运算</strong>（<code>&amp;</code>、<code>|</code>、<code>^</code>、
+          <code>&lt;&lt;</code>、<code>&gt;&gt;</code>）自己「拼」出一套加法逻辑。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">a</span><code>1</code></div>
+          <div><span class="example-box__label">b</span><code>2</code></div>
+          <p class="example-box__note">
+            1 和 2 的二进制分别是 <code>01</code> 和 <code>10</code>，正好每一位都不同、
+            没有任何一位「撞 1」，加起来不会产生进位，直接拼成 <code>11</code> = 3。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>💡 第二步：拆开「手算加法」到底在干什么</h2>
+        <p>
+          回想小学竖式加法，比如 <code>5 + 7</code>：你会先把每一位本身加一加，
+          算不动的地方（比如个位 5+7=12，写 2 进 1）就单独「进位」到高一位，
+          然后再把进位加上去——如果加完又产生新的进位，就继续往上进，直到不再有进位为止。
+        </p>
+        <p>二进制下，这两件事都能直接用位运算精确表达：</p>
+        <div class="callout">
+          <strong>① 无进位和 = <code>a ^ b</code>：</strong>
+          按位异或——同一位上两个数<strong>不同</strong>就是 1，<strong>相同</strong>就是 0。
+          这恰好就是「完全不考虑进位」时，这一位单独相加该有的结果（1+0=1、0+0=0、1+1 进位后本位是 0）。
+        </div>
+        <div class="callout">
+          <strong>② 进位 = <code>(a &amp; b) &lt;&lt; 1</code>：</strong>
+          按位与——只有两个数<strong>同一位都是 1</strong>，这一位才会产生进位；
+          算出「都是 1」的那些位之后，整体左移一位，因为进位要加到<strong>高一位</strong>上去。
+        </div>
+        <p>
+          于是套路就是：先算一次「无进位和」和「进位」，让 <code>a</code> 变成无进位和、
+          <code>b</code> 变成进位，再重复同样的两步——直到某一轮算出的进位
+          <code>b</code> 变成 <strong>0</strong>（没有新的进位可加了），这时候的
+          <code>a</code> 就是最终答案。因为是 32 位整数，这个过程最多循环 32 轮就一定会结束。
+        </p>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：逐轮「异或 + 进位」动画</h2>
+        <p>
+          下面把 <code>a</code>、<code>b</code> 都按 32 位二进制（补码）展开，
+          每一轮拆成两小步：先异或出「无进位和」，再与并左移算出「进位」，
+          算完就把 <code>a</code>、<code>b</code> 更新成这两个新值，继续判断
+          <code>b</code> 是否归零。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> a/b 中「不同」的位（异或阶段）</span>
+          <span><i class="sw sw--gold"></i> a/b 中「都是 1」的位（进位阶段）</span>
+          <span><i class="sw sw--ok"></i> 本步算出的结果中为 1 的位</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 a 改成 <code>-1</code>、b 改成 <code>1</code>，看看负数的补码在最高位「全是 1」
+          时，要绕多少轮进位才能把它们一点点抵消干净。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> getSum(<span class="ty">int</span> a, <span class="ty">int</span> b) {
+        <span class="cm">// b 表示「还没加进 a 里的进位」，b 变成 0 时 a 就是最终结果</span>
+        <span class="kw">while</span> (b != <span class="nm">0</span>) {
+            <span class="ty">int</span> carry = (a &amp; b) &lt;&lt; <span class="nm">1</span>; <span class="cm">// 进位：同一位都是 1 才会进位，左移到高一位</span>
+            a = a ^ b;                  <span class="cm">// 无进位和：按位异或</span>
+            b = carry;                  <span class="cm">// 把进位留到下一轮继续加</span>
+        }
+        <span class="kw">return</span> a;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(1)</code>
+            <p>固定在 32 位整数范围内运算，循环次数被位宽（32）卡死上限，与数值大小无关。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了几个整型变量，不需要额外数组或哈希表。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>但凡看到「不准用 <code>+</code>/<code>-</code>」这类限制，
+          基本都是在考「加法的位运算实现」——记住这对黄金搭档：
+          <code>异或</code> 算「这一位单独相加的结果」，<code>与 + 左移</code> 算「要进到高一位的量」，
+          反复迭代直到进位为 0。这套「异或/与」的拆解思路不止能做加法，
+          后面遇到「不用额外变量交换两数」「找数组中只出现一次的数字」之类的位运算题，
+          本质上都是同一套工具箱在换着花样用。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/371-sum-of-two-integers/page.js"></script>
+  </body>
+</html>
