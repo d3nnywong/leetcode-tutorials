@@ -1,0 +1,262 @@
+/* 全屏应用外壳：侧边栏 + 主内容 */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+}
+
+/* 主内容区：占满剩余全部宽度 */
+.app__main {
+  min-width: 0; /* 防止内部宽元素（代码块/表格）撑破网格 */
+}
+/* 主内容里的阅读容器：全屏下仍保持舒适阅读宽度，并居中 */
+.app__inner {
+  width: min(100% - 3rem, var(--reading-width));
+  margin-inline: auto;
+}
+/* 题解页用更宽的容器，给右侧目录留出空间 */
+.app__inner--wide {
+  width: min(100% - 3rem, var(--doc-width));
+}
+
+/* 题解页：正文 + 右侧目录 两栏（窄屏自动单列） */
+.doc-grid {
+  display: block;
+}
+@media (min-width: 1100px) {
+  .doc-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--toc-w);
+    gap: var(--space-12);
+    align-items: start;
+  }
+}
+
+/* —— 侧边栏 —— */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+.sidebar__brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.sidebar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-size: var(--text-base);
+  white-space: nowrap;
+  color: var(--color-text);
+}
+.sidebar__brand:hover {
+  text-decoration: none;
+}
+.site-header__logo {
+  flex-shrink: 0;
+}
+
+/* 语言切换：分段控件 */
+.lang-switch {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-surface-2);
+}
+.lang-switch__btn {
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
+}
+.lang-switch__btn:hover {
+  color: var(--color-text);
+}
+.lang-switch__btn.is-active {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.sidebar__search {
+  position: relative;
+}
+.sidebar__search-input {
+  width: 100%;
+  font: inherit;
+  padding: var(--space-2) 2rem var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.sidebar__search-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.sidebar__search-kbd {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-soft);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0 6px;
+  pointer-events: none;
+}
+
+.sidebar__nav {
+  flex: 1;
+}
+.sidebar__nav-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--space-3);
+}
+.sidebar__nav-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  border-radius: 999px;
+  padding: 0 7px;
+  line-height: 1.5;
+}
+.sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  transition: background var(--duration-fast) var(--ease);
+}
+a.sidebar__item:hover {
+  text-decoration: none;
+  background: var(--color-surface-2);
+}
+.sidebar__item.is-active {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.sidebar__item.is-planned {
+  color: var(--color-text-soft);
+  cursor: not-allowed;
+}
+.sidebar__item-id {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.sidebar__item.is-active .sidebar__item-id {
+  color: var(--color-accent);
+}
+.sidebar__item-title {
+  flex: 1;
+}
+.sidebar__item-soon {
+  font-size: 0.7rem;
+  background: var(--color-surface-2);
+  padding: 0 6px;
+  border-radius: 999px;
+}
+.sidebar__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  padding: var(--space-3);
+}
+.sidebar__foot {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  margin: 0;
+}
+
+/* —— 移动端抽屉控制 —— */
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 60;
+  width: 44px;
+  height: 44px;
+  font-size: 1.3rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.sidebar-scrim {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+  .sidebar-toggle {
+    display: grid;
+    place-items: center;
+  }
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: min(82vw, var(--sidebar-w));
+    transform: translateX(-100%);
+    transition: transform var(--duration) var(--ease);
+    z-index: 70;
+    box-shadow: var(--shadow);
+  }
+  body.sidebar-open .sidebar {
+    transform: none;
+  }
+  body.sidebar-open .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 65;
+    background: oklch(20% 0.02 260 / 0.4);
+  }
+  /* 给顶部留出汉堡按钮的空间 */
+  .app__main {
+    padding-top: 3.5rem;
+  }
+}

@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>1143. 最长公共子序列 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 1143 最长公共子序列：子序列概念、暴力法、动态规划三件套、交互式填表动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/dp-table/dp-table.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/problems/1143-lcs/lcs.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <!-- 标题区（标题/难度/标签由 lcs.js 按语言渲染） -->
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          这是大多数人接触「二维动态规划」的第一题。别怕，我们一步步来，
+          看完你不仅会做这一题，还会真正理解「动态规划」到底在干什么。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题（中/英可切换） -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a
+            class="statement-src"
+            data-i18n="stmt.src"
+            data-i18n-href="stmt.srcHref"
+            target="_blank"
+            rel="noopener"
+          ></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 子序列 vs 子串 -->
+      <section class="article__section">
+        <h2>🧩 第一步：先搞懂「子序列」</h2>
+        <p>很多人卡在第一关——把「子序列」和「子串」搞混了。它们差别很大：</p>
+        <div class="compare">
+          <div class="compare__col">
+            <h3>子串（连续）</h3>
+            <p>必须是<strong>连续的一段</strong>，中间不能断。</p>
+            <p>
+              在 <code>abcde</code> 里：<br />
+              <code>bcd</code> ✅ 是子串<br />
+              <code>ace</code> ❌ 不是子串（不连续）
+            </p>
+          </div>
+          <div class="compare__col">
+            <h3>子序列（可跳过）</h3>
+            <p>
+              按原来的<strong>先后顺序</strong>挑字符，
+              中间<strong>可以跳过</strong>一些，但不能打乱顺序。
+            </p>
+            <p>
+              在 <code>abcde</code> 里：<br />
+              <code>ace</code> ✅ 是子序列（跳过 b、d）<br />
+              <code>aec</code> ❌ 不是（顺序乱了）
+            </p>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>公共子序列</strong>：一个序列，它<strong>同时</strong>是
+          text1 和 text2 的子序列。我们要找的就是其中<strong>最长</strong>的那个的长度。
+        </div>
+      </section>
+
+      <!-- 2. 暴力法 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想最笨的办法（暴力法）</h2>
+        <p>
+          最直接的想法：把 text1 的<strong>所有</strong>子序列都列出来，
+          再一个个检查是不是 text2 的子序列，取最长的。
+        </p>
+        <p>
+          问题在哪？一个长度为 n 的字符串，每个字符都有「选 / 不选」两种可能，
+          一共有 <code>2ⁿ</code> 个子序列。n 才 30，就超过 10 亿了——
+          电脑会算到天荒地老。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键转折：</strong>暴力法慢，是因为它把同一个子问题
+          算了无数遍。动态规划的核心思想就是——
+          <strong>把每个子问题只算一次，把答案记下来重复利用</strong>。
+        </div>
+      </section>
+
+      <!-- 3. DP 三件套 -->
+      <section class="article__section">
+        <h2>🧠 第三步：动态规划三件套</h2>
+        <p>
+          所有二维 DP 题，都可以套这三个问题来思考。我们一个个填空：
+        </p>
+
+        <div class="dp-steps">
+          <article class="dp-step card">
+            <span class="dp-step__num">1</span>
+            <h3>状态：dp[i][j] 表示什么？</h3>
+            <p>
+              <code>dp[i][j]</code> = text1 的<strong>前 i 个字符</strong>，
+              和 text2 的<strong>前 j 个字符</strong>，这两段的最长公共子序列长度。
+            </p>
+            <p class="dp-step__hint">
+              想求的最终答案，就是 <code>dp[m][n]</code>（m、n 是两个字符串的总长度）。
+            </p>
+          </article>
+
+          <article class="dp-step card">
+            <span class="dp-step__num">2</span>
+            <h3>转移：dp[i][j] 怎么由更小的问题推出来？</h3>
+            <p>只看正在比较的两个字符 <code>text1[i-1]</code> 和 <code>text2[j-1]</code>：</p>
+            <ul>
+              <li>
+                <strong>如果相等</strong>：这个字符可以接在「双方都去掉它」的那段
+                公共子序列后面，长度 +1：<br />
+                <code>dp[i][j] = dp[i-1][j-1] + 1</code>
+              </li>
+              <li>
+                <strong>如果不等</strong>：这个字符至少有一个用不上，
+                那就在「丢掉 text1 这个字符」和「丢掉 text2 这个字符」里取更大的：<br />
+                <code>dp[i][j] = max(dp[i-1][j], dp[i][j-1])</code>
+              </li>
+            </ul>
+          </article>
+
+          <article class="dp-step card">
+            <span class="dp-step__num">3</span>
+            <h3>边界：最小的情况是什么？</h3>
+            <p>
+              当 i = 0 或 j = 0，意味着其中一个字符串是<strong>空的</strong>。
+              空串和任何字符串都没有公共子序列，所以：<br />
+              <code>dp[0][j] = 0</code>，<code>dp[i][0] = 0</code>
+              （表格的第一行、第一列全是 0）。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- 4. 交互动画 -->
+      <section class="article__section">
+        <h2>🎬 第四步：亲手看它一格一格算出来</h2>
+        <p>
+          光看公式还是抽象。下面这张表你可以亲自点——
+          看每一格是怎么根据「左上 / 上方 / 左方」的格子算出来的。
+          建议先用默认的 <code>abcde</code> 和 <code>ace</code> 走一遍。
+        </p>
+
+        <div class="dp-legend">
+          <span><i class="sw sw--current"></i> 当前正在算</span>
+          <span><i class="sw sw--source"></i> 它依赖的来源格</span>
+          <span><i class="sw sw--path"></i> 最终 LCS 路径</span>
+        </div>
+
+        <div class="card dp-card">
+          <div id="dp-mount"></div>
+        </div>
+      </section>
+
+      <!-- 5. Java 代码 -->
+      <section class="article__section">
+        <h2>☕ 第五步：写成 Java 代码</h2>
+        <p>把上面的三件套翻译成代码，几乎就是一一对应：</p>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> longestCommonSubsequence(<span class="ty">String</span> text1, <span class="ty">String</span> text2) {
+        <span class="ty">int</span> m = text1.length(), n = text2.length();
+
+        <span class="cm">// dp[i][j]: text1 前 i 个字符 与 text2 前 j 个字符 的 LCS 长度</span>
+        <span class="cm">// 多开一行一列表示「空串」，它们默认就是 0（边界）</span>
+        <span class="ty">int</span>[][] dp = <span class="kw">new</span> <span class="ty">int</span>[m + <span class="nm">1</span>][n + <span class="nm">1</span>];
+
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt;= m; i++) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">1</span>; j &lt;= n; j++) {
+                <span class="cm">// 注意：第 i 个字符的下标是 i-1</span>
+                <span class="kw">if</span> (text1.charAt(i - <span class="nm">1</span>) == text2.charAt(j - <span class="nm">1</span>)) {
+                    <span class="cm">// 字符相等：左上角 + 1</span>
+                    dp[i][j] = dp[i - <span class="nm">1</span>][j - <span class="nm">1</span>] + <span class="nm">1</span>;
+                } <span class="kw">else</span> {
+                    <span class="cm">// 字符不等：上方、左方取最大</span>
+                    dp[i][j] = <span class="ty">Math</span>.max(dp[i - <span class="nm">1</span>][j], dp[i][j - <span class="nm">1</span>]);
+                }
+            }
+        }
+        <span class="kw">return</span> dp[m][n]; <span class="cm">// 右下角就是答案</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m × n)</code>
+            <p>每个格子只算一次，一共 m×n 个格子。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(m × n)</code>
+            <p>用了一张 m×n 的二维表。下面可以优化掉。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. 空间优化 -->
+      <section class="article__section">
+        <h2>🚀 进阶：把空间压到 O(n)</h2>
+        <p>
+          观察上面的表格动画你会发现：算第 i 行时，<strong>只用到了第 i-1 行</strong>。
+          既然更早的行用不上，那就没必要存整张表，用<strong>一维数组</strong>滚动即可。
+        </p>
+        <p>
+          唯一的坑：相等时要用「左上角」的旧值，所以更新前先用一个变量
+          <code>prev</code> 把它存住。
+        </p>
+        <pre class="code-block"><code><span class="kw">public</span> <span class="ty">int</span> longestCommonSubsequence(<span class="ty">String</span> text1, <span class="ty">String</span> text2) {
+    <span class="ty">int</span> m = text1.length(), n = text2.length();
+    <span class="ty">int</span>[] dp = <span class="kw">new</span> <span class="ty">int</span>[n + <span class="nm">1</span>];
+
+    <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt;= m; i++) {
+        <span class="ty">int</span> prev = <span class="nm">0</span>; <span class="cm">// prev 相当于二维里的 dp[i-1][j-1]（左上角）</span>
+        <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">1</span>; j &lt;= n; j++) {
+            <span class="ty">int</span> temp = dp[j]; <span class="cm">// 更新前先存住，给下一列当左上角</span>
+            <span class="kw">if</span> (text1.charAt(i - <span class="nm">1</span>) == text2.charAt(j - <span class="nm">1</span>)) {
+                dp[j] = prev + <span class="nm">1</span>;
+            } <span class="kw">else</span> {
+                dp[j] = <span class="ty">Math</span>.max(dp[j], dp[j - <span class="nm">1</span>]);
+            }
+            prev = temp;
+        }
+    }
+    <span class="kw">return</span> dp[n];
+}</code></pre>
+        <div class="callout">
+          <strong>小结：</strong>遇到二维 DP，先按「状态 → 转移 → 边界」想清楚，
+          老老实实写出二维版本；能 AC 之后，再观察「每行只依赖上一行」来做空间优化。
+          顺序别反，先正确，再优化。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a class="btn" href="/index.html" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/1143-lcs/lcs.js"></script>
+  </body>
+</html>

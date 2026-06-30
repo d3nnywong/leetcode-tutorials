@@ -1,0 +1,54 @@
+/* 右侧「本页目录」 */
+
+.toc {
+  display: none; /* 窄屏隐藏，宽屏由下方媒体查询打开 */
+}
+
+@media (min-width: 1100px) {
+  .toc {
+    display: block;
+    position: sticky;
+    top: var(--space-8);
+    align-self: start;
+    max-height: calc(100vh - var(--space-12));
+    overflow-y: auto;
+    padding-left: var(--space-4);
+    border-left: 1px solid var(--color-border);
+  }
+}
+
+.toc__title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-soft);
+  margin: 0 0 var(--space-3);
+}
+.toc__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.toc__link {
+  display: block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--color-text-soft);
+}
+.toc__link:hover {
+  text-decoration: none;
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+.toc__link.is-active {
+  color: var(--color-accent);
+  border-left-color: var(--color-accent);
+  font-weight: 600;
+}

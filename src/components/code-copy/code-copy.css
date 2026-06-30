@@ -1,0 +1,80 @@
+/*
+ * 代码块复制按钮 —— 钉在代码块顶部窗口条的右上角。
+ * 颜色用代码块自己的深色变量，保证在深底上清晰可读。
+ */
+.code-copy {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 3; /* 盖在 .code-block::before 窗口条之上 */
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  height: 26px;
+  padding: 0 0.6em;
+
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--code-fg);
+
+  background: oklch(100% 0 0 / 0.06);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.code-copy:hover {
+  background: oklch(100% 0 0 / 0.12);
+  border-color: var(--code-ty);
+}
+.code-copy:active {
+  transform: translateY(1px);
+}
+.code-copy:focus-visible {
+  outline: 2px solid var(--code-ty);
+  outline-offset: 2px;
+}
+
+.code-copy__icon {
+  flex: none;
+}
+
+/* 复制成功：绿色反馈 */
+.code-copy.is-done {
+  color: var(--code-st);
+  border-color: var(--code-st);
+  background: oklch(60% 0.14 135 / 0.16);
+}
+/* 复制成功时把「复制」图标换成「对勾」 */
+.code-copy.is-done .code-copy__icon {
+  display: none;
+}
+.code-copy.is-done::before {
+  content: '';
+  width: 15px;
+  height: 15px;
+  background: currentColor;
+  /* 用 mask 画一个对勾，跟随 currentColor 着色 */
+  -webkit-mask: var(--check-mask) center / contain no-repeat;
+  mask: var(--check-mask) center / contain no-repeat;
+  --check-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+/* 复制失败：暖色提示 */
+.code-copy.is-fail {
+  color: var(--code-kw);
+  border-color: var(--code-kw);
+  background: oklch(60% 0.16 25 / 0.16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .code-copy {
+    transition: none;
+  }
+}

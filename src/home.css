@@ -1,0 +1,112 @@
+/* 首页专属样式 */
+
+.hero {
+  padding: var(--space-section) 0 var(--space-8);
+}
+.hero__eyebrow {
+  color: var(--color-accent);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0 0 var(--space-3);
+}
+.hero__title {
+  font-size: var(--text-hero);
+  margin: 0 0 var(--space-6);
+  letter-spacing: -0.01em;
+}
+.hero__lead {
+  max-width: 38rem;
+  font-size: var(--text-lg);
+  color: var(--color-text-soft);
+  margin: 0;
+}
+
+.section-title {
+  font-size: var(--text-xl);
+  margin: var(--space-8) 0 var(--space-6);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.problem-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-section);
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+}
+
+.problem-card {
+  display: block;
+  padding: var(--space-6);
+  color: inherit;
+  transition: transform var(--duration) var(--ease),
+    box-shadow var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.problem-card:hover {
+  text-decoration: none;
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: var(--color-accent);
+}
+.problem-card--planned {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.problem-card--planned:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border);
+}
+
+.problem-card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.problem-card__id {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.problem-card__badge {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.1em 0.6em;
+  border-radius: 999px;
+  color: #fff;
+}
+.problem-card__title {
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-2);
+}
+.problem-card__title small {
+  color: var(--color-text-soft);
+  font-weight: 400;
+  font-size: var(--text-sm);
+}
+.problem-card__summary {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-soft);
+}
+.problem-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.tag {
+  font-size: var(--text-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  padding: 0.1em 0.6em;
+  border-radius: var(--radius-sm);
+}
+
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-8) 0;
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}

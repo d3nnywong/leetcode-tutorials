@@ -1,0 +1,82 @@
+/*
+ * 设计变量（Design Tokens）
+ * 所有颜色、间距、字号、动画时长都集中在这里定义，
+ * 想换风格只改这一个文件，不用满项目找。
+ */
+:root {
+  /* —— 颜色：浅色教学风 —— */
+  --color-bg: oklch(98.5% 0.004 250);          /* 页面背景：近白带一点冷调 */
+  --color-surface: oklch(100% 0 0);            /* 卡片/表面：纯白 */
+  --color-surface-2: oklch(96.5% 0.006 250);   /* 次级表面：浅灰蓝 */
+  --color-border: oklch(90% 0.01 250);         /* 边框线 */
+  --color-text: oklch(25% 0.02 260);           /* 正文 */
+  --color-text-soft: oklch(50% 0.02 260);      /* 次要文字 */
+
+  --color-accent: oklch(58% 0.18 264);         /* 主色：靛蓝 */
+  --color-accent-soft: oklch(94% 0.04 264);    /* 主色淡背景 */
+
+  /* DP 表格语义色 */
+  --cell-current: oklch(58% 0.18 264);         /* 当前正在计算的格子 */
+  --cell-current-bg: oklch(92% 0.06 264);
+  --cell-source: oklch(72% 0.15 145);          /* 来源格（依赖的格子）边框 */
+  --cell-source-bg: oklch(94% 0.07 145);
+  --cell-filled-bg: oklch(97% 0.005 250);      /* 已填好的格子 */
+  --cell-path-bg: oklch(90% 0.09 85);          /* 最终 LCS 路径高亮 */
+
+  --color-success: oklch(60% 0.15 145);
+  --color-warn: oklch(70% 0.15 60);
+
+  /* —— 代码块配色（深色，高对比，护眼）—— */
+  --code-bg: oklch(21% 0.025 264);            /* 深靛蓝底，比纯黑柔和 */
+  --code-bg-2: oklch(25% 0.03 264);           /* 顶部窗口条 */
+  --code-border: oklch(38% 0.04 264);
+  --code-fg: oklch(91% 0.012 250);            /* 默认正文：亮灰 */
+  --code-line: oklch(70% 0.02 250 / 0.08);    /* 选中/悬停行的微高亮 */
+  --code-cm: oklch(64% 0.04 160);             /* 注释：低饱和绿灰 */
+  --code-kw: oklch(74% 0.16 25);              /* 关键字：暖橙红 */
+  --code-ty: oklch(80% 0.13 215);             /* 类型：青蓝 */
+  --code-st: oklch(83% 0.14 135);             /* 字符串：绿 */
+  --code-nm: oklch(82% 0.12 305);             /* 数字：紫 */
+  --code-selection: oklch(58% 0.14 264 / 0.4);
+
+  /* —— 字体 —— */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC",
+    "Microsoft YaHei", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code",
+    Menlo, Consolas, monospace;
+
+  /* —— 字号（随屏幕平滑缩放）—— */
+  --text-sm: 0.875rem;
+  --text-base: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --text-hero: clamp(2rem, 1.4rem + 2.5vw, 3.25rem);
+
+  /* —— 间距 —— */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-section: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+
+  /* —— 圆角 / 阴影 —— */
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 1px 2px oklch(20% 0.02 260 / 0.06);
+  --shadow: 0 6px 24px oklch(20% 0.02 260 / 0.08);
+
+  /* —— 动画 —— */
+  --duration-fast: 150ms;
+  --duration: 280ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --content-width: 860px;
+  --reading-width: 980px; /* 首页等单列内容的最大宽度 */
+  --doc-width: 1280px; /* 题解页（正文 + 右侧目录）的内容总宽 */
+  --toc-w: 240px; /* 右侧目录宽度 */
+  --sidebar-w: 280px;
+}
