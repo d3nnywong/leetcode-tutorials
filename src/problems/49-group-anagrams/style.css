@@ -1,0 +1,130 @@
+/* 49. 字母异位词分组 —— 动画舞台专属样式 */
+
+/* 输入字符串数组：一排小卡片 */
+.ga__strs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ga__cell {
+  position: relative;
+  min-width: 3rem;
+  height: 3rem;
+  padding: 0 var(--space-3);
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition:
+    background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.ga__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.ga__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.ga__cell.is-processed {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.ga__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+/* 当前签名提示行 */
+.ga__key {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.ga__key code {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* 分组结果区 */
+.ga__groupslabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.ga__groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.ga__group {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 9rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+  padding: var(--space-3) var(--space-4);
+  transition:
+    background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease);
+}
+.ga__group.is-new {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+.ga__group.is-match {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+.ga__group-key {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.ga__group-key code {
+  font-weight: 700;
+  color: var(--color-text);
+}
+.ga__group-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ga__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+.ga__chip.is-added {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ga__cell,
+  .ga__group {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .ga__cell {
+    height: 2.6rem;
+  }
+  .ga__group {
+    min-width: 100%;
+  }
+}

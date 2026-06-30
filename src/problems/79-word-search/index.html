@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>79. 单词搜索 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 79 单词搜索：怎么在网格里做 DFS、为什么需要「标记已用 + 回溯撤销」、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/79-word-search/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一个字母网格、一个目标单词：能不能像走迷宫一样，沿着相邻格子一步步拼出它？
+          这道题是「网格上的 DFS + 回溯」最经典的入门题——走错了就退回去，换条路再试。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一张 <code>m x n</code> 的字母网格 <code>board</code>，和一个单词 <code>word</code>。
+          问：能不能从网格里的某一格出发，每一步只走到<strong>水平或垂直相邻</strong>的格子，
+          依次拼出 <code>word</code> 的每一个字母？<strong>同一个格子在这一趟路径里不能重复走</strong>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">board</span><code>[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]</code></div>
+          <div><span class="example-box__label">word</span><code>"SEE"</code></div>
+          <p class="example-box__note">
+            从下标 (1,3) 的 <code>S</code> 出发，往上走到 (0,3) 的 <code>E</code> 是个死路（再往下走不到下一个 E，
+            而且 (1,3) 已经用过了），退回来改成往下走到 (2,3) 的 <code>E</code>，
+            再往左走到 (2,2) 的 <code>E</code> —— 正好拼出 <code>"SEE"</code>，返回 <code>true</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🔑 第二步：为什么是 DFS + 回溯，而不是简单遍历</h2>
+        <p>
+          单纯遍历网格找第一个字母没用——找到 <code>word[0]</code> 之后，还要在它的邻居里继续找
+          <code>word[1]</code>，再在 <code>word[1]</code> 的邻居里找 <code>word[2]</code>……
+          这是一条<strong>沿着相邻关系往前探索的路径</strong>，天然适合用<strong>深度优先搜索（DFS）</strong>：
+          一条路走到黑，走不通就退回上一步换路。
+        </p>
+        <p>
+          走不通有三种情况：① 越界了；② 这个格子在当前路径里已经用过了；③ 这个格子的字母对不上
+          <code>word</code> 的下一个字符。只要踩中任何一种，这条分支就要<strong>回溯</strong>——
+          把刚才标记的「已用」状态撤销，退回上一格，换下一个方向继续试。
+        </p>
+        <div class="callout callout--warn">
+          <strong>「标记 + 撤销」是回溯的灵魂：</strong>进入一个格子时标记它「已用」（防止本趟路径重复走），
+          这条分支失败、要退回去尝试别的可能性时，必须把标记<strong>撤销回去</strong>——
+          因为同一个格子在<strong>另一条候选路径</strong>里完全可以重新被用到。忘记撤销，是这道题最常见的 bug。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：看 DFS 怎么走，又是怎么回溯的</h2>
+        <p>
+          从网格里每一个等于 <code>word[0]</code> 的格子出发，按「上、下、左、右」固定顺序尝试相邻格：
+          能接上 <code>word</code> 的下一个字符就走过去，接不上 / 越界 / 已用过就跳过；
+          四个方向都试过仍然走不通，就回溯到上一格，换其他方向（或者换下一个起点）继续。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在尝试的格子</span>
+          <span><i class="sw sw--src"></i> 已经走过、留在路径里</span>
+          <span><i class="sw sw--bad"></i> 刚被回溯撤销的格子</span>
+          <span><i class="sw sw--ok"></i> 已匹配上的字母</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">private</span> <span class="ty">int</span> m, n;
+    <span class="kw">private</span> <span class="ty">char</span>[][] board;
+    <span class="kw">private</span> <span class="ty">String</span> word;
+    <span class="kw">private</span> <span class="ty">boolean</span>[][] visited;
+    <span class="kw">private</span> <span class="kw">static</span> <span class="kw">final</span> <span class="ty">int</span>[][] DIRS = {{-<span class="nm">1</span>,<span class="nm">0</span>},{<span class="nm">1</span>,<span class="nm">0</span>},{<span class="nm">0</span>,-<span class="nm">1</span>},{<span class="nm">0</span>,<span class="nm">1</span>}};
+
+    <span class="kw">public</span> <span class="ty">boolean</span> exist(<span class="ty">char</span>[][] board, <span class="ty">String</span> word) {
+        <span class="kw">this</span>.board = board;
+        <span class="kw">this</span>.word = word;
+        m = board.length;
+        n = board[<span class="nm">0</span>].length;
+        visited = <span class="kw">new</span> <span class="ty">boolean</span>[m][n];
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; m; i++) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">0</span>; j &lt; n; j++) {
+                <span class="cm">// 只有这一格的字母等于 word[0]，才值得从它开始尝试</span>
+                <span class="kw">if</span> (board[i][j] == word.charAt(<span class="nm">0</span>) &amp;&amp; dfs(i, j, <span class="nm">0</span>)) {
+                    <span class="kw">return</span> <span class="kw">true</span>;
+                }
+            }
+        }
+        <span class="kw">return</span> <span class="kw">false</span>;
+    }
+
+    <span class="cm">// dfs(i, j, k)：当前走到 (i, j)，它已经匹配了 word 的第 k 个字符</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> dfs(<span class="ty">int</span> i, <span class="ty">int</span> j, <span class="ty">int</span> k) {
+        <span class="kw">if</span> (k == word.length() - <span class="nm">1</span>) {
+            <span class="kw">return</span> <span class="kw">true</span>; <span class="cm">// 连最后一个字符都匹配上了，整个单词拼成功</span>
+        }
+        visited[i][j] = <span class="kw">true</span>; <span class="cm">// 标记：这一格在当前路径里已经用过</span>
+        <span class="kw">for</span> (<span class="ty">int</span>[] d : DIRS) {
+            <span class="ty">int</span> ni = i + d[<span class="nm">0</span>], nj = j + d[<span class="nm">1</span>];
+            <span class="kw">if</span> (ni &lt; <span class="nm">0</span> || ni &gt;= m || nj &lt; <span class="nm">0</span> || nj &gt;= n) <span class="kw">continue</span>; <span class="cm">// 越界</span>
+            <span class="kw">if</span> (visited[ni][nj]) <span class="kw">continue</span>; <span class="cm">// 这趟路径已经用过</span>
+            <span class="kw">if</span> (board[ni][nj] != word.charAt(k + <span class="nm">1</span>)) <span class="kw">continue</span>; <span class="cm">// 字母对不上</span>
+            <span class="kw">if</span> (dfs(ni, nj, k + <span class="nm">1</span>)) {
+                <span class="kw">return</span> <span class="kw">true</span>; <span class="cm">// 这条分支成功了，一路把 true 传回去</span>
+            }
+        }
+        visited[i][j] = <span class="kw">false</span>; <span class="cm">// 回溯：四个方向都走不通，撤销标记，退回上一格</span>
+        <span class="kw">return</span> <span class="kw">false</span>;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m·n·3^L)</code>
+            <p>
+              m·n 个起点，每个起点最坏要往 <code>L = word.length</code> 层深搜；
+              除了来路方向，每层最多还有 3 个方向可选，所以是 3 的 L 次方量级。
+            </p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(m·n + L)</code>
+            <p><code>visited</code> 网格占 O(m·n)，递归栈深度最多到单词长度 L。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>在网格 / 树 / 图上「沿着某种相邻关系，一步步拼出一条满足条件的路径」，
+          就是 DFS + 回溯的典型场景。核心永远是那一对动作——<strong>进入一个状态前先标记</strong>，
+          <strong>这条分支彻底失败、要退回去时一定要撤销标记</strong>。
+          掌握了这一对「标记 / 撤销」，后面遇到的「岛屿数量」「全排列」「N 皇后」都是同一个骨架的变体。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/79-word-search/page.js"></script>
+  </body>
+</html>

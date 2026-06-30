@@ -1,0 +1,99 @@
+/* 57. 插入区间 —— 动画舞台专属样式 */
+
+.iv__chartwrap {
+  overflow-x: auto;
+}
+.iv__svg {
+  width: 100%;
+  min-width: 320px;
+  display: block;
+}
+
+/* 原始区间条 */
+.iv-bar {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease);
+}
+.iv-bar.is-kept {
+  fill: var(--src-bg);
+  stroke: var(--src);
+}
+.iv-bar.is-merged {
+  fill: var(--ok-bg);
+  stroke: var(--ok);
+}
+.iv-bar.is-current {
+  stroke: var(--hi);
+  stroke-width: 2.5;
+}
+.iv-label {
+  fill: var(--color-text-soft);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+.iv-empty {
+  fill: var(--color-text-soft);
+  font-size: 12px;
+}
+
+/* 新区间（合并中 / 已插入） */
+.iv-new {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 3;
+  transition: x var(--duration) var(--ease), width var(--duration) var(--ease);
+}
+.iv-new.is-final {
+  stroke-dasharray: none;
+}
+.iv-new-label {
+  fill: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+  transition: x var(--duration) var(--ease);
+}
+
+/* 结果区 */
+.iv__resultlabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.iv__result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.iv__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.iv__chip.is-new {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  font-weight: 700;
+}
+.iv__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iv-new,
+  .iv-new-label,
+  .iv-bar {
+    transition: none;
+  }
+}

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>230. 二叉搜索树中第 K 小的元素 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 230 二叉搜索树中第 K 小的元素：为什么中序遍历天然有序、如何用显式栈提前停止避免遍历整棵树，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/230-kth-smallest-element-in-a-bst/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          二叉搜索树有一个「免费」的性质：把它中序遍历一遍，节点的值天然就是从小到大排好的。
+          这道题教你怎么利用这个性质，不用排序、甚至不用走完整棵树，就能直接拿到第 k 小的答案。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一棵<strong>二叉搜索树（BST）</strong>的根节点 <code>root</code>，和一个整数
+          <code>k</code>。要你找出整棵树里第 <code>k</code> <strong>小</strong>的节点值
+          （<code>k</code> 从 1 开始数，<code>k=1</code> 就是最小的那个）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[5,3,6,2,4,null,null,1]</code></div>
+          <div><span class="example-box__label">k</span><code>3</code></div>
+          <p class="example-box__note">
+            把树里所有节点从小到大排一遍：<code>1, 2, 3, 4, 5, 6</code>。第 3 个是
+            <code>3</code> → 答案是 <code>3</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法，和它能省掉的部分</h2>
+        <p>
+          最容易想到的办法：把整棵树的节点值都收集到一个数组里，排个序，取下标
+          <code>k - 1</code> 的那个。能做出来，但「收集 + 排序」明显是浪费——
+          因为 BST 的<strong>中序遍历（先左子树，再自己，再右子树）</strong>
+          产出的顺序<strong>天生就是从小到大</strong>的，根本不需要再排序一次。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>既然中序遍历自带顺序，那就一边遍历一边数「这是第几个」，
+          数到第 <code>k</code> 个<strong>立刻停下来</strong>，不用等遍历完整棵树。
+          如果 <code>k</code> 比较小、树比较大，这能省下大量不必要的访问。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用一个显式栈做「能提前停的中序遍历」</h2>
+        <p>
+          中序遍历最自然的写法是递归，但递归没法「数到第 k 个就提前退出」（除非额外加标志位，比较绕）。
+          换成<strong>显式栈</strong>来模拟就很直观：拿一个指针 <code>cur</code> 从根出发，
+          先一路往左压栈到底（压栈的同时指针往左走）；压到头了就把栈顶弹出来——
+          弹出的这个节点，就是「当前还没访问过的节点里最小的那个」。每弹出一个就把计数
+          <code>count</code> 加一，<code>count == k</code> 就直接返回它的值；否则把指针转向
+          它的右子树，继续「往左压栈到底 → 弹出」的循环。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 在栈中等待</span>
+          <span><i class="sw sw--hi"></i> 当前指针 / 正在出栈</span>
+          <span><i class="sw sw--ok"></i> 已访问（标了第几个）</span>
+          <span><i class="sw sw--gold"></i> 第 k 个，最终答案</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把树改成示例 1 的 <code>3,1,4,null,2</code>、k 改成 <code>1</code>，
+          看它是不是一路往左走到底，第一次弹栈就停。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">// Definition for a binary tree node.</span>
+<span class="cm">// public class TreeNode {</span>
+<span class="cm">//     int val;</span>
+<span class="cm">//     TreeNode left;</span>
+<span class="cm">//     TreeNode right;</span>
+<span class="cm">//     TreeNode() {}</span>
+<span class="cm">//     TreeNode(int val) { this.val = val; }</span>
+<span class="cm">//     TreeNode(int val, TreeNode left, TreeNode right) {</span>
+<span class="cm">//         this.val = val;</span>
+<span class="cm">//         this.left = left;</span>
+<span class="cm">//         this.right = right;</span>
+<span class="cm">//     }</span>
+<span class="cm">// }</span>
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> kthSmallest(<span class="ty">TreeNode</span> root, <span class="ty">int</span> k) {
+        <span class="ty">Deque</span>&lt;<span class="ty">TreeNode</span>&gt; stack = <span class="kw">new</span> <span class="ty">ArrayDeque</span>&lt;&gt;();
+        <span class="ty">TreeNode</span> cur = root;
+        <span class="ty">int</span> count = <span class="nm">0</span>;
+
+        <span class="kw">while</span> (cur != <span class="kw">null</span> || !stack.isEmpty()) {
+            <span class="cm">// 一路往左压栈到底：压到头，栈顶就是「还没访问过的里最小的」</span>
+            <span class="kw">while</span> (cur != <span class="kw">null</span>) {
+                stack.push(cur);
+                cur = cur.left;
+            }
+            cur = stack.pop();
+            count++;
+            <span class="kw">if</span> (count == k) {
+                <span class="kw">return</span> cur.val; <span class="cm">// 数到第 k 个，直接返回，不用走完整棵树</span>
+            }
+            cur = cur.right; <span class="cm">// 左边已经访问完，转向右子树继续找更大的</span>
+        }
+        <span class="kw">return</span> -<span class="nm">1</span>; <span class="cm">// 题目保证 1 &lt;= k &lt;= n，正常不会到这里</span>
+    }
+}</code></pre>
+        <p class="dp-step__hint">
+          动画里的「栈 + 指针」和这段代码是逐行对应的：压栈对应内层 <code>while</code>，
+          出栈对应 <code>stack.pop()</code> 那一刻，<code>count == k</code> 命中就是动画里的
+          金色高亮。
+        </p>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(h + k)</code>
+            <p>
+              h 是树高（第一次往左压到底要走这么深），之后每弹出一个节点算一次，最多弹 k 次；
+              最坏情况（k 接近 n）退化为 <code>O(n)</code>。
+            </p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(h)</code>
+            <p>栈里最多同时压着一条「从根到最左节点」的路径，平衡树 O(log n)，最坏 O(n)。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「BST + 排名/第 k 小」这类题，先想到
+          <strong>中序遍历自带顺序</strong>这个性质，再想要不要用<strong>显式栈</strong>
+          把递归摊开，从而获得「提前停止」的能力，省掉不必要的遍历。
+          如果题目变成「频繁修改 + 频繁查第 k 小」（原题的进阶问），
+          就需要在每个节点上额外维护「左子树节点数」，让查询变成 <code>O(log n)</code>。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/230-kth-smallest-element-in-a-bst/page.js"></script>
+  </body>
+</html>

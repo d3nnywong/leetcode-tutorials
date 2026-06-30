@@ -1,0 +1,99 @@
+/* 252. 会议室 —— 动画舞台专属样式 */
+
+.mr__status {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.mr__status strong {
+  color: var(--color-text);
+}
+.mr__chartwrap {
+  overflow-x: auto;
+}
+.mr__svg {
+  width: 100%;
+  min-width: 320px;
+  display: block;
+}
+
+/* 小节标题 */
+.mr-section-title {
+  fill: var(--color-text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* 重叠时间窗口的高亮背景带 */
+.mr-zone {
+  fill: var(--bad-bg);
+  transition: x var(--duration) var(--ease), width var(--duration) var(--ease),
+    opacity var(--duration) var(--ease);
+}
+
+/* 会议条 */
+.mr-bar {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease);
+}
+.mr-bar.is-checked {
+  fill: var(--src-bg);
+  stroke: var(--src);
+}
+.mr-bar.is-prev {
+  fill: var(--src-bg);
+  stroke: var(--src);
+  stroke-width: 2.5;
+}
+.mr-bar.is-current {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 2.5;
+}
+.mr-bar.is-conflict {
+  fill: var(--bad-bg);
+  stroke: var(--bad);
+  stroke-width: 2.5;
+}
+.mr-bar.is-gold {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+.mr-label {
+  fill: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+.mr-orig-label {
+  fill: var(--color-text-soft);
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+/* 数轴 */
+.mr-axis-line {
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+}
+.mr-tick {
+  stroke: var(--color-text-soft);
+  stroke-width: 1;
+}
+.mr-tick-label {
+  fill: var(--color-text-soft);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-bar,
+  .mr-zone {
+    transition: none;
+  }
+}

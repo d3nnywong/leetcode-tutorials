@@ -1,0 +1,108 @@
+/* 73. 矩阵置零 —— 动画舞台专属样式 */
+
+.mz__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+.mz__flag {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.2em 0.75em;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    color var(--duration) var(--ease);
+}
+.mz__flag.is-on {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+.mz__board {
+  display: grid;
+  grid-template-columns: repeat(var(--mz-cols), 3rem);
+  gap: var(--space-2);
+}
+.mz__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.mz__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* 第 0 行 / 第 0 列：将被借用为「标记位」的格子，用虚线边框做区分 */
+.mz__cell.is-header-row,
+.mz__cell.is-header-col {
+  border-style: dashed;
+}
+
+/* 值为 0 的格子（触发清零的源头） */
+.mz__cell.is-zero {
+  border-color: var(--bad);
+}
+.mz__cell.is-zero .mz__val {
+  color: var(--bad);
+}
+
+/* 当前正在处理的格子 */
+.mz__cell.is-current {
+  border-style: solid;
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 2;
+}
+
+/* 被打上标记 / 被引用查询的标记位格子 */
+.mz__cell.is-marked,
+.mz__cell.is-source {
+  border-style: solid;
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+
+/* 最后统一清空第 0 行 / 第 0 列时的高亮 */
+.mz__cell.is-final-clear {
+  border-style: solid;
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mz__cell {
+    transition: none;
+  }
+  .mz__cell.is-current {
+    transform: none;
+  }
+  .mz__flag {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .mz__board {
+    grid-template-columns: repeat(var(--mz-cols), 2.5rem);
+  }
+  .mz__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}

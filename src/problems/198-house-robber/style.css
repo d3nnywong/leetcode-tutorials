@@ -1,0 +1,129 @@
+/* 198. 打家劫舍 —— 动画舞台专属样式 */
+
+.hr__target {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.hr__target code {
+  font-size: var(--text-sm);
+}
+
+.hr__street {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding: var(--space-8) var(--space-2) var(--space-2);
+}
+
+.hr__house {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.hr__dp {
+  min-width: 2rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text-soft);
+  transition: color var(--duration) var(--ease), font-size var(--duration) var(--ease);
+}
+
+.hr__roof {
+  width: 3.2rem;
+  height: 3.2rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  background: var(--color-surface-2);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+
+.hr__money {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-soft);
+}
+
+.hr__idx {
+  font-size: 0.7rem;
+  color: var(--color-text-soft);
+  font-family: var(--font-mono);
+}
+
+/* 依赖来源：i-1（不偷方案）与 i-2（偷的方案） */
+.hr__house.is-source .hr__roof,
+.hr__house.is-source2 .hr__roof {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+
+/* 当前正在计算的房子 */
+.hr__house.is-current .hr__roof {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+}
+.hr__house.is-current .hr__dp {
+  color: var(--hi);
+}
+
+/* 回溯出的最终偷窃方案 */
+.hr__house.is-robbed .hr__roof {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+.hr__house.is-robbed .hr__money {
+  color: var(--gold);
+  font-weight: 700;
+}
+.hr__house.is-robbed .hr__dp {
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+
+.hr__eq {
+  font-size: var(--text-base);
+  font-family: var(--font-mono);
+  color: var(--color-text-soft);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+}
+.hr__eq code {
+  background: var(--color-surface);
+}
+.hr__eq strong {
+  color: var(--color-accent);
+}
+
+@media (max-width: 560px) {
+  .hr__roof {
+    width: 2.6rem;
+    height: 2.6rem;
+    font-size: 1.3rem;
+  }
+  .hr__dp {
+    min-width: 1.7rem;
+    height: 1.6rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hr__roof,
+  .hr__dp {
+    transition: none;
+  }
+}

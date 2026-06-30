@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>128. 最长连续序列 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 128 最长连续序列：暴力排序为什么不够快、哈希集合「只从起点数」如何把时间压到 O(n)，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/128-longest-consecutive-sequence/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          数组本身是乱序的，但如果先把它「装进一个能瞬间查找的口袋」，
+          找连续段就不必排序，一遍扫描就能找到最长的那一串。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一堆乱序的整数，让你找出「数值上连续」的最长一串有多长——比如 <code>1,2,3,4</code>
+          就是连续的 4 个数。注意：这些数在<strong>原数组里的位置</strong>可以随便乱放，
+          只看它们的<strong>大小</strong>是不是挨着（差 1）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[100, 4, 200, 1, 3, 2]</code></div>
+          <div><span class="example-box__label">输出</span><code>4</code></div>
+          <p class="example-box__note">
+            把这些数从小到大排一下：1, 2, 3, 4, 100, 200。其中 1、2、3、4 正好连续，长度为 4，
+            比单独的 100、单独的 200 都长，所以答案是 4。
+          </p>
+        </div>
+        <p>
+          题目还专门加了一个要求：<strong>时间复杂度必须是 O(n)</strong>。这是个重要信号——
+          它在提醒我们「先排序」这条路其实走不通。
+        </p>
+      </section>
+
+      <!-- 2. 暴力/排序 + 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：直觉的办法为什么不够快</h2>
+        <p>
+          最容易想到的办法：把数组<strong>排序</strong>，排好序之后连续的数就会挨在一起，
+          从头扫一遍，数出最长的连续段就行了。这个思路是对的，但排序本身就要
+          <code>O(n log n)</code>，没法满足题目要求的 <code>O(n)</code>。
+        </p>
+        <div class="callout callout--warn">
+          <strong>瓶颈在哪：</strong>我们真正需要的操作，其实只是「判断某个数在不在这堆数里」。
+          排序是为了方便做这件事，但代价太大——用<strong>哈希集合（HashSet）</strong>
+          一样能做到「秒查某个数在不在」，而且是 <code>O(1)</code>，根本不需要排序。
+        </div>
+        <p>
+          换个思路：先把所有数丢进一个哈希集合。对集合里的每个数 <code>n</code>，往后想
+          <code>n+1</code>、<code>n+2</code>…… 在不在集合里，能数多远就数多远，记录最长的一段。
+        </p>
+        <p>
+          但这样还有个隐患：如果对<strong>每一个</strong>数都往后数一遍，
+          像 <code>1,2,3,...,10000</code> 这种全连续的数组，光是从 1 数到底就要 O(n)，
+          从 2 再数一遍又是接近 O(n)……加起来就退化成 O(n²) 了。
+        </p>
+        <p>
+          关键的优化只有一句话：<strong>只从「真正的起点」开始数</strong>。
+          一个数 <code>n</code> 是不是某段连续序列的起点，只需要看 <code>n-1</code>
+          在不在集合里——如果在，说明 <code>n</code> 前面还接得上别的数，
+          它一定不是起点，<strong>直接跳过</strong>，留给真正的起点去数它。
+          这样一来，每个数最多只会在「往后数」的循环里被访问一次，总操作次数还是 O(n)。
+        </p>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：哈希集合 + 只从起点数</h2>
+        <p>
+          下面这个动画把数组先去重放进哈希集合，然后按大小检查每个数：
+          有「前驱」（<code>n-1</code> 在集合里）的直接跳过；没有前驱的就是起点，
+          从它开始一路 <code>+1</code> 往后数，数到数不动为止，顺便刷新最长记录。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 正在检查的数</span>
+          <span><i class="sw sw--src"></i> 有前驱，不是起点，跳过</span>
+          <span><i class="sw sw--ok"></i> 正在往后数的连续段</span>
+          <span><i class="sw sw--gold"></i> 当前最长的连续段</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>0,3,7,2,5,8,4,6,0,1</code>，看它怎么数出长度为 9 的 <code>[0..8]</code>。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> longestConsecutive(<span class="ty">int</span>[] nums) {
+        <span class="cm">// 先去重放进哈希集合，O(1) 查找某个数在不在</span>
+        <span class="ty">Set</span>&lt;<span class="ty">Integer</span>&gt; set = <span class="kw">new</span> <span class="ty">HashSet</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">int</span> n : nums) {
+            set.add(n);
+        }
+
+        <span class="ty">int</span> best = <span class="nm">0</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> n : set) {
+            <span class="cm">// 只有 n-1 不在集合里，n 才是某段连续序列的起点</span>
+            <span class="kw">if</span> (!set.contains(n - <span class="nm">1</span>)) {
+                <span class="ty">int</span> cur = n;
+                <span class="ty">int</span> len = <span class="nm">1</span>;
+                <span class="kw">while</span> (set.contains(cur + <span class="nm">1</span>)) {
+                    cur++;
+                    len++;
+                }
+                best = <span class="ty">Math</span>.max(best, len);
+            }
+        }
+        <span class="kw">return</span> best;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>
+              建集合 O(n)；外层 for 遍历集合每个数一次；内层 while 只有「真正的起点」才会触发，
+              每个数总共只会被「往后数」访问一次，整体仍是 O(n)。
+            </p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>哈希集合最坏情况要存下数组里所有不同的数。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当题目要求的复杂度低于「排序」能给到的 <code>O(n log n)</code> 时，
+          先想想真正需要的操作是不是只是「查找某个值在不在」——哈希集合能把这件事压到 O(1)。
+          再叠加一个「只从起点开始展开」的小技巧，避免对同一段数据重复劳动，
+          就能把总操作量真正控制在 O(n)。这种「哈希加速查找 + 只算一次」的组合，
+          在很多需要判断元素关系的题里都很常见。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/128-longest-consecutive-sequence/page.js"></script>
+  </body>
+</html>

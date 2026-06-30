@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>198. 打家劫舍 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 198 打家劫舍：为什么相邻不能同时偷、动态规划三件套怎么推导 dp[i] = max(dp[i-1], dp[i-2] + nums[i])、可交互的一维 DP 动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/198-house-robber/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一维动态规划的「选还是不选」经典题。看完你会发现：偷不偷某间房子，
+          其实就是在「保留上一步的最优解」和「加上这一步、放弃上一间」之间做一次选择。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          一排房子，每间都有一笔钱 <code>nums[i]</code>。你想偷到尽量多的钱，
+          但有个规矩：<strong>相邻的两间房子不能在同一晚都偷</strong>（会触发警报）。
+          问：在这个限制下，最多能偷到多少钱？
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[2, 7, 9, 3, 1]</code></div>
+          <p class="example-box__note">
+            偷 0 号（¥2）+ 2 号（¥9）+ 4 号（¥1），互不相邻 → 共 <code>2 + 9 + 1 = 12</code>。
+            注意 1 号的 ¥7 单看很诱人，但偷了它就必须放弃 0 号和 2 号，反而更少。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想最后一间，而不是第一间</h2>
+        <p>
+          挨个房子去试「偷」或「不偷」会有指数级的组合，根本试不完。换个角度——
+          <strong>盯着最后一间房子（第 i 间）往回看</strong>：不管前面怎么偷，
+          对第 i 间房子，永远只有两种选择：
+        </p>
+        <ul>
+          <li><strong>不偷第 i 间</strong>：那么前面 0..i-1 间的最优解是多少，答案就是多少——也就是 <code>dp[i-1]</code>。</li>
+          <li><strong>偷第 i 间</strong>：那么第 i-1 间绝对不能偷，能拿到的是「0..i-2 间的最优解」加上这一间的钱——也就是 <code>dp[i-2] + nums[i]</code>。</li>
+        </ul>
+        <p>
+          这两种选择<strong>互斥</strong>（第 i 间要么偷要么不偷，不会同时发生），
+          所以「0..i 间能偷到的最高金额」就是这两者中<strong>较大的那个</strong>。
+        </p>
+        <div class="callout callout--warn">
+          <strong>如果直接暴力枚举：</strong>每间房子两种选择（偷/不偷），n 间房子就是
+          <code>2^n</code> 种组合，逐一检查是否合法再求最大值——指数级，房子一多就算不动。
+          动态规划要做的，就是把每个「子问题」（dp[i-1]、dp[i-2]……）<strong>只算一次、记下来</strong>。
+        </div>
+      </section>
+
+      <!-- 3. DP 三件套 + 动画 -->
+      <section class="article__section">
+        <h2>🧠 第三步：动态规划三件套</h2>
+        <div class="dp-steps">
+          <article class="dp-step card">
+            <span class="dp-step__num">1</span>
+            <h3>状态：dp[i] 表示什么？</h3>
+            <p><code>dp[i]</code> = 只考虑下标 <strong>0..i</strong> 这些房子时，能偷到的最高金额。</p>
+            <p class="dp-step__hint">最终答案就是 <code>dp[n-1]</code>（n 是房子总数）。</p>
+          </article>
+          <article class="dp-step card">
+            <span class="dp-step__num">2</span>
+            <h3>转移：dp[i] 怎么由更小的问题推出来？</h3>
+            <p>
+              照上面的洞察，第 i 间要么不偷（沿用 dp[i-1]），要么偷（dp[i-2] 加上 nums[i]）：
+            </p>
+            <p><code>dp[i] = max(dp[i-1], dp[i-2] + nums[i])</code>（i ≥ 2）</p>
+          </article>
+          <article class="dp-step card">
+            <span class="dp-step__num">3</span>
+            <h3>边界：最小的情况是什么？</h3>
+            <p>
+              <code>dp[0] = nums[0]</code>（只有一间房，没得选，直接偷）；
+              <code>dp[1] = max(nums[0], nums[1])</code>（两间相邻，二选一，取较大的）。
+              这两个地基定下来，后面全靠它们往后推。
+            </p>
+          </article>
+        </div>
+
+        <p>
+          下面这个动画一间一间往后算：当前在算的房子会高亮，它依赖的「不偷方案」dp[i-1]
+          和「偷的方案」dp[i-2] 会被标成来源色，算完把最高金额填到房子上方；
+          算到最后一间后，再回溯出真正被偷的那几间房子，用金色标出最终方案。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在算的 dp[i]</span>
+          <span><i class="sw sw--src"></i> 依赖的 dp[i-1] 与 dp[i-2]</span>
+          <span><i class="sw sw--gold"></i> 最终被偷的房子</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>1,2,3,1</code>，看它怎么算出 4；
+          再改成 <code>5,1,1,5</code> 这种「两头大中间小」的数组，看它怎么避开中间偷两头。
+        </p>
+      </section>
+
+      <!-- 4. Java 代码 -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>
+          动画里我们把每一间的最高金额都存了下来，但仔细看转移方程会发现：
+          算 <code>dp[i]</code> 时只用到了<strong>最近的两个值</strong> ——
+          没必要存下整张表，用两个变量滚动更新就够了，空间从 O(n) 降到 O(1)。
+        </p>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> rob(<span class="ty">int</span>[] nums) {
+        <span class="ty">int</span> n = nums.length;
+        <span class="kw">if</span> (n == <span class="nm">1</span>) <span class="kw">return</span> nums[<span class="nm">0</span>]; <span class="cm">// 只有一间房，没得选</span>
+
+        <span class="ty">int</span> prev2 = nums[<span class="nm">0</span>];                         <span class="cm">// 滚动变量：dp[i-2]，初始对应 dp[0]</span>
+        <span class="ty">int</span> prev1 = <span class="ty">Math</span>.max(nums[<span class="nm">0</span>], nums[<span class="nm">1</span>]); <span class="cm">// 滚动变量：dp[i-1]，初始对应 dp[1]</span>
+
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">2</span>; i &lt; n; i++) {
+            <span class="ty">int</span> cur = <span class="ty">Math</span>.max(prev1, prev2 + nums[i]); <span class="cm">// 不偷 vs 偷</span>
+            prev2 = prev1;
+            prev1 = cur;
+        }
+        <span class="kw">return</span> prev1;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>从第 2 间算到第 n-1 间，循环一遍。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只保留最近两个值，不需要整张 dp 表。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>打家劫舍是「选还是不选」型一维 DP 的代表题——
+          每个位置只有两种互斥选择，把它们的结果取较大值，就是这个位置的最优解。
+          它和爬楼梯一样，状态转移只依赖「最近两个值」，所以也能把空间从 O(n) 压到 O(1)。
+          这套「相邻不能同选」的思路后面还会反复出现（环形排列、二叉树上的打家劫舍等变体）。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/198-house-robber/page.js"></script>
+  </body>
+</html>

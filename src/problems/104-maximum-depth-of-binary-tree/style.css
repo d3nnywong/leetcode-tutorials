@@ -1,0 +1,109 @@
+/* 104. 二叉树的最大深度 —— 动画舞台专属样式 */
+
+.md__info {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+  min-height: 1.6em;
+}
+.md__chartwrap {
+  overflow-x: auto;
+}
+.md__svg {
+  width: 100%;
+  min-width: 280px;
+  max-height: 320px;
+  display: block;
+}
+.md__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+/* 连线 */
+.md-edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: stroke var(--duration) var(--ease), stroke-width var(--duration) var(--ease);
+}
+
+/* 节点圆圈：transform 只作用在 circle 自己身上（transform-box: fill-box），
+   不会覆盖掉 cx/cy 这些定位属性。 */
+.md-circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.md-val {
+  fill: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+.md-depth {
+  fill: var(--color-text-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  opacity: 0;
+  transition: opacity var(--duration) var(--ease), fill var(--duration) var(--ease);
+}
+.md-depth.is-done {
+  opacity: 1;
+  fill: var(--ok);
+}
+
+/* 状态类直接挂在 circle 元素上（renderStep 操作的是 circle 节点本身） */
+.md-circle.is-stack {
+  stroke: var(--src);
+  fill: var(--src-bg);
+}
+.md-circle.is-current {
+  stroke: var(--hi);
+  fill: var(--hi-bg);
+  stroke-width: 3;
+  transform: scale(1.12);
+}
+.md-circle.is-best {
+  stroke: var(--gold);
+  fill: var(--gold-bg);
+  stroke-width: 3;
+  transform: scale(1.12);
+}
+
+/* 递归栈面板 */
+.md__stacklabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+.md__stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.md__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  font-family: var(--font-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-edge,
+  .md-circle,
+  .md-depth {
+    transition: none;
+  }
+}

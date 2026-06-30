@@ -1,0 +1,138 @@
+/* 79. 单词搜索 —— 动画舞台专属样式 */
+
+/* 目标单词：逐字母对照匹配进度 */
+.ws__word {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ws__wchip {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-soft);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.ws__wchip.is-matched {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  color: var(--color-text);
+}
+.ws__wchip.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  color: var(--color-text);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+}
+
+/* 网格棋盘 */
+.ws__board {
+  display: grid;
+  grid-template-columns: repeat(var(--ws-cols), 3rem);
+  gap: var(--space-2);
+}
+.ws__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.ws__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.ws__cell.is-path {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.ws__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.ws__cell.is-pop {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+}
+
+/* 当前路径列表 */
+.ws__pathlabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.ws__path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.ws__pchip {
+  position: relative;
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+  padding: 0.15em 1.1em 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.ws__pchip.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  font-weight: 700;
+}
+.ws__pchip-pos {
+  margin-left: 0.35em;
+  font-size: 0.7rem;
+  color: var(--color-text-soft);
+}
+.ws__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws__cell,
+  .ws__wchip {
+    transition: none;
+  }
+  .ws__cell.is-current,
+  .ws__wchip.is-current {
+    transform: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .ws__board {
+    grid-template-columns: repeat(var(--ws-cols), 2.5rem);
+  }
+  .ws__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .ws__wchip {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+}

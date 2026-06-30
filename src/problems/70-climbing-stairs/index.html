@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>70. 爬楼梯 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 70 爬楼梯：为什么它本质是斐波那契数列、动态规划三件套怎么推导 dp[i] = dp[i-1] + dp[i-2]、可交互的一维 DP 动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/70-climbing-stairs/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          全网最经典的动态规划入门题。看完你会发现：它换了个壳，其实就是小学就听说过的
+          「斐波那契数列」——而动态规划，不过是把递归里重复算的部分「记下来」而已。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          有一架 <code>n</code> 阶的楼梯，你每次只能往上迈 <strong>1 阶</strong>或
+          <strong>2 阶</strong>。问：一共有多少种不同的「迈法组合」能正好走到第
+          <code>n</code> 阶？
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">n</span><code>3</code></div>
+          <p class="example-box__note">
+            三种走法：<code>1+1+1</code>、<code>1+2</code>、<code>2+1</code> → 返回 <strong>3</strong>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想最后一步，而不是第一步</h2>
+        <p>
+          直接从第一步往后想，分支会越想越乱。换个角度——
+          <strong>盯着终点「第 n 阶」往回看</strong>：不管前面怎么走，
+          走到第 n 阶的<strong>最后一步</strong>只可能有两种情况：
+        </p>
+        <ul>
+          <li>最后一步迈了 <strong>1 阶</strong>：说明在那之前，你已经站在<strong>第 n−1 阶</strong>。</li>
+          <li>最后一步迈了 <strong>2 阶</strong>：说明在那之前，你已经站在<strong>第 n−2 阶</strong>。</li>
+        </ul>
+        <p>
+          这两种情况<strong>互不重叠</strong>（最后一步要么迈 1 要么迈 2，不会同时是），
+          所以「走到第 n 阶的方法数」就是「走到第 n−1 阶的方法数」加上「走到第 n−2 阶的方法数」。
+        </p>
+        <div class="callout callout--warn">
+          <strong>如果直接写递归：</strong><code>f(n) = f(n-1) + f(n-2)</code> 能算对，
+          但 <code>f(n-2)</code> 这种子问题会在不同分支里被<strong>反复重新计算</strong>，
+          n 一大，递归树指数级爆炸。动态规划要做的，就是把每个子问题<strong>只算一次、记下来</strong>。
+        </div>
+      </section>
+
+      <!-- 3. DP 三件套 + 动画 -->
+      <section class="article__section">
+        <h2>🧠 第三步：动态规划三件套</h2>
+        <div class="dp-steps">
+          <article class="dp-step card">
+            <span class="dp-step__num">1</span>
+            <h3>状态：dp[i] 表示什么？</h3>
+            <p><code>dp[i]</code> = 爬到<strong>第 i 阶</strong>一共有多少种不同的方法。</p>
+            <p class="dp-step__hint">最终答案就是 <code>dp[n]</code>。</p>
+          </article>
+          <article class="dp-step card">
+            <span class="dp-step__num">2</span>
+            <h3>转移：dp[i] 怎么由更小的问题推出来？</h3>
+            <p>
+              照上面的洞察，最后一步要么从第 i−1 阶迈 1 阶上来，要么从第 i−2 阶迈 2 阶上来：
+            </p>
+            <p><code>dp[i] = dp[i-1] + dp[i-2]</code>（i ≥ 3）</p>
+          </article>
+          <article class="dp-step card">
+            <span class="dp-step__num">3</span>
+            <h3>边界：最小的情况是什么？</h3>
+            <p>
+              <code>dp[1] = 1</code>（只有「迈 1 阶」这一种走法）；
+              <code>dp[2] = 2</code>（「1+1」或「直接迈 2 阶」）。
+              这两个地基定下来，后面全靠它们往上叠。
+            </p>
+          </article>
+        </div>
+
+        <p>
+          下面这个动画一阶一阶往上算：当前在算的台阶会高亮，它依赖的「前一阶」和「前两阶」
+          会被标成来源色，算完把方法数填到台阶上方。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在算的 dp[i]</span>
+          <span><i class="sw sw--src"></i> 依赖的 dp[i-1] 与 dp[i-2]</span>
+          <span><i class="sw sw--gold"></i> 最终答案 dp[n]</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 n 改成 1，看「地基」单独一步是怎么直接给出答案的；
+          再改成 8、9，看台阶怎么越爬越高、方法数怎么像滚雪球一样变大。
+        </p>
+      </section>
+
+      <!-- 4. Java 代码 -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>
+          动画里我们把每一阶的方法数都存了下来，但仔细看转移方程会发现：
+          算 <code>dp[i]</code> 时只用到了<strong>最近的两个值</strong> ——
+          没必要存下整张表，用两个变量滚动更新就够了，空间从 O(n) 降到 O(1)。
+        </p>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> climbStairs(<span class="ty">int</span> n) {
+        <span class="kw">if</span> (n &lt;= <span class="nm">2</span>) <span class="kw">return</span> n; <span class="cm">// dp[1]=1, dp[2]=2，和 n 本身正好相等</span>
+
+        <span class="ty">int</span> prev2 = <span class="nm">1</span>; <span class="cm">// 滚动变量：dp[i-2]，初始对应 dp[1]</span>
+        <span class="ty">int</span> prev1 = <span class="nm">2</span>; <span class="cm">// 滚动变量：dp[i-1]，初始对应 dp[2]</span>
+
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">3</span>; i &lt;= n; i++) {
+            <span class="ty">int</span> cur = prev1 + prev2; <span class="cm">// dp[i] = dp[i-1] + dp[i-2]</span>
+            prev2 = prev1;
+            prev1 = cur;
+        }
+        <span class="kw">return</span> prev1;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>从第 3 阶算到第 n 阶，循环一遍。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只保留最近两个值，不需要整张 dp 表。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>爬楼梯本质就是斐波那契数列（移了一位）。它的价值不在题目本身，
+          而在于把「动态规划三件套」——状态、转移、边界——讲得最干净的一道题：
+          先盯着<strong>最后一步</strong>把大问题拆成小问题，再发现「重复子问题」该被记下来而不是重算，
+          最后观察到「只依赖最近几个状态」时，还能把空间从 O(n) 压到 O(1)。
+          这套思路是后面所有一维 DP 题（打家劫舍、解码方法……）共用的起点。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/70-climbing-stairs/page.js"></script>
+  </body>
+</html>

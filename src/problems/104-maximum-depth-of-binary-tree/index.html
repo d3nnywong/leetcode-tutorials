@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>104. 二叉树的最大深度 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 104 二叉树的最大深度：什么是「深度」、为什么 depth(root) = 1 + max(左子树深度, 右子树深度)、后序递归怎么把答案从叶子传回根节点，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/104-maximum-depth-of-binary-tree/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          二叉树最经典的入门递归题。看完你会明白：「深度」其实就是一个会自己往下问、
+          再把答案一路带回来的递归定义。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：「深度」到底是什么</h2>
+        <p>
+          给你一棵二叉树，求它的<strong>最大深度</strong>——也就是从根节点走到
+          <strong>最远的叶子节点</strong>，这条路径上一共经过几个节点。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[3,9,20,null,null,15,7]</code></div>
+          <p class="example-box__note">
+            从根节点 3 走到叶子 15（或 7）：3 → 20 → 15，一路经过 3 个节点，
+            所以最大深度是 <code>3</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察：递归定义 -->
+      <section class="article__section">
+        <h2>💡 第二步：把「深度」拆成更小的「深度」</h2>
+        <p>
+          直接去数「最长路径」不好下手，但换个角度看：一棵树的深度，其实可以用它
+          <strong>左右两棵子树</strong>的深度推出来——
+        </p>
+        <ul>
+          <li>空节点（树都没有）：深度规定为 <code>0</code>。</li>
+          <li>
+            非空节点：它的深度 = <strong>左子树深度</strong>和<strong>右子树深度</strong>里
+            更大的那个，再加上自己这一层，即 <code>depth = 1 + max(左, 右)</code>。
+          </li>
+        </ul>
+        <div class="callout callout--warn">
+          <strong>这就是递归：</strong>要算「整棵树」的深度，先去算「左子树」和「右子树」各自的深度——
+          而左、右子树本身又是更小的树，可以用同一套逻辑继续往下拆，一直拆到空节点（深度 0）为止，
+          再把答案一层层带回来。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：看递归怎么「下去再回来」</h2>
+        <p>
+          后序遍历天然契合这个过程：先递归处理完左子树、再递归处理完右子树，
+          最后才轮到自己用 <code>1 + max(左, 右)</code> 算出答案，交还给上一层调用它的节点。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 还在递归栈里等结果的祖先</span>
+          <span><i class="sw sw--hi"></i> 正在处理 / 刚算完的节点</span>
+          <span><i class="sw sw--ok"></i> 已经算出深度的节点</span>
+          <span><i class="sw sw--gold"></i> 根节点的最终答案</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          每个节点上方会冒出它算出来的深度；点「下一步」看深度怎么从叶子一路汇总回根节点。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">// LeetCode 已经定义好 TreeNode：</span>
+<span class="cm">// class TreeNode { int val; TreeNode left; TreeNode right; }</span>
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> maxDepth(<span class="ty">TreeNode</span> root) {
+        <span class="kw">if</span> (root == <span class="kw">null</span>) {
+            <span class="kw">return</span> <span class="nm">0</span>; <span class="cm">// 空节点，深度为 0</span>
+        }
+        <span class="ty">int</span> leftDepth = maxDepth(root.left);   <span class="cm">// 左子树的最大深度</span>
+        <span class="ty">int</span> rightDepth = maxDepth(root.right); <span class="cm">// 右子树的最大深度</span>
+        <span class="kw">return</span> <span class="nm">1</span> + <span class="ty">Math</span>.max(leftDepth, rightDepth); <span class="cm">// 较深的子树 + 自己这一层</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>每个节点恰好被访问一次（n 是节点总数）。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(h)</code>
+            <p>
+              h 是树的高度，来自递归调用栈：平衡树约 <code>O(log n)</code>，
+              最坏（退化成链）<code>O(n)</code>。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>树相关的问题，很多都可以问自己一句——「能不能用『左子树的答案』
+          和『右子树的答案』，推出『整棵树的答案』？」能的话，递归（分治）几乎就是现成的解法：
+          base case 处理空节点，递归式负责合并左右两边的结果。最大深度是这个套路最干净的入门例子。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/104-maximum-depth-of-binary-tree/page.js"></script>
+  </body>
+</html>

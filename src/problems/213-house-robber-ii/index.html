@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>213. 打家劫舍 II · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 213 打家劫舍 II：房子围成一圈时为什么要把环拆成两条链、动态规划三件套怎么分别推导两种情形、可交互的一维 DP 动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/213-house-robber-ii/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          「打家劫舍」的进阶版：房子从一条直线变成了一个圈。看完你会发现，
+          多出来的「首尾相邻」并不可怕——只要把一个环拆成两条直线，
+          就能把这道题变回你已经会做的一维 DP。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          还是那个小偷，还是「相邻的房子不能同时偷」的规则。唯一的变化：这次所有房子
+          <strong>围成一圈</strong>，第一间和最后一间也算是「相邻」的。问能偷到的
+          <strong>最高金额</strong>是多少。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[2, 3, 2]</code></div>
+          <p class="example-box__note">
+            不能同时偷 1 号和 3 号（首尾相邻），所以只能二选一：偷 1 号得 2，偷 2 号得 3，
+            最优是只偷 2 号 → 返回 <strong>3</strong>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：把环拆成两条链</h2>
+        <p>
+          如果还是一条直线，这题就是经典的「打家劫舍」：一维 DP，<code>dp[i] = max(dp[i-1], dp[i-2] + nums[i])</code>。
+          现在多了一条「第 1 号与第 n 号相邻」的边，唯一的麻烦就是<strong>这两间不能同时偷</strong>。
+        </p>
+        <p>
+          但反过来想：只要保证「第 1 号与第 n 号不同时被偷」，剩下的就还是一条直线问题。
+          而「不同时偷」只有<strong>两种互斥的可能</strong>：
+        </p>
+        <ul>
+          <li><strong>情形 A：彻底不偷第 n 号房</strong> —— 问题退化成在 <code>[1, n-1]</code> 这条直线上做标准打家劫舍。</li>
+          <li><strong>情形 B：彻底不偷第 1 号房</strong> —— 问题退化成在 <code>[2, n]</code> 这条直线上做标准打家劫舍。</li>
+        </ul>
+        <p>
+          这两种情形覆盖了所有不违反「首尾不同时偷」的方案，互不重叠也没有遗漏，
+          所以答案就是<strong>两条链各自跑一遍一维 DP，再取较大值</strong>。
+        </p>
+        <div class="callout callout--warn">
+          <strong>为什么不会漏掉「两个都不偷」的情况：</strong>「两个都不偷」属于情形 A
+          （不偷第 n 号）的子集——情形 A 的 DP 本来就会在「偷第 1 号更划算」和
+          「不偷第 1 号更划算」之间自动取较大者，所以不需要单独再分第三种情形。
+        </div>
+      </section>
+
+      <!-- 3. DP 三件套 + 动画 -->
+      <section class="article__section">
+        <h2>🧠 第三步：动态规划三件套</h2>
+        <div class="dp-steps">
+          <article class="dp-step card">
+            <span class="dp-step__num">1</span>
+            <h3>状态：dp[i] 表示什么？</h3>
+            <p>在「拆出来的某一条直线」上，<code>dp[i]</code> = 偷到第 i 间房（含第 i 间）为止，能拿到的最高金额。</p>
+            <p class="dp-step__hint">两条直线（情形 A、情形 B）各自维护一份 dp，互不影响。</p>
+          </article>
+          <article class="dp-step card">
+            <span class="dp-step__num">2</span>
+            <h3>转移：dp[i] 怎么由更小的问题推出来？</h3>
+            <p>站在第 i 间房，要么偷它，要么不偷：</p>
+            <p><code>dp[i] = max(dp[i-1], dp[i-2] + nums[i])</code></p>
+            <p class="dp-step__hint">不偷第 i 间就沿用 dp[i-1]；偷第 i 间就必须跳过紧邻的第 i-1 间，金额是 dp[i-2] + nums[i]。</p>
+          </article>
+          <article class="dp-step card">
+            <span class="dp-step__num">3</span>
+            <h3>边界：直线的起点怎么算？</h3>
+            <p>
+              每条直线的第一间房只能直接偷：<code>dp[第一间] = nums[第一间]</code>；
+              第二间房不能和第一间同时偷，取较大者：<code>dp[第二间] = max(nums[第一间], nums[第二间])</code>。
+            </p>
+          </article>
+        </div>
+
+        <p>
+          下面的动画会先点出「首尾相邻」的矛盾，再依次演示情形 A、情形 B 两条直线各自的一维 DP：
+          被排除的那间房整间变暗，当前在算的房子高亮，它依赖的「前一间」「前两间」标成来源色，
+          最后两个总额取较大者，就是答案。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--bad"></i> 本情形不偷这一间</span>
+          <span><i class="sw sw--hi"></i> 当前正在算的 dp[i]</span>
+          <span><i class="sw sw--src"></i> 依赖的 dp[i-1] 与 dp[i-2]</span>
+          <span><i class="sw sw--gold"></i> 最终答案所在的情形</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把输入改成 <code>2,3,2</code>（官方示例 1），看两条直线打成平手；
+          再试试只填 1 个数，看「只有一间房」时是怎么直接跳过首尾矛盾的。
+        </p>
+      </section>
+
+      <!-- 4. Java 代码 -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>
+          每条直线上的一维 DP，和爬楼梯一样只依赖最近两个状态，
+          用两个滚动变量代替整张 dp 表，空间能压到 O(1)。
+        </p>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> rob(<span class="ty">int</span>[] nums) {
+        <span class="ty">int</span> n = nums.length;
+        <span class="kw">if</span> (n == <span class="nm">1</span>) <span class="kw">return</span> nums[<span class="nm">0</span>]; <span class="cm">// 只有一间房，没有首尾相邻的问题</span>
+
+        <span class="cm">// 情形 A：不偷最后一间，在 [0, n-2] 上跑标准打家劫舍</span>
+        <span class="cm">// 情形 B：不偷第一间，在 [1, n-1] 上跑标准打家劫舍</span>
+        <span class="kw">return</span> <span class="ty">Math</span>.max(robLinear(nums, <span class="nm">0</span>, n - <span class="nm">2</span>), robLinear(nums, <span class="nm">1</span>, n - <span class="nm">1</span>));
+    }
+
+    <span class="cm">// 在闭区间 [lo, hi] 这条直线上做标准的「打家劫舍」一维 DP（滚动变量，O(1) 空间）</span>
+    <span class="kw">private</span> <span class="ty">int</span> robLinear(<span class="ty">int</span>[] nums, <span class="ty">int</span> lo, <span class="ty">int</span> hi) {
+        <span class="ty">int</span> prev2 = <span class="nm">0</span>; <span class="cm">// 滚动变量：dp[i-2]</span>
+        <span class="ty">int</span> prev1 = <span class="nm">0</span>; <span class="cm">// 滚动变量：dp[i-1]</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = lo; i &lt;= hi; i++) {
+            <span class="ty">int</span> cur = <span class="ty">Math</span>.max(prev1, prev2 + nums[i]); <span class="cm">// 不偷 i / 偷 i</span>
+            prev2 = prev1;
+            prev1 = cur;
+        }
+        <span class="kw">return</span> prev1;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>两条直线各扫一遍，整体仍是线性。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>每条直线只用两个滚动变量，不需要整张 dp 表。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「环形」约束时，先别急着发明新算法——想想能不能
+          <strong>枚举掉那条额外的边</strong>，把问题拆回你已经会做的「直线」版本。
+          打家劫舍 II 的核心不是新的 DP 状态，而是「拆环为链」这个通用技巧：
+          只要环上有一条边不能同时选中相邻两点，就可以分别假设「不选其中一个端点」，
+          跑两次直线 DP 再取较大值。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/213-house-robber-ii/page.js"></script>
+  </body>
+</html>

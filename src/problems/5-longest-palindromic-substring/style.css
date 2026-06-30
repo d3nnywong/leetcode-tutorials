@@ -1,0 +1,79 @@
+/* 5. 最长回文子串 —— 动画舞台专属样式 */
+
+.lps__cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.lps__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.lps__ch {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.lps__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+
+/* 当前已知的最长回文：持续的金色底色 */
+.lps__cell.is-best {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+}
+
+/* 本步正在尝试扩展、且匹配成功的区间 */
+.lps__cell.is-range {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+
+/* 本步比较不相等 */
+.lps__cell.is-bad {
+  background: var(--bad-bg);
+  border-color: var(--bad);
+}
+
+/* 左右指针 L / R：用外圈光环叠加在背景色之上，不抢底色 */
+.lps__cell.is-L,
+.lps__cell.is-R {
+  box-shadow: 0 0 0 3px var(--hi-bg), 0 0 0 5px var(--hi);
+  transform: scale(1.08);
+  z-index: 1;
+}
+
+.lps__bestline {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.lps__bestline code {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lps__cell {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .lps__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}

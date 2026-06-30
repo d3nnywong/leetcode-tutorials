@@ -1,0 +1,144 @@
+/* 212. 单词搜索 II —— 动画舞台专属样式（Trie + 回溯网格） */
+
+.ws__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(13rem, 16rem);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+/* 字母网格 */
+.ws__boardwrap {
+  overflow-x: auto;
+}
+.ws__board {
+  display: grid;
+  gap: var(--space-2);
+  width: max-content;
+}
+.ws__cell {
+  width: 2.8rem;
+  height: 2.8rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.ws__cell.is-skip {
+  border-style: dashed;
+  border-color: var(--color-text-soft);
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+}
+.ws__cell.is-path {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.ws__cell.is-current {
+  background: var(--hi-bg);
+  border-color: var(--hi);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.ws__cell.is-gold {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+/* 右侧栏：Trie 路径 + 目标单词 */
+.ws__side {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+.ws__box {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+.ws__boxlabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.ws__trie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 2.4rem;
+}
+.ws__node {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15em 0.6em;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+}
+.ws__node--root {
+  color: var(--color-text-soft);
+  font-weight: 600;
+  text-transform: none;
+  font-size: var(--text-sm);
+}
+.ws__node.is-found {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+.ws__arrow {
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+}
+
+.ws__found {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ws__wordchip {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  padding: 0.2em 0.6em;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-soft);
+}
+.ws__wordchip.is-found {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .ws__top {
+    grid-template-columns: 1fr;
+  }
+  .ws__cell {
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws__cell {
+    transition: none;
+  }
+}

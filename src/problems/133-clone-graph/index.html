@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>133. 克隆图 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 133 克隆图：什么是图的深拷贝、为什么需要一张「原节点 → 克隆节点」的哈希表、BFS 如何边扫边建出整张克隆图，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/133-clone-graph/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          这题第一次把「图」和「拷贝」放在一起：你拿到的不是一个数组或字符串，
+          而是一张<strong>互相牵着手</strong>的节点网络。看完你会明白：
+          一张哈希表 + 一次 BFS，就能把整张图原样复制一份。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你图里<strong>一个节点的引用</strong>（题目保证图连通，从这个节点能走到所有节点），
+          让你返回这张图的<strong>深拷贝</strong>：新建一整套节点，值和原图一一对应，
+          连边关系也和原图一模一样——但每个新节点都是<strong>全新的对象</strong>，
+          不能和原图共用任何一个节点。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">输入</span><code>adjList = [[2,4],[1,3],[2,4],[1,3]]</code></div>
+          <p class="example-box__note">
+            4 个节点，1-2、1-4、2-3、3-4 四条边连成一个环。要复制出一张<strong>结构完全一样</strong>、
+            但节点全是新对象的新图，返回新图里那个值为 1 的节点。
+          </p>
+        </div>
+        <div class="callout callout--warn">
+          <strong>关键陷阱：</strong>图和树不一样——图里可能有环（比如这题的例子就是一个环）。
+          如果只是「见一个邻居就递归克隆一个」，没有记住「谁已经克隆过」，递归会沿着环
+          <strong>无限绕圈</strong>，永远停不下来。
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🔑 第二步：关键洞察——一张「原节点 → 克隆节点」的哈希表</h2>
+        <p>
+          既然怕「重复克隆」和「绕圈」，那就用一张哈希表 <code>visited</code> 记住
+          <strong>每个原节点对应的克隆节点</strong>。遍历时遇到任何一个原节点：
+        </p>
+        <ul>
+          <li><strong>已经在表里？</strong>说明它已经被克隆过了，直接拿现成的克隆节点用，不再新建。</li>
+          <li><strong>不在表里？</strong>新建一个值相同的克隆节点，存进表里，再接着处理它的邻居。</li>
+        </ul>
+        <p>
+          这样不管走多少条路径绕回同一个节点，表里查到的永远是<strong>同一个</strong>克隆节点——
+          环不会让我们重复建节点，也不会死循环。具体用 BFS 还是 DFS 遍历都行，
+          这里用<strong>队列 BFS</strong>：一层层地把「发现新节点 → 建克隆 → 接边」做完。
+        </p>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：跟着动画看 BFS 怎么边扫边建</h2>
+        <p>
+          左边是原图，右边是正在被建出来的克隆图。一开始右边所有节点都是「虚影」（还没克隆）；
+          每发现一个新节点就把它在右边「点亮」，每确认一条边就把右边对应的两点连起来。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前从队列取出处理的节点 cur</span>
+          <span><i class="sw sw--src"></i> 正在检查的邻居 nb</span>
+          <span><i class="sw sw--ok"></i> 刚刚新建的克隆节点</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          虚线 + 半透明 = 克隆图里还没建出来的节点 / 边；点「下一步」看哈希表 visited 怎么保证每个节点只建一次。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">Node</span> cloneGraph(<span class="ty">Node</span> node) {
+        <span class="kw">if</span> (node == <span class="kw">null</span>) <span class="kw">return</span> <span class="kw">null</span>;
+
+        <span class="cm">// visited: 原节点 -> 克隆节点，既防重复克隆，也防绕环死循环</span>
+        <span class="ty">Map</span>&lt;<span class="ty">Node</span>, <span class="ty">Node</span>&gt; visited = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+        <span class="ty">Queue</span>&lt;<span class="ty">Node</span>&gt; queue = <span class="kw">new</span> <span class="ty">LinkedList</span>&lt;&gt;();
+
+        <span class="cm">// 先克隆起点自己，加入队列</span>
+        queue.offer(node);
+        visited.put(node, <span class="kw">new</span> <span class="ty">Node</span>(node.val));
+
+        <span class="kw">while</span> (!queue.isEmpty()) {
+            <span class="ty">Node</span> cur = queue.poll();
+            <span class="kw">for</span> (<span class="ty">Node</span> neighbor : cur.neighbors) {
+                <span class="kw">if</span> (!visited.containsKey(neighbor)) {
+                    <span class="cm">// 第一次见到这个邻居：新建克隆节点，加入队列</span>
+                    visited.put(neighbor, <span class="kw">new</span> <span class="ty">Node</span>(neighbor.val));
+                    queue.offer(neighbor);
+                }
+                <span class="cm">// 不管新旧，都把克隆图里 cur 与 neighbor 对应的节点连起来</span>
+                visited.get(cur).neighbors.add(visited.get(neighbor));
+            }
+        }
+        <span class="kw">return</span> visited.get(node);
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(V + E)</code>
+            <p>每个节点入队一次，每条边被发现一次（无向图两端各算一次）。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(V)</code>
+            <p>哈希表 visited 与队列最多各存下所有节点。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>但凡涉及「克隆/遍历带环的结构」（图、带 random 指针的链表等），
+          第一反应就是用一张<strong>哈希表记住「原对象 → 新对象」</strong>的映射，
+          它既能避免重复创建，又能天然防止绕环死循环。BFS／DFS 只是遍历顺序的选择，
+          真正的核心是这张映射表。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/133-clone-graph/page.js"></script>
+  </body>
+</html>

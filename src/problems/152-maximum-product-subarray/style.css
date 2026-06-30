@@ -1,0 +1,143 @@
+/* 152. 乘积最大子数组 —— 动画舞台专属样式（一维 DP：同时维护最大/最小乘积） */
+
+/* 原始数组行 */
+.mp__nums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+.mp__cell {
+  position: relative;
+  width: 3.1rem;
+  height: 3.1rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.mp__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.mp__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.mp__cell.is-done {
+  opacity: 0.55;
+}
+.mp__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.14);
+  box-shadow: var(--shadow);
+  z-index: 1;
+  opacity: 1;
+}
+.mp__cell.is-best {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+/* 在此处「丢弃前面、自己重新开始」：左边加一道虚线断点 */
+.mp__cell.is-restart {
+  border-left: 3px dashed var(--bad);
+}
+
+/* dp 两行：maxEnd[i] / minEnd[i] */
+.mp__dp {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+.mp__dprow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.mp__rowlabel {
+  flex-shrink: 0;
+  width: 6rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+  font-family: var(--font-mono);
+}
+.mp__cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.mp__dpcell {
+  width: 3.1rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.mp__dpcell.is-filled {
+  border-style: solid;
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 700;
+}
+/* 上一步被「接上」的来源格 */
+.mp__dpcell.is-src {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+/* 当前正在计算的格子 */
+.mp__dpcell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.1);
+  z-index: 1;
+}
+/* best 取得的位置 */
+.mp__dpcell.is-best {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* 历史最大值 */
+.mp__best {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.mp__bestval {
+  font-family: var(--font-mono);
+  color: var(--color-text);
+}
+
+@media (max-width: 560px) {
+  .mp__cell,
+  .mp__dpcell {
+    width: 2.5rem;
+  }
+  .mp__rowlabel {
+    width: 4.6rem;
+    font-size: 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp__cell,
+  .mp__dpcell {
+    transition: none;
+  }
+}

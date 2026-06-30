@@ -1,0 +1,80 @@
+/* 48. 旋转图像 —— 动画舞台专属样式 */
+
+.rt__phase {
+  display: inline-block;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  padding: 0.15em 0.7em;
+  border-radius: 999px;
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  width: fit-content;
+}
+.rt__phase--transpose {
+  background: var(--src-bg);
+  color: var(--src);
+}
+.rt__phase--reverse {
+  background: var(--hi-bg);
+  color: var(--hi);
+}
+.rt__phase--done {
+  background: var(--gold-bg);
+  color: var(--gold);
+}
+
+.rt__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 3), minmax(2.6rem, 3.4rem));
+  grid-auto-rows: minmax(2.6rem, 3.4rem);
+  gap: var(--space-2);
+  width: fit-content;
+}
+
+.rt__cell {
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+
+.rt__cell.is-a {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.1);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.rt__cell.is-b {
+  border-color: var(--src);
+  background: var(--src-bg);
+  transform: scale(1.1);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.rt__cell.is-done {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+
+@media (max-width: 560px) {
+  .rt__grid {
+    grid-template-columns: repeat(var(--n, 3), minmax(2.2rem, 2.6rem));
+    grid-auto-rows: minmax(2.2rem, 2.6rem);
+  }
+  .rt__cell {
+    font-size: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rt__cell {
+    transition: none;
+  }
+}

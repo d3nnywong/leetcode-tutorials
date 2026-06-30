@@ -1,0 +1,132 @@
+/* 21. 合并两个有序链表 —— 动画舞台专属样式（ml = merge list） */
+
+.ml__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+.ml__rowlabel {
+  flex-shrink: 0;
+  width: 5.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+.ml__row--merged {
+  margin-top: var(--space-2);
+  border-top: 1px dashed var(--color-border);
+}
+
+.ml__chain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  row-gap: var(--space-4);
+}
+
+.ml__node {
+  position: relative;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 var(--space-2);
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition:
+    background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.ml__val {
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+.ml__node--null {
+  min-width: 2.6rem;
+  border-style: dashed;
+  background: none;
+  font-size: 0.68rem;
+  color: var(--color-text-soft);
+}
+.ml__arrow {
+  color: var(--color-text-soft);
+  font-size: 1.1rem;
+}
+
+/* 当前指针 p1 / p2 */
+.ml__node.is-p1,
+.ml__node.is-p2 {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.ml__node.is-p1::before,
+.ml__node.is-p2::before {
+  content: 'p1';
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 0.05em 0.5em;
+  border-radius: var(--radius-sm);
+  background: var(--hi);
+  color: #fff;
+  white-space: nowrap;
+}
+.ml__node.is-p2::before {
+  content: 'p2';
+}
+
+/* 本步被选中、接入结果链表的节点 */
+.ml__node.is-win {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+
+/* 结果链表里刚接入的最新节点 */
+.ml__node.is-new {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  animation: ml-pop var(--duration) var(--ease);
+}
+
+@keyframes ml-pop {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ml__node {
+    transition: none;
+  }
+  .ml__node.is-new {
+    animation: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .ml__rowlabel {
+    width: 100%;
+  }
+  .ml__node {
+    min-width: 2.2rem;
+    height: 2.2rem;
+  }
+}

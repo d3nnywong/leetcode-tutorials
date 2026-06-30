@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>217. 存在重复元素 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 217 存在重复元素：暴力两两比较为什么慢、排序法与哈希集合一遍扫描如何把时间降到 O(n)，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/217-contains-duplicate/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          判断一个数组里有没有重复数字，是「用哈希表记住见过什么」这个思路最朴素的起点。
+          看完你会明白：一个哈希集合，怎么把逐个比较的笨办法压成一遍扫描。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个整数数组 <code>nums</code>，问里面有没有<strong>出现过至少两次</strong>的数字。
+          有就返回 <code>true</code>，所有数字都互不相同就返回 <code>false</code>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[1, 2, 3, 1]</code></div>
+          <p class="example-box__note">
+            数字 1 在下标 0 和下标 3 各出现了一次，一共出现了两次 → 返回 <code>true</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 / 排序 -->
+      <section class="article__section">
+        <h2>🐢 第二步：两种「还不够好」的办法</h2>
+        <p>
+          最直接的：拿每个数去和<strong>后面的每个数</strong>比较，看有没有相等的。两层循环，
+          能做出来，但是 <code>O(n²)</code>。
+        </p>
+        <p>
+          聪明一点：先把数组<strong>排序</strong>，相同的数字排序后一定挨在一起，
+          于是只要从左到右扫一遍，看相邻两个数是否相等就行，<code>O(n log n)</code>。
+          比暴力好不少，但排序本身就要花 <code>O(n log n)</code>，还会打乱数组原来的顺序。
+        </p>
+        <div class="callout callout--warn">
+          <strong>能不能更快？</strong>两层循环慢在「每次都要重新找」；排序快是快，但代价是
+          <code>O(n log n)</code> 的排序开销。能不能<strong>一遍扫描</strong>就搞定，
+          且不破坏原数组？
+        </div>
+      </section>
+
+      <!-- 3. 哈希表 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用哈希表「边走边记」</h2>
+        <p>
+          换个思路：扫到 <code>nums[i]</code> 时，我们只关心一件事——
+          <strong>这个数之前出现过吗？</strong>
+        </p>
+        <p>
+          于是边走边把<strong>见过的数记进哈希表</strong>。到一个新数就先查表：
+          它在不在表里？在 → 立刻撞上，返回 <code>true</code>；不在 → 把它记进去继续。
+          查表是 <code>O(1)</code>，整个数组只扫一遍就够了。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前 nums[i]</span>
+          <span><i class="sw sw--src"></i> 已记入哈希表</span>
+          <span><i class="sw sw--ok"></i> 撞上的「第一次出现」</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>1,2,3,4</code>（无重复）或 <code>1,1,1,3,3,4,3,2,4,2</code>，
+          看动画分别怎么演示 false 和 true。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> containsDuplicate(<span class="ty">int</span>[] nums) {
+        <span class="cm">// seen：记录「见过的数」</span>
+        <span class="ty">Set</span>&lt;<span class="ty">Integer</span>&gt; seen = <span class="kw">new</span> <span class="ty">HashSet</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">int</span> x : nums) {
+            <span class="cm">// add 返回 false 说明 x 已经在集合里了 —— 撞上了</span>
+            <span class="kw">if</span> (!seen.add(x)) {
+                <span class="kw">return</span> <span class="nm">true</span>;
+            }
+        }
+        <span class="kw">return</span> <span class="nm">false</span>;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>数组只扫一遍，哈希集合的查询 / 插入都是均摊 O(1)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>最坏情况（没有重复）要把所有元素都存进哈希集合。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当你发现「需要知道某个值之前出没出现过」时，
+          先想想能不能<strong>把见过的东西记进哈希表</strong>，把「查找」从 O(n) 变成 O(1)。
+          这是和两数之和一样的「空间换时间」套路，也是后面去重、计数类题目的通用起点。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/217-contains-duplicate/page.js"></script>
+  </body>
+</html>

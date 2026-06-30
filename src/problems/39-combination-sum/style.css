@@ -1,0 +1,153 @@
+/* 39. 组合总和 —— 动画舞台专属样式（回溯 + 剪枝） */
+
+.cs__target {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.cs__remain {
+  font-family: var(--font-mono);
+  color: var(--color-text);
+}
+.cs__remain.is-zero {
+  color: var(--ok);
+}
+
+/* 候选数行 */
+.cs__cands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.cs__cand {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.cs__cand-val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.cs__cand-idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+/* 下标 < start：本轮不可再选（避免重复组合） */
+.cs__cand.is-locked {
+  opacity: 0.4;
+  background: var(--color-surface-2);
+}
+/* 正在尝试的候选 */
+.cs__cand.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+/* 命中：remain 减到 0 */
+.cs__cand.is-success {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+/* 剪枝：比 remain 还大，整段跳过 */
+.cs__cand.is-prune {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+}
+/* 回溯：刚被撤销的选择 */
+.cs__cand.is-popped {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+
+/* 当前路径 */
+.cs__pathlabel,
+.cs__resultslabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.cs__path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.6rem;
+}
+.cs__path-cell {
+  display: grid;
+  place-items: center;
+  min-width: 2.4rem;
+  height: 2.4rem;
+  padding: 0 var(--space-2);
+  border: 2px solid var(--src);
+  background: var(--src-bg);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.cs__path-cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.1);
+}
+.cs__path-cell.is-success {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  transform: scale(1.1);
+}
+
+/* 已找到的组合 */
+.cs__results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.cs__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.cs__chip.is-new {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  font-weight: 700;
+}
+.cs__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs__cand,
+  .cs__path-cell {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .cs__cand {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}

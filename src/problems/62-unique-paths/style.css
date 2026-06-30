@@ -1,0 +1,78 @@
+/* 62. 不同路径 —— 动画舞台专属样式 */
+
+.up__board {
+  display: grid;
+  grid-template-columns: repeat(var(--up-cols), 3rem);
+  gap: var(--space-2);
+}
+.up__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), transform var(--duration) var(--ease),
+    outline-color var(--duration) var(--ease);
+}
+.up__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.up__tag {
+  position: absolute;
+  top: -1.2rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text-soft);
+  white-space: nowrap;
+}
+
+/* 已经算出来的格子 */
+.up__cell.is-filled {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+/* 当前正在计算的格子 */
+.up__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+/* 当前格子依赖的来源格（上 / 左） */
+.up__cell.is-source {
+  outline: 3px dashed var(--ok);
+  outline-offset: 2px;
+}
+/* 终点：填表结束后的最终答案格 */
+.up__cell.is-goal {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  box-shadow: var(--shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .up__cell {
+    transition: none;
+  }
+  .up__cell.is-current {
+    transform: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .up__board {
+    grid-template-columns: repeat(var(--up-cols), 2.4rem);
+  }
+  .up__cell {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+}

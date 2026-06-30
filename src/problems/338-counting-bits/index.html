@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>338. 比特位计数 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 338 比特位计数：为什么逐位数 1 太慢、一维动态规划怎么推导 dp[i] = dp[i >> 1] + (i & 1)、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/338-counting-bits/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          位运算和一维动态规划的结合题。看完你会发现：算一个数二进制里有几个 1，
+          根本不用从头数——它的答案就藏在「比它小一半」的那个数里。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个整数 <code>n</code>，要你算出 <strong>0 到 n 这每一个数</strong>，
+          它们的二进制表示里各有几个 <code>1</code>，把这些个数按顺序放进一个数组 <code>ans</code> 里返回。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">n</span><code>5</code></div>
+          <p class="example-box__note">
+            0 = <code>0</code>（0 个 1）；1 = <code>1</code>（1 个）；2 = <code>10</code>（1 个）；
+            3 = <code>11</code>（2 个）；4 = <code>100</code>（1 个）；5 = <code>101</code>（2 个）
+            → 返回 <code>[0,1,1,2,1,2]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 + 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想最笨的办法，再找规律</h2>
+        <p>
+          最直接的想法：对 0 到 n 的每一个数，都用 <code>x &amp; (x - 1)</code> 之类的技巧逐位去数它有几个 1。
+          这样能做出来，但每个数都要单独「数一遍」，n 个数、每个数最多数 <code>log n</code> 位，
+          总共 <code>O(n log n)</code>。
+        </p>
+        <div class="callout callout--warn">
+          <strong>问题出在哪：</strong>我们把每个数都当成全新的、互不相干的问题来算，
+          完全没有利用「前面已经算过的数」。其实数字之间是有联系的——
+          <code>i</code> 右移一位（去掉最后一个二进制位）就是 <code>i &gt;&gt; 1</code>，
+          而这个数 <strong>一定比 i 小</strong>，也就是说<strong>它的答案早就算好了</strong>。
+        </p>
+        </div>
+        <p>
+          于是关键洞察是：把 <code>i</code> 的二进制「砍掉最后一位」，剩下的部分就是 <code>i &gt;&gt; 1</code>；
+          被砍掉的那一位，要么是 0 要么是 1，正好等于 <code>i &amp; 1</code>。
+          所以 <code>i</code> 里 1 的个数 = <code>i &gt;&gt; 1</code> 里 1 的个数，再加上被砍掉那一位是不是 1。
+        </p>
+      </section>
+
+      <!-- 3. DP 三件套 + 动画 -->
+      <section class="article__section">
+        <h2>🧠 第三步：动态规划三件套</h2>
+        <div class="dp-steps">
+          <article class="dp-step card">
+            <span class="dp-step__num">1</span>
+            <h3>状态：dp[i] 表示什么？</h3>
+            <p><code>dp[i]</code> = 整数 <strong>i</strong> 的二进制表示里，<code>1</code> 的个数。</p>
+            <p class="dp-step__hint">最终答案就是整个 <code>dp[0..n]</code> 数组，直接作为 ans 返回。</p>
+          </article>
+          <article class="dp-step card">
+            <span class="dp-step__num">2</span>
+            <h3>转移：dp[i] 怎么由更小的问题推出来？</h3>
+            <p>
+              照上面的洞察，把 i 的最低位砍掉得到 <code>i &gt;&gt; 1</code>（一定比 i 小，已经算好），
+              再看被砍掉的那一位 <code>i &amp; 1</code> 是不是 1：
+            </p>
+            <p><code>dp[i] = dp[i &gt;&gt; 1] + (i &amp; 1)</code>（i ≥ 1）</p>
+          </article>
+          <article class="dp-step card">
+            <span class="dp-step__num">3</span>
+            <h3>边界：最小的情况是什么？</h3>
+            <p>
+              <code>dp[0] = 0</code>：0 的二进制全是 0，里面没有任何 1，这是唯一不用推导、直接给定的地基。
+            </p>
+          </article>
+        </div>
+
+        <p>
+          下面这个动画从 i = 0 开始一格一格往后算：当前在算的 i 会高亮，
+          它依赖的来源格 <code>i &gt;&gt; 1</code> 会标成来源色，算完把结果填进格子里，
+          整条数组只需要从左到右扫一遍。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在算的 dp[i]</span>
+          <span><i class="sw sw--src"></i> 依赖的来源 dp[i &gt;&gt; 1]</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 n 改成 <code>8</code>，留意 i = 4（<code>100</code>）和 i = 8（<code>1000</code>）
+          这种「2 的幂」——它们都只来自 dp[0]，所以 dp 值永远是 1。
+        </p>
+      </section>
+
+      <!-- 4. Java 代码 -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>
+          转移方程只依赖 <code>dp[i &gt;&gt; 1]</code>，而 <code>i &gt;&gt; 1 &lt; i</code> 永远成立，
+          所以只要从小到大顺序填一遍数组，每个位置都能直接查到它需要的来源，一趟扫描即可。
+        </p>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span>[] countBits(<span class="ty">int</span> n) {
+        <span class="ty">int</span>[] dp = <span class="kw">new</span> <span class="ty">int</span>[n + <span class="nm">1</span>]; <span class="cm">// dp[0] = 0，数组默认初始化为 0，正好是边界</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt;= n; i++) {
+            <span class="cm">// i >> 1 比 i 小，已经算好了；i & 1 是被砍掉的最低位</span>
+            dp[i] = dp[i &gt;&gt; <span class="nm">1</span>] + (i &amp; <span class="nm">1</span>);
+        }
+        <span class="kw">return</span> dp;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>从 1 到 n 顺序扫一遍，每个位置 O(1) 计算。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>结果数组本身就要占 O(n)，不算它的话额外空间是 O(1)。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>比特位计数是「用已经算好的更小子问题」型一维 DP 的代表题——
+          一个数的二进制信息，可以通过去掉最低位拆成「更小的数」加「这一位是不是 1」。
+          这种「右移即子问题」的思路在位运算相关的 DP 里很常见，
+          记住 <code>i &gt;&gt; 1</code> 永远比 <code>i</code> 小，就能想到用它当作递推的来源。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/338-counting-bits/page.js"></script>
+  </body>
+</html>

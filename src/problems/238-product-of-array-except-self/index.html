@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>238. 除自身以外数组的乘积 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 238 除自身以外数组的乘积：为什么不能用除法、前缀积 × 后缀积如何在 O(n) 时间、O(1) 额外空间内算出答案，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/238-product-of-array-except-self/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          不让用除法，怎么知道「除了我自己之外，其他人乘起来是多少」？
+          答案是：把「我左边的乘积」和「我右边的乘积」分别算出来，再相乘。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给一个数组 <code>nums</code>，要你返回一个新数组 <code>answer</code>，
+          其中 <code>answer[i]</code> 是 <strong>除了 nums[i] 自己</strong>，
+          其余所有元素乘起来的结果。并且<strong>不准用除法</strong>，还要 <code>O(n)</code> 时间内做完。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[1, 2, 3, 4]</code></div>
+          <p class="example-box__note">
+            answer[0] = 2×3×4 = 24（跳过自己 1）；answer[1] = 1×3×4 = 12；
+            answer[2] = 1×2×4 = 8；answer[3] = 1×2×3 = 6 → <code>[24, 12, 8, 6]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 + 为什么除法不行 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：先把所有数乘起来得到总乘积 <code>total</code>，
+          然后 <code>answer[i] = total / nums[i]</code> 就完了——可惜题目明确<strong>禁止用除法</strong>，
+          而且如果数组里有 <code>0</code>，这个除法直接就崩了（除以 0，或者总乘积本来就是 0，
+          没法反推出原来的某一项）。
+        </p>
+        <p>
+          那就老老实实来：对每个 <code>i</code>，把数组里<strong>除它以外</strong>的所有数再扫一遍乘起来。
+          两层循环，<code>O(n²)</code>，n 能到 10⁵ 就会超时。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键观察：</strong><code>answer[i]</code> 其实就是「<strong>i 左边的乘积</strong>」
+          乘上「<strong>i 右边的乘积</strong>」。如果能把「每个位置左边的乘积」和
+          「每个位置右边的乘积」都预先算好，那对每个 <code>i</code> 就只剩一次乘法了。
+        </div>
+      </section>
+
+      <!-- 3. 前缀积 × 后缀积 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：前缀积 × 后缀积，三遍扫描搞定</h2>
+        <p>
+          定义两个辅助数组：
+        </p>
+        <ul>
+          <li><code>left[i]</code> = <code>nums[0..i-1]</code> 的乘积（i 左边所有数乘起来；
+            <code>left[0] = 1</code>，因为左边没有数，乘积约定为 1）。</li>
+          <li><code>right[i]</code> = <code>nums[i+1..n-1]</code> 的乘积（i 右边所有数乘起来；
+            最后一位 <code>right[n-1] = 1</code>，同理）。</li>
+        </ul>
+        <p>
+          <code>left</code> 从左往右边走边乘一遍就能算完，<code>right</code> 从右往左边走边乘一遍也能算完，
+          各自都是 <code>O(n)</code>。最后 <code>answer[i] = left[i] × right[i]</code>，
+          再扫一遍 <code>O(n)</code>。全程没有除法，三遍线性扫描，总共还是 <code>O(n)</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前处理的下标 i</span>
+          <span><i class="sw sw--src"></i> 这一步用到的「来源」格子</span>
+          <span><i class="sw sw--gold"></i> 本步刚算出的结果</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          先看第一遍怎么从左往右把 <code>left</code> 填满，再看第二遍从右往左把
+          <code>right</code> 填满，最后第三遍逐位相乘得到 <code>answer</code>。
+          试试把数组改成 <code>-1,1,0,-3,3</code>，看看出现 0 时答案怎么变化。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码（顺手把空间也省掉）</h2>
+        <p>
+          动画里用了 <code>left</code>、<code>right</code> 两个数组方便讲清楚原理，
+          实际写代码时可以更省内存：先把「前缀积」直接写进 <code>answer</code> 数组里（相当于省掉了
+          <code>left</code>），再从右往左用<strong>一个变量</strong>滚动维护「后缀积」，边乘边写回
+          <code>answer</code>（相当于省掉了 <code>right</code>）。这样除了输出数组，只多用了一个变量，
+          额外空间降到 <code>O(1)</code>。
+        </p>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span>[] productExceptSelf(<span class="ty">int</span>[] nums) {
+        <span class="ty">int</span> n = nums.length;
+        <span class="ty">int</span>[] answer = <span class="kw">new</span> <span class="ty">int</span>[n];
+
+        <span class="cm">// 第一遍：从左往右，把「前缀积」直接写进 answer</span>
+        answer[<span class="nm">0</span>] = <span class="nm">1</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt; n; i++) {
+            answer[i] = answer[i - <span class="nm">1</span>] * nums[i - <span class="nm">1</span>];
+        }
+
+        <span class="cm">// 第二遍：从右往左，用一个变量滚动维护「后缀积」，边乘边算最终结果</span>
+        <span class="ty">int</span> suffix = <span class="nm">1</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> i = n - <span class="nm">1</span>; i &gt;= <span class="nm">0</span>; i--) {
+            answer[i] = answer[i] * suffix;
+            suffix *= nums[i];
+        }
+
+        <span class="kw">return</span> answer;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>两遍线性扫描，每遍都是 O(n)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>除了输出数组 answer，只用了一个 suffix 变量（输出数组不计入额外空间）。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当某个位置的答案依赖「它左边一段」和「它右边一段」各自的某种累积值
+          （乘积、和、最值……）时，往往可以拆成<strong>从左往右</strong>和<strong>从右往左</strong>
+          两次线性扫描分别预处理，再 O(1) 合并出每个位置的答案——这正是「前缀和 / 前缀积」类技巧的核心，
+          能避免除法、避免重复计算，把 O(n²) 压成 O(n)。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/238-product-of-array-except-self/page.js"></script>
+  </body>
+</html>

@@ -1,0 +1,157 @@
+/* 208. 实现 Trie (前缀树) —— 动画舞台专属样式 */
+
+/* 操作队列 */
+.tn__ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.tn__opchip {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  padding: 0.25em 0.7em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    color var(--duration) var(--ease);
+}
+.tn__opchip.is-active {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  color: var(--color-text);
+  font-weight: 700;
+}
+.tn__opchip.is-done {
+  color: var(--color-text);
+}
+.tn__opres {
+  font-weight: 700;
+}
+.tn__opres--ok {
+  color: var(--ok);
+}
+.tn__opres--bad {
+  color: var(--bad);
+}
+
+/* 树形图 */
+.tn__chartwrap {
+  overflow-x: auto;
+  padding: var(--space-2) 0;
+}
+.tn__svg {
+  display: block;
+  width: 100%;
+  max-width: 40rem;
+  height: auto;
+  margin: 0 auto;
+}
+
+.tn-edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: stroke var(--duration) var(--ease), stroke-width var(--duration) var(--ease);
+}
+.tn-edge.is-active {
+  stroke: var(--src);
+  stroke-width: 2.5;
+}
+.tn-edgelabel {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+  fill: var(--color-text-soft);
+}
+.tn-edgelabel.is-active {
+  fill: var(--src);
+  font-weight: 700;
+}
+
+.tn-circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    stroke-width var(--duration) var(--ease), transform var(--duration) var(--ease);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tn-circle--path {
+  fill: var(--src-bg);
+  stroke: var(--src);
+}
+.tn-circle--current {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 3;
+  transform: scale(1.18);
+}
+.tn-circle--success {
+  fill: var(--ok-bg);
+  stroke: var(--ok);
+  stroke-width: 3;
+}
+.tn-circle--fail {
+  fill: var(--bad-bg);
+  stroke: var(--bad);
+  stroke-width: 3;
+  transform: scale(1.1);
+}
+.tn-circle.is-new {
+  animation: tn-pop 0.6s var(--ease);
+}
+@keyframes tn-pop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.4;
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.tn-val {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: var(--color-text);
+  pointer-events: none;
+}
+.tn-enddot {
+  fill: var(--gold);
+  stroke: var(--color-surface);
+  stroke-width: 1;
+}
+
+/* 当前路径文字 */
+.tn__pathline {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-family: var(--font-mono);
+}
+.tn__pathline code {
+  background: var(--color-surface-2);
+}
+.tn__pathmiss {
+  color: var(--bad);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tn-circle,
+  .tn-edge {
+    transition: none;
+  }
+  .tn-circle.is-new {
+    animation: none;
+  }
+}

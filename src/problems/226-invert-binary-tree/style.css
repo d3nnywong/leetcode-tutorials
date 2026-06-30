@@ -1,0 +1,84 @@
+/* 226. 翻转二叉树 —— 动画舞台专属样式 */
+
+.ibt__chartwrap {
+  overflow-x: auto;
+}
+.ibt__svg {
+  width: 100%;
+  min-width: 280px;
+  max-height: 340px;
+  display: block;
+}
+.ibt__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  padding: var(--space-6) 0;
+}
+
+/* 连线：父子两端从头到尾不变，交换时只是端点坐标变了 */
+.ibt-edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: stroke var(--duration) var(--ease), stroke-width var(--duration) var(--ease);
+}
+.ibt-edge.is-swap {
+  stroke: var(--gold);
+  stroke-width: 3;
+}
+
+/* 节点：g 的 transform 负责「挪到新位置」，要能跟着平滑过渡 */
+.ibt-node {
+  transition: transform var(--duration) var(--ease);
+}
+.ibt-circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.ibt-val {
+  fill: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.ibt-circle.is-current {
+  stroke: var(--hi);
+  fill: var(--hi-bg);
+  stroke-width: 3;
+  transform: scale(1.12);
+}
+.ibt-circle.is-swap {
+  stroke: var(--gold);
+  fill: var(--gold-bg);
+  stroke-width: 3;
+  transform: scale(1.12);
+}
+.ibt-circle.is-leaf {
+  stroke: var(--src);
+  fill: var(--src-bg);
+}
+.ibt-circle.is-final {
+  stroke: var(--ok);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ibt-edge,
+  .ibt-node,
+  .ibt-circle {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .ibt__svg {
+    max-height: 280px;
+  }
+}

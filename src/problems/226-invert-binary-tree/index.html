@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>226. 翻转二叉树 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 226 翻转二叉树：什么是「镜像」、为什么递归「先交换、再递归」能搞定整棵树、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/226-invert-binary-tree/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一道经典的「递归入门题」。难点不是代码量，而是要相信递归——
+          只要管好「当前这一个节点」该干什么，剩下的全部交给递归自己去完成。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：「翻转」到底是个什么操作</h2>
+        <p>
+          翻转二叉树，就是把它变成<strong>镜像对称</strong>的样子——每一个节点的
+          <strong>左孩子和右孩子互换位置</strong>，而且不只是根节点，<strong>每一层、每一个节点</strong>
+          都要这么换。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[4,2,7,1,3,6,9]</code></div>
+          <p class="example-box__note">
+            根节点 4 的左孩子 2、右孩子 7 互换；2 的左孩子 1、右孩子 3 互换；7 的左孩子 6、右孩子 9
+            互换……整棵树左右镜像之后变成 <code>[4,7,2,9,6,3,1]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🔑 第二步：把大问题拆成「一样的小问题」</h2>
+        <p>
+          直接去想「整棵树怎么镜像」会很绕。换个角度——翻转一棵树，其实可以拆成三句话：
+        </p>
+        <ul>
+          <li><strong>树是空的？</strong>什么都不用做，直接返回（递归的终止条件）。</li>
+          <li><strong>不是空的？</strong>先把<strong>当前节点</strong>的左右孩子换一下位置。</li>
+          <li>
+            换完之后，<strong>新的左子树</strong>和<strong>新的右子树</strong>各自也要被翻转——
+            而「翻转一棵子树」和「翻转整棵树」是<strong>同一件事</strong>，所以直接对它们调用
+            <strong>同一个函数</strong>就行，这就是递归。
+          </li>
+        </ul>
+        <div class="callout callout--warn">
+          <strong>不用一次想清楚全部层级：</strong>你只需要相信——只要每个节点都老老实实
+          「交换左右孩子、再把同样的事丢给两个孩子去做」，递归会自动把这件事铺满整棵树，
+          一路传到最深的叶子节点为止。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：看动画——前序递归，一边交换一边往下走</h2>
+        <p>
+          动画按<strong>前序遍历</strong>的顺序展开递归：进入一个节点 →
+          交换它的左右孩子 → 再分别递归进入「新的左子树」「新的右子树」。
+          注意连线两端的节点其实<strong>从未改变</strong>，变的只是某个节点把谁当成左孩子、谁当成右孩子——
+          所以你会看到两棵子树在交换的瞬间，左右换了个位置。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 正在访问的节点</span>
+          <span><i class="sw sw--gold"></i> 正在交换左右孩子</span>
+          <span><i class="sw sw--src"></i> 叶子节点（无需交换）</span>
+          <span><i class="sw sw--ok"></i> 全部翻转完成</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把输入改成 <code>2,1,3</code>，或者输入 <code>[]</code> 看看空树的特殊情况。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">TreeNode</span> invertTree(<span class="ty">TreeNode</span> root) {
+        <span class="cm">// 终止条件：空节点直接返回（递归到叶子的下一层时触发）</span>
+        <span class="kw">if</span> (root == <span class="kw">null</span>) {
+            <span class="kw">return</span> <span class="kw">null</span>;
+        }
+
+        <span class="cm">// 单层逻辑：交换当前节点的左右孩子</span>
+        <span class="ty">TreeNode</span> tmp = root.left;
+        root.left = root.right;
+        root.right = tmp;
+
+        <span class="cm">// 子问题：对换完之后的新左子树、新右子树做同样的事</span>
+        invertTree(root.left);
+        invertTree(root.right);
+
+        <span class="kw">return</span> root;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>每个节点恰好被访问一次，做一次常数时间的交换。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(h)</code>
+            <p>
+              h 是树的高度，来自递归调用栈；最坏情况（树退化成链）是
+              <code>O(n)</code>，平衡树是 <code>O(log n)</code>。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>看到「对树的每个节点都做同一件事」，先想递归三件套——
+          终止条件、当前节点要做的事、把剩下的丢给子问题。这题的子问题恰好就是「翻转一棵（更小的）树」，
+          和原问题一模一样，递归用起来特别顺。如果不想用递归，也可以用 BFS（队列）或显式栈
+          把所有节点取出来逐个交换左右孩子，思路完全一样，只是把「调用栈」换成了自己维护的队列/栈。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/226-invert-binary-tree/page.js"></script>
+  </body>
+</html>

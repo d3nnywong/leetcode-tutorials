@@ -1,0 +1,103 @@
+/* 191. 位1的个数 —— 动画舞台专属样式（前缀 nb__ = number of bits，避免和其他题冲突） */
+
+.nb__n {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.nb__nbin {
+  font-weight: 700;
+  margin-left: var(--space-2);
+}
+
+.nb__bits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.nb__cell {
+  position: relative;
+  width: 2.8rem;
+  height: 2.8rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.nb__bitval {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.nb__pos {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.nb__cell.is-one {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.nb__cell.is-cleared {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.nb__cell.is-cleared .nb__bitval {
+  text-decoration: line-through;
+  color: var(--bad);
+}
+
+.nb__op {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  min-height: 1.4em;
+}
+.nb__op code {
+  background: var(--color-surface-2);
+}
+
+.nb__count {
+  font-size: var(--text-base);
+}
+.nb__tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.nb__chip {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 50%;
+  border: 1px solid var(--ok);
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.nb__chip.is-new {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  color: var(--gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb__cell {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .nb__cell {
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+}

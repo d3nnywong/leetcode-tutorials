@@ -1,0 +1,107 @@
+/* 55. 跳跃游戏 —— 动画舞台专属样式 */
+
+.jg__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.jg__farthest strong {
+  color: var(--color-accent);
+}
+
+.jg__board {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* 数组格子 */
+.jg__cells {
+  display: grid;
+  gap: var(--space-2);
+}
+.jg__cell {
+  position: relative;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.jg__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.jg__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+
+.jg__cell.is-reachable {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.jg__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.jg__cell.is-target {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+.jg__cell.is-stuck {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+  transform: scale(1.12);
+  z-index: 1;
+}
+.jg__cell.is-goal {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  box-shadow: var(--shadow);
+}
+
+/* 「最远可达」进度条：与上面格子一一对齐的网格 */
+.jg__track {
+  display: grid;
+  gap: var(--space-2);
+  height: 0.6rem;
+}
+.jg__fill {
+  grid-row: 1;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--src);
+  opacity: 0.55;
+  transition: grid-column var(--duration) var(--ease), background var(--duration) var(--ease);
+}
+.jg__fill.is-stuck {
+  background: var(--bad);
+}
+.jg__fill.is-goal {
+  background: var(--gold);
+  opacity: 0.75;
+}
+
+@media (max-width: 560px) {
+  .jg__cell {
+    height: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jg__cell,
+  .jg__fill {
+    transition: none;
+  }
+}

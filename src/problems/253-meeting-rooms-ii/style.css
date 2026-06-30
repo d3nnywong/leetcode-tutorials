@@ -1,0 +1,146 @@
+/* 253. 会议室 II —— 动画舞台专属样式（前缀 mri，避免和 252 会议室的 mr 冲突） */
+
+.mri__queuelabel,
+.mri__roomslabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+
+/* 待处理会议队列 */
+.mri__queue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.mri__chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1em;
+  min-width: 3.2rem;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.mri__chip b {
+  font-size: 1rem;
+}
+.mri__chiprange {
+  font-size: 0.7rem;
+  color: var(--color-text-soft);
+}
+.mri__chip.is-done {
+  background: var(--src-bg);
+  border-color: var(--src);
+  opacity: 0.75;
+}
+.mri__chip.is-current {
+  background: var(--hi-bg);
+  border-color: var(--hi);
+  transform: scale(1.08);
+  box-shadow: var(--shadow);
+}
+
+/* 甘特图（每场会议按所属房间画在对应的「车道」上） */
+.mri__chartwrap {
+  overflow-x: auto;
+}
+.mri__svg {
+  width: 100%;
+  min-width: 320px;
+  display: block;
+}
+.mri-lane-bg {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+.mri-lane-bg:nth-child(4n + 3),
+.mri-lane-bg:nth-child(4n) {
+  fill: var(--color-surface);
+}
+.mri-lane-label {
+  fill: var(--color-text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.mri-bar rect {
+  fill: var(--src-bg);
+  stroke: var(--src);
+  stroke-width: 1.5;
+  transition: x var(--duration) var(--ease), width var(--duration) var(--ease),
+    fill var(--duration) var(--ease), stroke var(--duration) var(--ease);
+}
+.mri-bar text {
+  fill: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+.mri-bar.is-current rect {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 2.5;
+}
+.mri-bar.is-final rect {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+
+/* 房间状态面板（用来对照「最小堆」） */
+.mri__rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2.4rem;
+  align-items: center;
+}
+.mri__roomchip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.1em;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.mri__roomend {
+  font-size: 0.7rem;
+  color: var(--color-text-soft);
+}
+.mri__roomchip.is-reuse {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+.mri__roomchip.is-new {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+.mri__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mri-bar rect,
+  .mri__chip {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .mri__chip {
+    min-width: 2.8rem;
+  }
+}

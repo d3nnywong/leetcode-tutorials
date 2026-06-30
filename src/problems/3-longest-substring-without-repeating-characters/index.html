@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3. 无重复字符的最长子串 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 3 无重复字符的最长子串：暴力枚举为什么慢、滑动窗口 + 哈希表如何把时间降到 O(n)、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/3-longest-substring-without-repeating-characters/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一条字符串里「滑」出一个不含重复字符的窗口。看完你会明白：
+          为什么不用每次都从头数，一个哈希表 + 一个左边界指针就能一遍扫完。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个字符串 <code>s</code>，要你找出其中<strong>最长</strong>的一段
+          <strong>连续</strong>子串（子串，不是子序列），这段里面<strong>不能有重复字符</strong>。
+          只要返回这段的<strong>长度</strong>就行。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">s</span><code>"abcabcbb"</code></div>
+          <p class="example-box__note">
+            不含重复字符的最长子串是 <code>"abc"</code>，长度 3。
+            注意从第 4 个字符起又出现了 <code>a</code>，所以不能继续往后数。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：枚举每一个起点 <code>i</code>，再从 <code>i</code> 往后一个字符一个字符地扩，
+          每加一个字符就检查「这一段里有没有重复」，直到出现重复或到字符串末尾为止，记录这段的最大长度。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>枚举起点是 <code>O(n)</code>，每个起点往后扩 + 查重复又要
+          <code>O(n)</code>，整体 <code>O(n²)</code>（甚至更高，如果查重复本身也要扫一遍）。
+          问题的本质是——起点往右挪一格之后，<strong>大部分判断其实是重复劳动</strong>：
+          上一段已经确认无重复的那一大截，没必要从头再查一遍。
+        </div>
+      </section>
+
+      <!-- 3. 滑动窗口 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用滑动窗口「只进不退」地扫一遍</h2>
+        <p>
+          换个角度看：与其每次都重新选起点，不如维护一个<strong>窗口</strong>
+          <code>[left, right]</code>，永远保持窗口里没有重复字符。
+          <code>right</code> 一格一格往右走，把新字符纳入窗口；
+        </p>
+        <p>
+          同时用一个哈希表记录<strong>每个字符最后一次出现的下标</strong>。
+          扫到 <code>s[right]</code> 时，如果这个字符在哈希表里，<strong>并且</strong>
+          那次出现还落在当前窗口 <code>[left, right]</code> 内，说明窗口里有重复了——
+          直接把 <code>left</code> 跳到那次出现的<strong>下一格</strong>，窗口立刻恢复无重复；
+          否则窗口照常扩大。每一步 <code>right − left + 1</code> 就是「以 right 结尾的最长无重复子串长度」，
+          扫完一遍取这些长度的最大值就是答案。<code>left</code> 全程只往右移、不会后退，
+          所以整个数组只需要扫<strong>一遍</strong>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 当前窗口 [left, right]</span>
+          <span><i class="sw sw--hi"></i> 当前 right 指针</span>
+          <span><i class="sw sw--bad"></i> 触发跳跃的重复字符</span>
+          <span><i class="sw sw--gold"></i> 最终最长窗口</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把字符串改成 <code>pwwkew</code>，看 <code>left</code> 怎么从 0 一路跳到 2，最终找出 <code>"wke"</code>。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> lengthOfLongestSubstring(<span class="ty">String</span> s) {
+        <span class="cm">// lastSeen：字符 -> 它最后一次出现的下标</span>
+        <span class="ty">Map</span>&lt;<span class="ty">Character</span>, <span class="ty">Integer</span>&gt; lastSeen = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+        <span class="ty">int</span> left = <span class="nm">0</span>, maxLen = <span class="nm">0</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> right = <span class="nm">0</span>; right &lt; s.length(); right++) {
+            <span class="ty">char</span> c = s.charAt(right);
+            <span class="kw">if</span> (lastSeen.containsKey(c) &amp;&amp; lastSeen.get(c) &gt;= left) {
+                <span class="cm">// 重复字符还在窗口内，左边界跳到它的下一格</span>
+                left = lastSeen.get(c) + <span class="nm">1</span>;
+            }
+            lastSeen.put(c, right);
+            maxLen = <span class="ty">Math</span>.max(maxLen, right - left + <span class="nm">1</span>);
+        }
+        <span class="kw">return</span> maxLen;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p><code>right</code> 只往右走一遍，<code>left</code> 也全程单调右移，每次查表/存表都是 O(1)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(min(n, Σ))</code>
+            <p>哈希表最多存下字符集大小 Σ（如 ASCII 是 128）个字符，或字符串长度 n，取较小者。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当你需要在一维序列里找「满足某种连续性质的最长/最短区间」时，
+          先想想能不能维护一个<strong>左右边界单调移动</strong>的窗口，配合哈希表/计数器
+          快速判断「窗口是否还合法」——这就是<strong>滑动窗口</strong>，能把许多
+          看似需要 O(n²) 枚举的问题压到 O(n)。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/3-longest-substring-without-repeating-characters/page.js"></script>
+  </body>
+</html>

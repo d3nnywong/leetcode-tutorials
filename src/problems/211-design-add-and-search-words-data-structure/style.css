@@ -1,0 +1,151 @@
+/* 211. 添加与搜索单词 - 数据结构设计 —— 动画舞台专属样式（asw = Add/Search Words） */
+
+.asw__info {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.asw__info code {
+  font-family: var(--font-mono);
+}
+
+.asw__chartwrap {
+  overflow-x: auto;
+  padding: var(--space-2) 0;
+}
+.asw__svg {
+  display: block;
+  width: 100%;
+  max-width: 38rem;
+  height: auto;
+  margin: 0 auto;
+}
+
+.asw-edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: opacity var(--duration) var(--ease), stroke var(--duration) var(--ease);
+}
+.asw-edge.is-future {
+  opacity: 0.18;
+  stroke-dasharray: 3 3;
+}
+
+.asw-circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    opacity var(--duration) var(--ease), transform var(--duration) var(--ease);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.asw-node--root .asw-circle {
+  fill: var(--color-text-soft);
+  stroke: var(--color-text-soft);
+}
+.asw-end-ring {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 2;
+  pointer-events: none;
+  transition: opacity var(--duration) var(--ease);
+}
+.asw-val {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: var(--color-text);
+  pointer-events: none;
+}
+
+/* 还没建到的节点：整体淡出 */
+.asw-node.is-future .asw-circle,
+.asw-node.is-future .asw-end-ring,
+.asw-node.is-future .asw-val {
+  opacity: 0.16;
+}
+
+/* 本次 addWord 新建的节点 */
+.asw-node.is-new .asw-circle {
+  fill: var(--src-bg);
+  stroke: var(--src);
+}
+/* 本步经过的路径（插入路径 / 查询已匹配路径） */
+.asw-node.is-path:not(.is-current):not(.is-success) .asw-circle {
+  stroke: var(--src);
+}
+/* 当前正在检查的节点 */
+.asw-node.is-current .asw-circle {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 3;
+  transform: scale(1.15);
+}
+/* 最终匹配成功的整条路径 */
+.asw-node.is-success .asw-circle {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+  stroke-width: 3;
+}
+
+.asw__branchlabel,
+.asw__pathlabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.asw__branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.asw__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.6em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.asw__chip.is-active {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  font-weight: 700;
+}
+.asw__chip.is-fail {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.asw__path {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  min-height: 1.6rem;
+}
+.asw__arrow {
+  color: var(--color-text-soft);
+  margin: 0 0.15em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asw-circle,
+  .asw-edge,
+  .asw-end-ring,
+  .asw__chip {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .asw__svg {
+    max-width: 100%;
+  }
+}

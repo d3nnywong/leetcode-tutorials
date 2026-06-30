@@ -1,0 +1,140 @@
+/* 133. 克隆图 —— 动画舞台专属样式（前缀 gc__ / gc- 避免与其他题冲突） */
+
+.gc__empty {
+  color: var(--color-text-soft);
+}
+
+/* 队列 + 已克隆计数 */
+.gc__queue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+.gc__qlabel {
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+.gc__qchip {
+  padding: 0.15em 0.6em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  font-family: var(--font-mono);
+}
+.gc__qempty {
+  color: var(--color-text-soft);
+}
+.gc__visited {
+  margin-left: auto;
+  color: var(--color-text-soft);
+}
+
+/* 左右两张图并排 */
+.gc__panels {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.gc__panel {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.gc__panel-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-2);
+  text-align: center;
+}
+.gc__svgwrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+.gc__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.gc__arrow {
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  color: var(--color-text-soft);
+}
+
+/* 节点与边 */
+.gc-edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: stroke var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.gc-edge--ghost {
+  stroke-dasharray: 4 4;
+  opacity: 0.3;
+}
+.gc-circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    opacity var(--duration) var(--ease), transform var(--duration) var(--ease);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.gc-label {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: var(--color-text);
+  pointer-events: none;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.gc-node--ghost .gc-circle {
+  opacity: 0.3;
+  stroke-dasharray: 3 3;
+}
+.gc-node--ghost .gc-label {
+  opacity: 0.35;
+}
+
+.gc-node.is-current .gc-circle {
+  stroke: var(--hi);
+  fill: var(--hi-bg);
+  stroke-width: 3;
+  transform: scale(1.12);
+}
+.gc-node.is-neighbor .gc-circle {
+  stroke: var(--src);
+  fill: var(--src-bg);
+}
+.gc-node.is-new .gc-circle {
+  stroke: var(--ok);
+  fill: var(--ok-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-circle,
+  .gc-edge,
+  .gc-label {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .gc__panels {
+    flex-direction: column;
+  }
+  .gc__arrow {
+    transform: rotate(90deg);
+  }
+  .gc__visited {
+    margin-left: 0;
+    width: 100%;
+  }
+}

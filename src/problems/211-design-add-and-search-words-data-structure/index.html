@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>211. 添加与搜索单词 - 数据结构设计 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 211 添加与搜索单词 - 数据结构设计：为什么暴力线性扫描会慢、字典树（Trie）如何共享前缀、通配符 '.' 查询如何用深度优先回溯实现，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/211-design-add-and-search-words-data-structure/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一个会「举一反三」的单词本：不仅能记住你加进去的单词，还能用 <code>.</code> 当万能字符去模糊查找。
+          看完你会明白：把单词的公共前缀拼成一棵树（字典树 / Trie），再配上一点点回溯，就是答案。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          要设计一个 <code>WordDictionary</code>：可以不断 <code>addWord(word)</code> 往里面加单词，
+          也可以 <code>search(word)</code> 查一个单词在不在里面。特别之处是——
+          <code>search</code> 的查询词里可能带 <code>.</code>，每个 <code>.</code> 可以匹配
+          <strong>任意一个字母</strong>。换句话说，<code>search(".ad")</code> 在问：
+          「有没有一个三个字母的单词，第一个字母随便、后两个是 <code>ad</code>？」
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">已添加</span><code>bad, dad, mad</code></div>
+          <div><span class="example-box__label">search</span><code>".ad"</code></div>
+          <p class="example-box__note">
+            第一个字符是通配符，bad / dad / mad 随便哪个都能对上后两位 <code>ad</code> → 返回 <code>true</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 / 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法，以及关键洞察</h2>
+        <p>
+          最简单的做法：用一个数组把所有 <code>addWord</code> 加过的单词原样存起来。
+          每次 <code>search</code> 就把查询词和数组里<strong>每一个</strong>单词逐字符比对
+          （遇到 <code>.</code> 就跳过比较），只要有一个对上就返回 <code>true</code>。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>一次 <code>search</code> 要扫一遍全部单词、每个单词还要逐字符比，
+          是 <code>O(n · L)</code>。题目最多 <code>10⁴</code> 次调用，单词又有大量重复前缀
+          （比如 bad / dad / mad 都以 <code>ad</code> 结尾、cat / car / cap 都以 <code>ca</code> 开头），
+          这些重复比较完全是在做无用功。
+        </div>
+        <p>
+          <strong>关键洞察：</strong>既然很多单词共享前缀，那就把它们拼成<strong>一棵树</strong>——
+          这就是<strong>字典树（Trie）</strong>。从根节点出发，每条边代表一个字母，走到底的节点标记
+          「这是某个单词的结尾」。插入和精确查找都只需要顺着字母走一遍，是 <code>O(L)</code>。
+          遇到通配符 <code>.</code> 时，只要在当前节点把<strong>它实际拥有的几条分支</strong>都试一遍
+          （而不是和数据库里全部单词比），不行就回溯试下一条——这正是一次小型的<strong>深度优先 + 回溯</strong>。
+        </p>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：动画演示——插入建树 + 通配符回溯查找</h2>
+        <p>
+          先看字典树是怎么一个一个单词「长」出来的，再看 <code>search</code> 时怎么沿着树往下走，
+          遇到 <code>.</code> 就尝试这个节点的每一条分支，走不通就退回来换一条。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 新建 / 已走过的路径</span>
+          <span><i class="sw sw--hi"></i> 当前正在检查的节点</span>
+          <span><i class="sw sw--gold"></i> 最终匹配成功的单词</span>
+          <span>◌ 虚线圈 = 某个单词的结尾</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把单词表改成 <code>cat,car,cap</code>、查询改成 <code>"ca."</code>，
+          看通配符在共享前缀 <code>ca</code> 之后怎么一次性尝试三条分支。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">WordDictionary</span> {
+    <span class="cm">// Trie 节点：26 个小写字母的子节点 + 是否是某个单词的结尾</span>
+    <span class="kw">static</span> <span class="kw">class</span> <span class="ty">Node</span> {
+        <span class="ty">Node</span>[] children = <span class="kw">new</span> <span class="ty">Node</span>[<span class="nm">26</span>];
+        <span class="ty">boolean</span> isEnd = <span class="kw">false</span>;
+    }
+
+    <span class="kw">private</span> <span class="kw">final</span> <span class="ty">Node</span> root;
+
+    <span class="kw">public</span> <span class="ty">WordDictionary</span>() {
+        root = <span class="kw">new</span> <span class="ty">Node</span>();
+    }
+
+    <span class="kw">public</span> <span class="ty">void</span> addWord(<span class="ty">String</span> word) {
+        <span class="ty">Node</span> cur = root;
+        <span class="kw">for</span> (<span class="ty">char</span> c : word.toCharArray()) {
+            <span class="ty">int</span> idx = c - <span class="st">'a'</span>;
+            <span class="kw">if</span> (cur.children[idx] == <span class="kw">null</span>) {
+                cur.children[idx] = <span class="kw">new</span> <span class="ty">Node</span>();
+            }
+            cur = cur.children[idx];
+        }
+        cur.isEnd = <span class="kw">true</span>; <span class="cm">// 标记单词结尾</span>
+    }
+
+    <span class="kw">public</span> <span class="ty">boolean</span> search(<span class="ty">String</span> word) {
+        <span class="kw">return</span> dfs(root, word, <span class="nm">0</span>);
+    }
+
+    <span class="cm">// 在 node 这棵子树里，从 word 的第 idx 个字符开始匹配</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> dfs(<span class="ty">Node</span> node, <span class="ty">String</span> word, <span class="ty">int</span> idx) {
+        <span class="kw">if</span> (node == <span class="kw">null</span>) <span class="kw">return</span> <span class="kw">false</span>;
+        <span class="kw">if</span> (idx == word.length()) <span class="kw">return</span> node.isEnd;
+
+        <span class="ty">char</span> c = word.charAt(idx);
+        <span class="kw">if</span> (c != <span class="st">'.'</span>) {
+            <span class="kw">return</span> dfs(node.children[c - <span class="st">'a'</span>], word, idx + <span class="nm">1</span>);
+        }
+        <span class="cm">// '.' 通配符：把 26 个子节点都试一遍，只要有一个能匹配成功就行</span>
+        <span class="kw">for</span> (<span class="ty">Node</span> child : node.children) {
+            <span class="kw">if</span> (dfs(child, word, idx + <span class="nm">1</span>)) {
+                <span class="kw">return</span> <span class="kw">true</span>;
+            }
+        }
+        <span class="kw">return</span> <span class="kw">false</span>;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>addWord: O(L)　search: O(L) ~ O(26^d · L)</code>
+            <p>
+              <code>L</code> 是单词长度。<code>addWord</code> 和不带 <code>.</code> 的 <code>search</code>
+              都只是顺着一条路径走到底，O(L)。带 <code>.</code> 时最坏要在每个通配符位置分叉，
+              <code>d</code> 是 <code>.</code> 的个数（题目保证 <code>d ≤ 2</code>），所以整体仍然可控。
+            </p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(总字符数 × 26)</code>
+            <p>每个字符对应一个 Trie 节点，节点里固定开 26 个子节点指针；公共前缀只占一份空间。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当一堆字符串有大量公共前缀、又要支持「精确匹配 + 模糊匹配」时，
+          字典树（Trie）几乎是第一反应——用树形结构把共享前缀压成一份，
+          再用「沿着边走」把字符匹配从「整串比较」降到「逐字符判断」。
+          遇到通配符这种「有多种可能」的场景，就在树上做一次小小的深度优先 + 回溯，
+          这个组合在自动补全、IP 路由、单词游戏里都会反复出现。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/211-design-add-and-search-words-data-structure/page.js"></script>
+  </body>
+</html>

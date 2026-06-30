@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>54. 螺旋矩阵 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 54 螺旋矩阵：用 top/bottom/left/right 四个边界顺时针收缩遍历矩阵，附可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/54-spiral-matrix/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一道「按方向走格子」的模拟题：把矩阵想象成一圈圈的「画框」，
+          顺时针一圈圈往里画，画完最外圈就缩小范围继续画里面一圈。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个 <code>m</code> 行 <code>n</code> 列的矩阵，要你按
+          <strong>顺时针螺旋</strong>的顺序把所有元素「读出来」，拼成一维数组返回。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">matrix</span><code>[[1,2,3],[4,5,6],[7,8,9]]</code></div>
+          <p class="example-box__note">
+            从左上角 1 开始：先往右走到 3，再往下走到 9，再往左走到 7，再往上走到 4，
+            最后只剩中间的 5 → <code>[1,2,3,6,9,8,7,4,5]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🔑 第二步：怎么不写歪、不重复、不漏格</h2>
+        <p>
+          直接「模拟走路」容易写错：什么时候该转弯？转到第几圈算遍历完？
+          更稳的办法是用<strong>四个边界</strong>把「还没访问的区域」框起来：
+          <code>top</code>（上边界行）、<code>bottom</code>（下边界行）、
+          <code>left</code>（左边界列）、<code>right</code>（右边界列）。
+        </p>
+        <p>
+          每一圈固定走 4 步：
+        </p>
+        <ul>
+          <li>沿 <code>top</code> 行从 <code>left</code> 走到 <code>right</code> → 这一行用完了，<code>top++</code></li>
+          <li>沿 <code>right</code> 列从 <code>top</code> 走到 <code>bottom</code> → 这一列用完了，<code>right--</code></li>
+          <li>如果 <code>top &lt;= bottom</code>，沿 <code>bottom</code> 行从 <code>right</code> 走到 <code>left</code> → <code>bottom--</code></li>
+          <li>如果 <code>left &lt;= right</code>，沿 <code>left</code> 列从 <code>bottom</code> 走到 <code>top</code> → <code>left++</code></li>
+        </ul>
+        <div class="callout">
+          <strong>为什么要判断 <code>top&lt;=bottom</code> / <code>left&lt;=right</code>：</strong>
+          矩阵不是正方形、或者走到最后只剩一行/一列时，前两步可能已经把这一圈走完了，
+          不加这两个判断会把同一行/同一列重复走一遍。四个边界一旦「框」收缩到不存在
+          （<code>top&gt;bottom</code> 或 <code>left&gt;right</code>），就说明全部访问完了。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>🎬 第三步：动画演示</h2>
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前访问的格子</span>
+          <span><i class="sw sw--src"></i> 已经访问过</span>
+          <span><i class="sw sw--gold"></i> 最新收集的输出</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把矩阵改成 <code>1,2,3,4;5,6,7,8;9,10,11,12</code>（3 行 4 列），
+          看看非正方形矩阵是怎么一圈圈缩小的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; spiralOrder(<span class="ty">int</span>[][] matrix) {
+        <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; res = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+        <span class="kw">if</span> (matrix == <span class="kw">null</span> || matrix.length == <span class="nm">0</span>) <span class="kw">return</span> res;
+
+        <span class="cm">// 四个边界，框住「还没访问的区域」</span>
+        <span class="ty">int</span> top = <span class="nm">0</span>, bottom = matrix.length - <span class="nm">1</span>;
+        <span class="ty">int</span> left = <span class="nm">0</span>, right = matrix[<span class="nm">0</span>].length - <span class="nm">1</span>;
+
+        <span class="kw">while</span> (top &lt;= bottom &amp;&amp; left &lt;= right) {
+            <span class="cm">// 1) 沿上边界从左走到右</span>
+            <span class="kw">for</span> (<span class="ty">int</span> j = left; j &lt;= right; j++) res.add(matrix[top][j]);
+            top++;
+
+            <span class="cm">// 2) 沿右边界从上走到下</span>
+            <span class="kw">for</span> (<span class="ty">int</span> i = top; i &lt;= bottom; i++) res.add(matrix[i][right]);
+            right--;
+
+            <span class="cm">// 3) 沿下边界从右走到左（这一行还在，没被走过才走）</span>
+            <span class="kw">if</span> (top &lt;= bottom) {
+                <span class="kw">for</span> (<span class="ty">int</span> j = right; j &gt;= left; j--) res.add(matrix[bottom][j]);
+                bottom--;
+            }
+
+            <span class="cm">// 4) 沿左边界从下走到上（这一列还在，没被走过才走）</span>
+            <span class="kw">if</span> (left &lt;= right) {
+                <span class="kw">for</span> (<span class="ty">int</span> i = bottom; i &gt;= top; i--) res.add(matrix[i][left]);
+                left++;
+            }
+        }
+        <span class="kw">return</span> res;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m·n)</code>
+            <p>每个格子恰好被访问一次。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>不算返回结果本身，只用了 4 个边界变量。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「按某种顺序走遍矩阵/网格」的题，
+          先想清楚<strong>用什么状态描述「还没走完的区域」</strong>（这里是四个边界），
+          再把一圈拆成固定的几步直线移动，每走完一条边就收缩对应的边界。
+          这个「边界收缩」的思路在螺旋矩阵 II（59 题，反过来填数字）里也完全适用。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/54-spiral-matrix/page.js"></script>
+  </body>
+</html>

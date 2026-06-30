@@ -1,0 +1,111 @@
+/* 15. 三数之和 —— 动画舞台专属样式 */
+
+.tri__nums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.tri__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.tri__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.tri__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.tri__cell.is-used {
+  opacity: 0.4;
+}
+.tri__cell.is-i {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.tri__cell.is-l,
+.tri__cell.is-r {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.1);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.tri__cell.is-match {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+.tri__cell.is-stop {
+  border-style: dashed;
+  border-color: var(--bad);
+  background: var(--bad-bg);
+  opacity: 0.75;
+}
+
+.tri__sumline {
+  font-size: var(--text-base);
+  min-height: 1.6rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-soft);
+}
+.tri__sumline strong {
+  color: var(--color-text);
+}
+.tri__sumline strong.is-zero {
+  color: var(--ok);
+}
+
+.tri__resultslabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.tri__results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.tri__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.tri__chip.is-new {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  font-weight: 700;
+}
+.tri__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 560px) {
+  .tri__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tri__cell {
+    transition: none;
+  }
+}

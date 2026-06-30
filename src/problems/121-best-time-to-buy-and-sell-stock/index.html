@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>121. 买卖股票的最佳时机 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 121 买卖股票的最佳时机：暴力枚举为什么慢、一遍扫描维护历史最低价为什么能把时间降到 O(n)、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/121-best-time-to-buy-and-sell-stock/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          只能买一次、卖一次的股票题。看完你会发现答案藏在一句话里：
+          每天问自己「如果今天卖，赚得最多是多少」，一遍扫描就够了。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一串股价 <code>prices</code>，<code>prices[i]</code> 是第 <code>i</code> 天的价格。
+          你只能<strong>买一次、卖一次</strong>，而且必须<strong>先买后卖</strong>（卖出那天得在买入那天之后）。
+          求能赚到的最大利润；如果怎么买卖都亏，返回 <code>0</code>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">prices</span><code>[7, 1, 5, 3, 6, 4]</code></div>
+          <p class="example-box__note">
+            第 1 天（价格 1）买入，第 4 天（价格 6）卖出，利润 6 − 1 = 5，是所有买卖组合里最大的。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：枚举每一对「买入日 <code>i</code> 、卖出日 <code>j</code>」（<code>j &gt; i</code>），
+          算出 <code>prices[j] − prices[i]</code>，取所有结果里的最大值。两层循环，能做出来，
+          但买入日和卖出日各扫一遍，组合数是 <code>O(n²)</code>。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>题目里 <code>n</code> 能到 10⁵，平方就是 10¹⁰，远超能接受的计算量。
+          问题的本质是——枚举每个卖出日 <code>j</code> 时，我们<strong>没必要</strong>把前面所有买入日都重新比一遍，
+          只要知道「<code>j</code> 之前最低的价格是多少」就够了。
+        </div>
+      </section>
+
+      <!-- 3. 一遍扫描 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：一遍扫描，边走边记「历史最低价」</h2>
+        <p>
+          换个思路：从左往右扫一遍，边走边记<strong>目前为止见过的最低价</strong> <code>minPrice</code>
+          ——它就是「到当前这一天为止」最划算的买入点。
+        </p>
+        <p>
+          走到第 <code>i</code> 天时：
+        </p>
+        <ul>
+          <li>如果今天价格 <strong>比 <code>minPrice</code> 还低</strong>，说明它才是更好的买入点，更新 <code>minPrice</code>。</li>
+          <li>否则，今天可以当卖出日，算一下「今天价格 − <code>minPrice</code>」这笔利润，
+            如果比历史最大利润 <code>maxProfit</code> 还大，就刷新答案。</li>
+        </ul>
+        <p>
+          全程只扫一遍、不回头，相当于把「枚举所有买卖组合」压缩成「每天只跟历史最低价比一次」，<code>O(n)</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 历史最低价（买入候选）</span>
+          <span><i class="sw sw--hi"></i> 当前扫描的日子</span>
+          <span><i class="sw sw--ok"></i> 当前可获得的利润</span>
+          <span><i class="sw sw--gold"></i> 最终最大利润的买卖点</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          虚线是「历史最低价」这条参考线；绿色色带的高度就是当天能赚的利润，刷新纪录时会变成金色。
+          试试把数组改成 <code>7,6,4,3,1</code>，看它怎么一路找不到能获利的卖出点，最终返回 0。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> maxProfit(<span class="ty">int</span>[] prices) {
+        <span class="ty">int</span> minPrice = prices[<span class="nm">0</span>]; <span class="cm">// 目前见过的最低价</span>
+        <span class="ty">int</span> maxProfit = <span class="nm">0</span>;       <span class="cm">// 目前能获得的最大利润</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt; prices.length; i++) {
+            <span class="kw">if</span> (prices[i] &lt; minPrice) {
+                <span class="cm">// 今天比历史最低还低，它才是更好的买入点</span>
+                minPrice = prices[i];
+            } <span class="kw">else</span> {
+                <span class="cm">// 假设今天卖出，看看能不能刷新最大利润</span>
+                maxProfit = <span class="ty">Math</span>.max(maxProfit, prices[i] - minPrice);
+            }
+        }
+        <span class="kw">return</span> maxProfit;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>价格数组只扫一遍，每天只做常数次比较。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了 <code>minPrice</code> 和 <code>maxProfit</code> 两个变量。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当答案依赖「某个位置之前的最优值」时（这里是「之前的最低价」），
+          不需要每次都重新枚举，<strong>边扫边维护这个最优值</strong>，就能把 O(n²) 的枚举压成 O(n) 的一遍扫描。
+          这是「前缀最值」类问题的通用解法，后面遇到「求区间内某种最大差值」的题都可以往这个方向想。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/121-best-time-to-buy-and-sell-stock/page.js"></script>
+  </body>
+</html>

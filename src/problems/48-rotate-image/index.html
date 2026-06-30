@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>48. 旋转图像 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 48 旋转图像：为什么不能新开一个矩阵、转置 + 逐行翻转两步原地旋转 90° 的原理、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/48-rotate-image/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一道关于「原地操作」的经典矩阵题：不许新开矩阵，怎么把图像顺时针转 90 度？
+          答案是两步小动作——先沿对角线「翻个身」，再把每一行「左右对调」。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个 <code>n × n</code> 的方阵 <code>matrix</code>，把它当成一张图片，要求把这张图片
+          <strong>顺时针旋转 90 度</strong>。最关键的限制是：<strong>不能新建一个矩阵</strong>，
+          必须在<strong>原地</strong>直接改 <code>matrix</code> 本身。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">matrix</span><code>[[1,2,3],[4,5,6],[7,8,9]]</code></div>
+          <p class="example-box__note">
+            顺时针转 90° 后，原来第一列 <code>[1,4,7]</code> 倒过来变成新的第一行 <code>[7,4,1]</code>，
+            结果是 <code>[[7,4,1],[8,5,2],[9,6,3]]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想最直白的办法，再想为什么不能这么用</h2>
+        <p>
+          最直观的做法：新开一个同样大小的矩阵 <code>res</code>，按公式
+          <code>res[j][n-1-i] = matrix[i][j]</code> 把每个格子填到旋转后该去的位置，
+          填完把 <code>res</code> 拷回 <code>matrix</code>。这个公式是对的，但它用了
+          <code>O(n²)</code> 的额外空间——题目明确不让用。
+        </p>
+        <div class="callout callout--warn">
+          <strong>那怎么「原地」做？</strong>顺时针旋转 90° 其实可以拆成两个更简单、
+          互不冲突的小操作的组合：<strong>转置</strong>（沿主对角线把 <code>matrix[i][j]</code> 和
+          <code>matrix[j][i]</code> 互换）之后，<strong>把每一行左右翻转</strong>。
+          这两步都只是「交换两个格子的值」，不需要额外的整块内存，空间 <code>O(1)</code>。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：转置 + 逐行翻转，动画演示</h2>
+        <p>
+          为什么「转置 + 逐行翻转」等于「顺时针转 90°」？转置之后，第 <em>i</em> 行的内容，
+          正好变成了旋转前第 <em>i</em> 列从上到下的内容；而顺时针旋转其实就是要让原来的列
+          <strong>倒过来</strong>变成新的行——所以只要把转置后的每一行再左右翻转一次，
+          顺序就对上了。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 本步交换的格子 A</span>
+          <span><i class="sw sw--src"></i> 本步交换的格子 B</span>
+          <span><i class="sw sw--gold"></i> 旋转完成</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把矩阵改成 <code>5,1,9,11;2,4,8,10;13,3,6,7;15,14,12,16</code>（4×4），
+          看同样的两步是怎么把它转过来的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="kw">void</span> rotate(<span class="ty">int</span>[][] matrix) {
+        <span class="ty">int</span> n = matrix.length;
+
+        <span class="cm">// 第一步：转置（沿主对角线对称交换）</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; n; i++) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = i + <span class="nm">1</span>; j &lt; n; j++) {
+                <span class="ty">int</span> tmp = matrix[i][j];
+                matrix[i][j] = matrix[j][i];
+                matrix[j][i] = tmp;
+            }
+        }
+
+        <span class="cm">// 第二步：每一行左右翻转</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; n; i++) {
+            <span class="ty">int</span> l = <span class="nm">0</span>, r = n - <span class="nm">1</span>;
+            <span class="kw">while</span> (l &lt; r) {
+                <span class="ty">int</span> tmp = matrix[i][l];
+                matrix[i][l] = matrix[i][r];
+                matrix[i][r] = tmp;
+                l++;
+                r--;
+            }
+        }
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n²)</code>
+            <p>转置要碰约一半格子，逐行翻转再碰一遍全部格子，总量仍是 n² 级别。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了几个临时变量做交换，没有新开任何矩阵或数组。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>「原地」类矩阵变换题，常常可以拆成几个简单、互不依赖的
+          <strong>对称交换</strong>步骤的组合——本题是「转置 + 逐行翻转」，
+          逆时针旋转 90° 则是「转置 + 逐行翻转」换成「转置 + 逐列翻转（或先翻转再转置）」。
+          记住这种拆解思路，比死记一个旋转公式更管用。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/48-rotate-image/page.js"></script>
+  </body>
+</html>

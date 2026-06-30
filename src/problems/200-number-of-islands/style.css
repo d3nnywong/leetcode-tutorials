@@ -1,0 +1,150 @@
+/* 200. 岛屿数量 —— 动画舞台专属样式 */
+
+.noi__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.noi__stats strong {
+  color: var(--color-text);
+}
+.noi__pos {
+  font-family: var(--font-mono);
+}
+
+.noi__layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.noi__grid {
+  display: grid;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+.noi__cell {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.noi__cell.is-water {
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+}
+.noi__cell.is-land {
+  color: var(--color-text);
+}
+.noi__cell.is-water .noi__val,
+.noi__cell.is-land .noi__val {
+  opacity: 0.65;
+}
+
+/* 当前扫描 / 正在 DFS 访问的格子 */
+.noi__cell.is-scanning,
+.noi__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+/* 本步新压入栈的候选格子 */
+.noi__cell.is-pushed {
+  border-color: var(--src);
+  box-shadow: 0 0 0 2px var(--src-bg) inset;
+}
+
+/* 已访问、归入某座岛屿：循环 5 种颜色区分不同岛屿 */
+.noi__cell.island-1 {
+  background: var(--hi-bg);
+  border-color: var(--hi);
+}
+.noi__cell.island-2 {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.noi__cell.island-3 {
+  background: var(--ok-bg);
+  border-color: var(--ok);
+}
+.noi__cell.island-4 {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+}
+.noi__cell.island-5 {
+  background: var(--bad-bg);
+  border-color: var(--bad);
+}
+/* 当前格 / 候选格优先于岛屿底色，保证还能看清是哪一步 */
+.noi__cell.is-scanning,
+.noi__cell.is-current {
+  background: var(--hi-bg);
+  border-color: var(--hi);
+}
+
+.noi__side {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+}
+.noi__stacklabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+.noi__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+}
+.noi__chip {
+  font-size: 0.95rem;
+  padding: 0.2em 0.6em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  align-self: flex-start;
+}
+.noi__chip.is-top {
+  border-color: var(--src);
+  background: var(--src-bg);
+  font-weight: 700;
+}
+.noi__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 560px) {
+  .noi__cell {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noi__cell {
+    transition: none;
+  }
+}

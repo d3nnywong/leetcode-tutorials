@@ -1,0 +1,100 @@
+/* 125. 验证回文串 —— 动画舞台专属样式 */
+
+.vp__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.vp__cell {
+  position: relative;
+  width: 2.4rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+
+.vp__ch {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.vp__ptr {
+  position: absolute;
+  bottom: -1.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-text-soft);
+  white-space: nowrap;
+}
+
+/* 不参与比较的字符（标点/空格）：淡化显示 */
+.vp__cell.is-skip {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+/* 当前左/右指针 */
+.vp__cell.is-l {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.vp__cell.is-l .vp__ptr {
+  color: var(--hi);
+}
+.vp__cell.is-r {
+  border-color: var(--src);
+  background: var(--src-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.vp__cell.is-r .vp__ptr {
+  color: var(--src);
+}
+
+/* 已确认相同的一对字符 */
+.vp__cell.is-match {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  opacity: 1;
+}
+
+/* 比较失败的一对字符 */
+.vp__cell.is-mismatch {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+  opacity: 1;
+  transform: scale(1.12);
+  z-index: 1;
+}
+
+/* 奇数长度时指针相遇的中心字符 */
+.vp__cell.is-center {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vp__cell {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .vp__cell {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+}

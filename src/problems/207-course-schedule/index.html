@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>207. 课程表 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 207 课程表：如何把先修关系画成有向图、用入度 + 队列做拓扑排序（Kahn 算法）判断有没有环，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/207-course-schedule/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          选课要先修课，先修课又要先修课……这是一道经典的「有向图找环」题。
+          看完你会明白：拓扑排序怎么用「入度 + 队列」一边剥洋葱一边判断能不能学完。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          有 <code>numCourses</code> 门课，编号 <code>0</code> 到 <code>numCourses - 1</code>。
+          <code>prerequisites[i] = [a, b]</code> 表示「想学 <code>a</code>，必须先学完
+          <code>b</code>」。问：能不能安排出一个顺序，把所有课都学完？
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">numCourses</span><code>2</code></div>
+          <div><span class="example-box__label">prerequisites</span><code>[[1,0],[0,1]]</code></div>
+          <p class="example-box__note">
+            学 1 之前要先学 0，学 0 之前又要先学 1——两门课互相等对方，谁都先学不了，
+            这就是「环」，答案是 <code>false</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察：建图 + 找环 -->
+      <section class="article__section">
+        <h2>🔑 第二步：把「先修关系」看成一张有向图</h2>
+        <p>
+          每门课是一个节点，<code>[a, b]</code> 就画一条 <strong>b → a</strong> 的有向边
+          （先学完 b，才能解锁 a）。于是问题就变成了图论里的经典问题——
+          <strong>这张有向图里有没有环？</strong> 只要没有环，就一定能把所有课排出一个
+          先后顺序（这个顺序就叫「拓扑排序」）；只要有环，环上的课就永远卡死，谁也学不了。
+        </p>
+        <div class="callout callout--warn">
+          <strong>怎么找环：</strong>给每个节点算一个「入度」——指向它的边有几条，也就是
+          它还差几门先修课没学完。入度为 0 的课不需要等任何人，可以马上学。
+          学完一门课后，把它指向的每个邻居入度减一；如果某个课的入度被减到 0，
+          说明它的先修课全学完了，该轮到它了。
+        </div>
+      </section>
+
+      <!-- 3. 拓扑排序 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用「队列 + 入度」做拓扑排序（Kahn 算法）</h2>
+        <p>
+          这其实就是一次特殊的 BFS：先把所有入度为 0 的课塞进队列；每次从队列里取出一门课，
+          标记为「已学完」，然后把它指向的每个邻居入度减一——谁的入度降到 0 就入队，
+          继续重复。这个过程像剥洋葱：每一轮剥掉一层「当前不依赖任何人」的课程。
+        </p>
+        <p>
+          最后看一共「学完」了几门课：如果等于 <code>numCourses</code>，说明所有课都被剥光了，
+          能学完；如果队列提前空了，还剩一些课的入度始终降不到 0，
+          说明它们困在环里，永远轮不到——返回 <code>false</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在处理的课</span>
+          <span><i class="sw sw--src"></i> 在队列中（待处理）</span>
+          <span><i class="sw sw--ok"></i> 已学完</span>
+          <span><i class="sw sw--gold"></i> 正在检查的邻居</span>
+          <span><i class="sw sw--bad"></i> 卡死在环里（学不完）</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把先修关系改成 <code>[[1,0],[0,1]]</code>（numCourses 改成 2），
+          看队列怎么提前清空、剩下的课怎么被标红成环。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> canFinish(<span class="ty">int</span> numCourses, <span class="ty">int</span>[][] prerequisites) {
+        <span class="cm">// adj[b]：列出「学完 b 之后，能解锁哪些课」</span>
+        <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; adj = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; numCourses; i++) adj.add(<span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;());
+
+        <span class="ty">int</span>[] indeg = <span class="kw">new</span> <span class="ty">int</span>[numCourses]; <span class="cm">// 每门课还差几门先修课</span>
+        <span class="kw">for</span> (<span class="ty">int</span>[] p : prerequisites) {
+            <span class="ty">int</span> a = p[<span class="nm">0</span>], b = p[<span class="nm">1</span>]; <span class="cm">// 学 a 之前要先学 b</span>
+            adj.get(b).add(a);
+            indeg[a]++;
+        }
+
+        <span class="cm">// 入度为 0 的课先入队：不需要等任何先修课</span>
+        <span class="ty">Deque</span>&lt;<span class="ty">Integer</span>&gt; queue = <span class="kw">new</span> <span class="ty">ArrayDeque</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; numCourses; i++) {
+            <span class="kw">if</span> (indeg[i] == <span class="nm">0</span>) queue.offer(i);
+        }
+
+        <span class="ty">int</span> finished = <span class="nm">0</span>; <span class="cm">// 已经学完的课程数</span>
+        <span class="kw">while</span> (!queue.isEmpty()) {
+            <span class="ty">int</span> cur = queue.poll();
+            finished++;
+            <span class="kw">for</span> (<span class="ty">int</span> next : adj.get(cur)) {
+                <span class="kw">if</span> (--indeg[next] == <span class="nm">0</span>) { <span class="cm">// 先修课全学完了，该轮到它</span>
+                    queue.offer(next);
+                }
+            }
+        }
+
+        <span class="kw">return</span> finished == numCourses; <span class="cm">// 全部学完才说明没有环</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(V + E)</code>
+            <p>V 是课程数，E 是先修关系数：建图、每条边、每个节点都只处理一次。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(V + E)</code>
+            <p>邻接表存所有边，外加入度数组和队列，最坏 O(V + E)。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「A 依赖 B」「先做 B 才能做 A」这类先后关系，
+          先想到画一张<strong>有向图</strong>，再用<strong>拓扑排序（入度 + 队列）</strong>
+          一边剥洋葱一边判断有没有环。能拓扑排序完 ⇔ 无环 ⇔ 能按顺序完成；
+          排不完 ⇔ 有环 ⇔ 互相卡死。课程表、任务调度、编译依赖都是这个套路。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/207-course-schedule/page.js"></script>
+  </body>
+</html>

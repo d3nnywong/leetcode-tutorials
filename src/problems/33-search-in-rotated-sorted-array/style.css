@@ -1,0 +1,93 @@
+/* 33. 搜索旋转排序数组 —— 动画舞台专属样式 */
+
+.rsa__target {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+
+.rsa__row,
+.rsa__ptrrow {
+  display: grid;
+  gap: var(--space-2);
+}
+.rsa__ptrrow {
+  margin-top: 1.4rem;
+}
+
+.rsa__cell {
+  position: relative;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    opacity var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.rsa__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.rsa__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+
+/* 当前搜索区间之外：淡出 */
+.rsa__cell.is-out {
+  opacity: 0.32;
+}
+/* 本步判定为「有序」的那一半 */
+.rsa__cell.is-sorted-half {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+}
+/* lo / hi 边界 */
+.rsa__cell.is-bound {
+  border-color: var(--src);
+}
+/* 当前检查的 mid */
+.rsa__cell.is-mid {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+/* 命中 target */
+.rsa__cell.is-found {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.rsa__ptrtag {
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-text-soft);
+  min-height: 1rem;
+}
+.rsa__ptrtag.is-active {
+  color: var(--color-accent);
+}
+
+@media (max-width: 560px) {
+  .rsa__cell {
+    height: 2.5rem;
+  }
+  .rsa__val {
+    font-size: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rsa__cell {
+    transition: none;
+  }
+}

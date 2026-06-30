@@ -1,0 +1,98 @@
+/* 238. 除自身以外数组的乘积 —— 动画舞台专属样式 */
+
+.poas__phase {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.poas__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.poas__label {
+  flex-shrink: 0;
+  width: 7.5rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.poas__cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.poas__cell {
+  position: relative;
+  min-width: 2.9rem;
+  height: 2.9rem;
+  padding: 0 0.3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.poas__val {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.poas__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+
+/* nums 行：当前下标 i / 被乘的来源格 */
+.poas__cell.is-idx {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.1);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.poas__cell.is-src {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+
+/* left / right / answer 行：已填好 vs 正在计算 */
+.poas__cell.is-filled {
+  border-color: var(--color-border);
+  background: var(--color-surface-2);
+}
+.poas__cell.is-current {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+@media (max-width: 560px) {
+  .poas__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+  .poas__label {
+    width: auto;
+  }
+  .poas__cell {
+    min-width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poas__cell {
+    transition: none;
+  }
+}

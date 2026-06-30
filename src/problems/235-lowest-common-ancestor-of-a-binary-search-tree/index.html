@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>235. 二叉搜索树的最近公共祖先 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 235 二叉搜索树的最近公共祖先：为什么 BST 不用像普通二叉树那样递归搜两边、如何靠左小右大一路走到分岔点，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/235-lowest-common-ancestor-of-a-binary-search-tree/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          普通二叉树找最近公共祖先要老老实实递归两边找；二叉搜索树多了一条「左小右大」的性质，
+          能直接当导航用——看完你会发现这题其实比想象中简单很多。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一棵<strong>二叉搜索树</strong>的根节点 <code>root</code>，以及树里两个不同的节点
+          <code>p</code> 和 <code>q</code>，要你找出它们的<strong>最近公共祖先</strong>（LCA）。
+        </p>
+        <p>
+          「最近公共祖先」说人话就是：从 <code>p</code> 和 <code>q</code> 各自往上爬，
+          第一个同时是它们俩祖先的节点。特别要注意——<strong>一个节点可以是它自己的祖先</strong>，
+          所以如果 <code>q</code> 就在 <code>p</code> 的子树里，那答案直接就是 <code>p</code> 本身。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[6,2,8,0,4,7,9,null,null,3,5]</code></div>
+          <div><span class="example-box__label">p, q</span><code>2, 8</code></div>
+          <p class="example-box__note">
+            2 在根节点 6 的左子树，8 在右子树，两边的「家谱」只在根节点 6 这里汇合 → 答案是 6。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：普通二叉树的做法为什么「浪费」</h2>
+        <p>
+          如果这是一棵普通二叉树，标准解法是递归：在左子树里找 <code>p</code>、<code>q</code>，
+          在右子树里也找，谁都没找到就说明两个节点都在同一侧，往上交给父节点决定；
+          左右各找到一个，当前节点就是答案。这个做法稳，但要把整棵树<strong>都摸一遍</strong>，
+          时间是 <code>O(n)</code>，因为它压根没用上「这是一棵 BST」这个额外信息。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>二叉搜索树有个免费的导航仪——<strong>左子树全部更小，右子树全部更大</strong>。
+          站在某个节点上，只要比较一下 <code>p.val</code>、<code>q.val</code> 和当前节点值，
+          立刻就能判断答案在左边、右边，还是<strong>就在这里分岔</strong>，根本不需要真的去左右子树里「找」。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：从根出发，沿着一条路径走到底</h2>
+        <p>
+          从根节点开始，每一步只看当前节点的值：
+        </p>
+        <ul>
+          <li><strong>p、q 都比当前节点小</strong> → 它们俩一定都在左子树里，往左走。</li>
+          <li><strong>p、q 都比当前节点大</strong> → 它们俩一定都在右子树里，往右走。</li>
+          <li>
+            <strong>不再同侧</strong>（一个 ≤ 当前节点、一个 ≥ 当前节点，包括当前节点正好就是
+            <code>p</code> 或 <code>q</code> 本身）→ 从这里开始两人就要「分家」了，
+            当前节点就是最近公共祖先。
+          </li>
+        </ul>
+        <p>
+          全程只沿着一条从根到答案的路径走，不用回溯、不用额外空间，时间只花在树的<strong>高度</strong>上。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在比较</span>
+          <span><i class="sw sw--src"></i> 已走过的路径</span>
+          <span><i class="sw sw--gold"></i> 最近公共祖先</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          默认 p = 3、q = 5：先往右走、再往左走才分岔。也可以试试 p = 2、q = 8，一步到位（根节点就是答案）。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">TreeNode</span> lowestCommonAncestor(<span class="ty">TreeNode</span> root, <span class="ty">TreeNode</span> p, <span class="ty">TreeNode</span> q) {
+        <span class="ty">TreeNode</span> cur = root;
+        <span class="kw">while</span> (cur != <span class="kw">null</span>) {
+            <span class="kw">if</span> (p.val &lt; cur.val &amp;&amp; q.val &lt; cur.val) {
+                cur = cur.left; <span class="cm">// 两个都更小，答案在左子树</span>
+            } <span class="kw">else if</span> (p.val &gt; cur.val &amp;&amp; q.val &gt; cur.val) {
+                cur = cur.right; <span class="cm">// 两个都更大，答案在右子树</span>
+            } <span class="kw">else</span> {
+                <span class="cm">// 不再同侧（或 cur 正好是 p / q 本身），这里就是分岔点</span>
+                <span class="kw">return</span> cur;
+            }
+        }
+        <span class="kw">return</span> <span class="kw">null</span>; <span class="cm">// 题目保证 p、q 都存在，不会到这</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(h)</code>
+            <p>h 是树高，只沿一条路径往下走；平衡树 O(log n)，最坏（链状树）退化到 O(n)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>迭代写法只用了一个指针，没有用到递归栈。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「二叉搜索树」相关的题，先别急着套通用二叉树的递归模板——
+          想想<strong>左小右大</strong>这条性质能不能省掉一半的搜索。这题就是最典型的例子：
+          普通二叉树要 O(n) 摸遍全树，BST 靠比大小直接导航，O(h) 沿一条路径走到底。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/235-lowest-common-ancestor-of-a-binary-search-tree/page.js"></script>
+  </body>
+</html>

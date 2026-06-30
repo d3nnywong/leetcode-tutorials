@@ -1,0 +1,103 @@
+/* 242. 有效的字母异位词 —— 动画舞台专属样式 */
+
+.va__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.va__rowlabel {
+  width: 1.2rem;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-text-soft);
+}
+.va__chars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.va__char {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.va__char.is-done {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.va__char.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.va__char.is-bad {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+}
+
+.va__countlabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.va__count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.va__chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3em;
+  padding: 0.25em 0.65em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.va__chipkey {
+  font-weight: 700;
+}
+.va__chipval {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+.va__chip.is-pos {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.va__chip.is-current {
+  background: var(--hi-bg);
+  border-color: var(--hi);
+}
+.va__chip.is-current .va__chipval,
+.va__chip.is-bad .va__chipval {
+  color: inherit;
+}
+.va__chip.is-bad {
+  background: var(--bad-bg);
+  border-color: var(--bad);
+}
+
+@media (max-width: 560px) {
+  .va__char {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.95rem;
+  }
+}

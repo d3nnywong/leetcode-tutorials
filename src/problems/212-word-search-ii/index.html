@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>212. 单词搜索 II · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 212 单词搜索 II：为什么对每个单词单独 DFS 太浪费、如何用 Trie（字典树）把所有单词合并成一次回溯搜索、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/212-word-search-ii/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          这题是「单词搜索 I」的加强版：网格不变，单词从一个变成成千上万个。
+          看完你会明白：把所有单词揉进一棵 <strong>Trie（字典树）</strong>，
+          再配合<strong>回溯 DFS</strong> 一起剪枝，怎么把本来要跑无数遍的搜索压缩成一次。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个 <code>m × n</code> 的字母网格，和一份单词列表 <code>words</code>。
+          要从这堆单词里挑出<strong>所有</strong>能在网格里拼出来的——从某个格子出发，
+          每步只能走<strong>上下左右</strong>相邻的格子，同一个格子在同一个单词里
+          <strong>不能用两次</strong>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">board</span><code>[["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]]</code></div>
+          <div><span class="example-box__label">words</span><code>["oath","pea","eat","rain"]</code></div>
+          <p class="example-box__note">
+            从 (0,0)=o 出发，向右走到 a、向下走到 t、再向下走到 h，拼出 <code>oath</code>；
+            "pea" 和 "rain" 在这个网格里怎么走都拼不出来 → 答案是
+            <code>["eat","oath"]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 → 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想最直接的办法，再看它浪费在哪</h2>
+        <p>
+          这题本质上是「单词搜索 I」（判断<strong>一个</strong>单词能不能在网格里拼出来）的
+          DFS：从每个格子出发，沿着单词的字母一步步走，走不通就<strong>回溯</strong>换方向。
+          最直接的做法就是把 <code>words</code> 里的每个单词都单独跑一次这个 DFS。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>题目里 <code>words.length</code> 能到 3×10⁴，
+          每个单词都要在网格上独立搜一遍，等于把同一个网格<strong>扫了几万遍</strong>。
+          更可惜的是，很多单词共享同一个前缀（比如都以 "th" 开头），这些重复的前缀
+          在每次独立搜索里都被<strong>从头走一遍</strong>，白白浪费。
+        </div>
+        <p>
+          关键洞察：能不能把所有单词「该往哪走」这件事<strong>合并</strong>起来，
+          只对网格做<strong>一次</strong> DFS，搜的过程中同时检查它是不是凑成了某个单词？
+        </p>
+      </section>
+
+      <!-- 3. Trie + 回溯 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：把单词列表压成一棵 Trie，再配合回溯剪枝</h2>
+        <p>
+          先把 <code>words</code> 里的所有单词一起插进一棵 <strong>Trie（字典树）</strong>：
+          公共前缀只存一份，每个单词的最后一个字母所在节点上记一个「这里是某个单词的结尾」标记。
+        </p>
+        <p>
+          然后对网格做<strong>一次</strong>回溯 DFS：从每个格子出发，每走一步都问 Trie——
+          “当前节点有没有这个字母的分支？”
+        </p>
+        <ul>
+          <li><strong>没有</strong> → 哪怕只差一个字母，也说明这条路<strong>所有</strong>单词都凑不出来，直接剪掉，不用再往下试。</li>
+          <li><strong>有</strong> → 往下走，如果正好落在某个单词的结尾标记上，就说明<strong>找到了它</strong>；继续探四个方向，看 Trie 这个节点还能不能往下接。</li>
+        </ul>
+        <p>
+          走过的格子临时标记为「已访问」（防止同一个单词重复用同一个格子），
+          一条路走到头（或被剪枝）之后<strong>回溯还原</strong>，换下一个方向继续试。
+          因为剪枝依据是<strong>共享的</strong> Trie，所有单词的搜索被天然地揉进了同一次 DFS。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 当前递归路径上的格子</span>
+          <span><i class="sw sw--hi"></i> 正在访问的格子</span>
+          <span><i class="sw sw--gold"></i> 恰好拼出一个单词的路径</span>
+          <span><i class="sw sw--ok"></i> 已经找到的单词</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          虚线格子表示「Trie 根节点没有这个字母的分支」，DFS 看都不看一眼就跳过——
+          这正是 Trie 剪枝省下来的功夫。试试把 words 改成
+          <code>oath,oat,rain</code>，看共享前缀 "oa" 怎么只被走一次就同时帮两个单词探路。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; findWords(<span class="ty">char</span>[][] board, <span class="ty">String</span>[] words) {
+        <span class="ty">TrieNode</span> root = buildTrie(words);
+        <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; result = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+        <span class="ty">int</span> m = board.length, n = board[<span class="nm">0</span>].length;
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; m; i++) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">0</span>; j &lt; n; j++) {
+                dfs(board, i, j, root, result);
+            }
+        }
+        <span class="kw">return</span> result;
+    }
+
+    <span class="cm">// 从 (i, j) 出发，沿着 Trie 的 node 节点往下走</span>
+    <span class="kw">private</span> <span class="kw">void</span> dfs(<span class="ty">char</span>[][] board, <span class="ty">int</span> i, <span class="ty">int</span> j, <span class="ty">TrieNode</span> node, <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; result) {
+        <span class="ty">char</span> ch = board[i][j];
+        <span class="cm">// 已访问过（标记成 '#'）或 Trie 没有这个分支 → 剪枝，直接返回</span>
+        <span class="kw">if</span> (ch == <span class="st">'#'</span> || node.children[ch - <span class="st">'a'</span>] == <span class="kw">null</span>) <span class="kw">return</span>;
+
+        <span class="ty">TrieNode</span> next = node.children[ch - <span class="st">'a'</span>];
+        <span class="kw">if</span> (next.word != <span class="kw">null</span>) {
+            result.add(next.word);
+            next.word = <span class="kw">null</span>; <span class="cm">// 避免同一个单词被不同路径重复加入</span>
+        }
+
+        board[i][j] = <span class="st">'#'</span>; <span class="cm">// 标记已访问</span>
+        <span class="ty">int</span>[] dx = {-<span class="nm">1</span>, <span class="nm">1</span>, <span class="nm">0</span>, <span class="nm">0</span>};
+        <span class="ty">int</span>[] dy = {<span class="nm">0</span>, <span class="nm">0</span>, -<span class="nm">1</span>, <span class="nm">1</span>};
+        <span class="kw">for</span> (<span class="ty">int</span> d = <span class="nm">0</span>; d &lt; <span class="nm">4</span>; d++) {
+            <span class="ty">int</span> ni = i + dx[d], nj = j + dy[d];
+            <span class="kw">if</span> (ni &gt;= <span class="nm">0</span> &amp;&amp; ni &lt; board.length &amp;&amp; nj &gt;= <span class="nm">0</span> &amp;&amp; nj &lt; board[<span class="nm">0</span>].length) {
+                dfs(board, ni, nj, next, result);
+            }
+        }
+        board[i][j] = ch; <span class="cm">// 回溯：把字母还原</span>
+    }
+
+    <span class="kw">private</span> <span class="ty">TrieNode</span> buildTrie(<span class="ty">String</span>[] words) {
+        <span class="ty">TrieNode</span> root = <span class="kw">new</span> <span class="ty">TrieNode</span>();
+        <span class="kw">for</span> (<span class="ty">String</span> w : words) {
+            <span class="ty">TrieNode</span> node = root;
+            <span class="kw">for</span> (<span class="ty">char</span> c : w.toCharArray()) {
+                <span class="ty">int</span> idx = c - <span class="st">'a'</span>;
+                <span class="kw">if</span> (node.children[idx] == <span class="kw">null</span>) node.children[idx] = <span class="kw">new</span> <span class="ty">TrieNode</span>();
+                node = node.children[idx];
+            }
+            node.word = w; <span class="cm">// 单词结尾节点记下完整单词</span>
+        }
+        <span class="kw">return</span> root;
+    }
+
+    <span class="kw">class</span> <span class="ty">TrieNode</span> {
+        <span class="ty">TrieNode</span>[] children = <span class="kw">new</span> <span class="ty">TrieNode</span>[<span class="nm">26</span>];
+        <span class="ty">String</span> word = <span class="kw">null</span>;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(W + m·n·4^L)</code>
+            <p>
+              建 Trie 是 <code>W</code>（所有单词总长度）；DFS 最坏情况下从每个格子出发都要探索
+              <code>4^L</code> 条路径（<code>L</code> 是最长单词长度），但因为剪枝，
+              远比「逐个单词独立搜索」的 <code>O(words.length · m·n·4^L)</code> 快得多。
+            </p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(W + L)</code>
+            <p>Trie 节点总数最多是所有单词的总长度 <code>W</code>；递归栈深度最多是单词最大长度 <code>L</code>。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当你要在同一份数据上对<strong>很多个模式串</strong>分别做搜索/匹配时，
+          先想想能不能把这些模式串合并成一棵 <strong>Trie</strong>——公共前缀只需要走一次，
+          剪枝判断也变成 <code>O(1)</code> 的「查孩子节点存不存在」。
+          Trie 与 DFS/回溯 的组合是「网格 + 多模式串」这类题的标准搭档，
+          除了单词搜索，还能用在自动补全、敏感词过滤等场景。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/212-word-search-ii/page.js"></script>
+  </body>
+</html>

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>100. 相同的树 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 100 相同的树：怎么把「判断两棵树是否相同」拆成「每一对节点是否相同」的递归、为什么一遇到不同就能立刻返回 false、可交互的同步 DFS 动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/100-same-tree/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          判断两棵树「长得一不一样」，听起来要对比很多东西，
+          其实只要把问题不断拆成「这一个节点和那一个节点是否相同」就够了——递归的入门好题。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你两棵二叉树的根节点 <code>p</code> 和 <code>q</code>，问它们是不是「一模一样」——
+          不仅<strong>每个位置的值要相同</strong>，连<strong>形状（结构）</strong>也要完全一致。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">p</span><code>[1,2]</code>（1 只有左孩子 2）</div>
+          <div><span class="example-box__label">q</span><code>[1,null,2]</code>（1 只有右孩子 2）</div>
+          <p class="example-box__note">
+            两棵树的节点值都是 1 和 2，但 2 一个在左边、一个在右边——形状不同，所以不相同。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>💡 第二步：把大问题拆成「一对节点」的小问题</h2>
+        <p>
+          直接对比「两棵树」很难下手，但对比<strong>两个节点</strong>很简单——只有 4 种情况：
+        </p>
+        <ul>
+          <li><strong>都是空节点</strong> → 这一支什么都没有，当然相同。</li>
+          <li><strong>只有一个是空节点</strong> → 一边有东西一边没有，形状已经不同，直接不同。</li>
+          <li><strong>两个都存在，但值不一样</strong> → 直接不同。</li>
+          <li>
+            <strong>两个都存在，值也一样</strong> → 这一个节点本身没问题，但还不能下结论，
+            得继续递归检查它们的<strong>左子树</strong>和<strong>右子树</strong>是否也分别相同。
+          </li>
+        </ul>
+        <div class="callout callout--warn">
+          <strong>递归的整棵树思路：</strong>
+          <code>isSameTree(p, q)</code> 这一支是否相同 =
+          「这一对节点相不相同」<strong>且</strong>「左子树相不相同」<strong>且</strong>「右子树相不相同」。
+          一旦某一处出现不同，<code>&amp;&amp;</code> 会立刻短路，不用再往下比对——这正是动画里
+          一出现红色就停止扩展的原因。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：同步往下走，逐对比较</h2>
+        <p>
+          想象两个人分别站在 <code>p</code> 和 <code>q</code> 的根节点上，<strong>手拉手同步往下走</strong>：
+          先比较当前这一对节点，再一起走向左孩子比较，回来后再一起走向右孩子比较。
+          下面用「递归调用栈」面板把这个同步 DFS 的进栈、出栈过程画出来。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在比较的一对节点</span>
+          <span><i class="sw sw--ok"></i> 已确认这一支完全相同</span>
+          <span><i class="sw sw--bad"></i> 第一次出现不同的位置</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          默认两棵树完全一样（结果 <code>true</code>），可以试试把 q 改成
+          <code>1,2,3,4,5,6,8</code>，看动画在哪一对节点第一次变红、之后又怎么立刻停止往下走。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> isSameTree(<span class="ty">TreeNode</span> p, <span class="ty">TreeNode</span> q) {
+        <span class="cm">// 两边都是空节点：这一支相同</span>
+        <span class="kw">if</span> (p == <span class="kw">null</span> &amp;&amp; q == <span class="kw">null</span>) {
+            <span class="kw">return</span> <span class="kw">true</span>;
+        }
+        <span class="cm">// 只有一边是空节点：结构已经不同</span>
+        <span class="kw">if</span> (p == <span class="kw">null</span> || q == <span class="kw">null</span>) {
+            <span class="kw">return</span> <span class="kw">false</span>;
+        }
+        <span class="cm">// 值相同，且左子树相同，且右子树相同，才算这一支相同</span>
+        <span class="cm">// &amp;&amp; 会短路：左子树一旦不同，右子树就不会再比较</span>
+        <span class="kw">return</span> p.val == q.val
+            &amp;&amp; isSameTree(p.left, q.left)
+            &amp;&amp; isSameTree(p.right, q.right);
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(min(m, n))</code>
+            <p>m、n 分别是两棵树的节点数；最坏情况要把较小的那棵树逐个节点走一遍才能确认相同或第一次发现不同。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(min(h₁, h₂))</code>
+            <p>递归调用栈的深度等于树高，h₁、h₂ 分别是两棵树的高度。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「比较两棵树」「比较两个结构」这类问题，先想清楚
+          <strong>「一对最小单位（这里是一对节点）」</strong>有哪几种可能的关系，再用递归把
+          「整体是否相同」表达成「这一对是否相同 <strong>且</strong> 子结构是否相同」。
+          这是后面对称二叉树、合并二叉树、子树等一大类树形递归题的共同起点。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/100-same-tree/page.js"></script>
+  </body>
+</html>

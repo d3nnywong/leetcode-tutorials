@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5. 最长回文子串 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 5 最长回文子串：暴力枚举为什么慢、中心扩展法如何把每个字符/缝当作对称中心逐步扩展找到答案，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/5-longest-palindromic-substring/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一个字符串里藏着的「最长对称片段」。看完你会明白：与其去检查每一段子串是不是回文，
+          不如反过来——从每个可能的「对称中心」往外扩，又快又直观。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          「回文」就是正着读和反着读都一样的字符串，比如 <code>"bab"</code>、<code>"aba"</code>、
+          <code>"bb"</code>。题目给一个字符串 <code>s</code>，要你从里面找出<strong>最长</strong>的
+          那一段连续子串，使它本身是回文。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">s</span><code>"babad"</code></div>
+          <p class="example-box__note">
+            它的子串里 <code>"bab"</code> 和 <code>"aba"</code> 都是回文，长度都是 3，
+            两个都算正确答案——返回任意一个即可。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 vs 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法，以及它慢在哪</h2>
+        <p>
+          最容易想到的：把 <code>s</code> 的<strong>每一段</strong>子串都枚举出来（两层循环定起止
+          下标），再逐个检查是不是回文（再花一层循环对比首尾字符）。三层循环，时间复杂度
+          <code>O(n³)</code>，字符串长度到 1000 就要算到十亿次量级，明显跑不动。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>我们对「是不是回文」这件事，每一段子串都<strong>从头检查一遍</strong>，
+          完全没有利用「短回文能不能拼出长回文」之间的关系。
+        </div>
+        <p>
+          换个角度想：一个回文串一定是<strong>关于某个中心对称</strong>的——奇数长度（如
+          <code>"aba"</code>）的中心是<strong>一个字符</strong>；偶数长度（如 <code>"bb"</code>）的中心是
+          <strong>两个字符之间的缝</strong>。一个长度为 n 的字符串，一共只有
+          <code>2n − 1</code> 个这样的中心。
+        </p>
+        <p>
+          于是思路反过来：<strong>不去检查子串，而是从每个中心出发往外扩</strong>。
+          用左右两个指针 <code>L</code>、<code>R</code> 从中心位置出发，只要
+          <code>s[L] === s[R]</code> 就同时向外挪一格，一旦不相等（或者撞到字符串边界）就停下——
+          这个中心能扩出的最长回文就确定了。把 <code>2n − 1</code> 个中心都试一遍，记录全程扩出过的
+          最长结果，就是答案。
+        </p>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：中心扩展，一步步看</h2>
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前指针 L / R</span>
+          <span><i class="sw sw--src"></i> 本次扩展中、匹配成功的区间</span>
+          <span><i class="sw sw--bad"></i> 比较不相等</span>
+          <span><i class="sw sw--gold"></i> 目前为止最长的回文</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把字符串改成 <code>cbbd</code>，看它怎么在第 4 个中心（"b" 和 "b" 之间）扩出
+          <code>"bb"</code>。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">String</span> longestPalindrome(<span class="ty">String</span> s) {
+        <span class="kw">if</span> (s == <span class="kw">null</span> || s.length() &lt; <span class="nm">1</span>) <span class="kw">return</span> <span class="st">""</span>;
+        <span class="ty">int</span> start = <span class="nm">0</span>, end = <span class="nm">0</span>; <span class="cm">// 最长回文子串的左右下标（闭区间）</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; s.length(); i++) {
+            <span class="ty">int</span> len1 = expand(s, i, i);     <span class="cm">// 以 i 为中心（奇数长度）</span>
+            <span class="ty">int</span> len2 = expand(s, i, i + <span class="nm">1</span>); <span class="cm">// 以 i, i+1 为中心（偶数长度）</span>
+            <span class="ty">int</span> len = <span class="ty">Math</span>.max(len1, len2);
+            <span class="kw">if</span> (len &gt; end - start + <span class="nm">1</span>) {
+                start = i - (len - <span class="nm">1</span>) / <span class="nm">2</span>;
+                end = i + len / <span class="nm">2</span>;
+            }
+        }
+        <span class="kw">return</span> s.substring(start, end + <span class="nm">1</span>);
+    }
+
+    <span class="cm">// 以 left、right 为中心向两边扩展，返回能扩出的回文长度</span>
+    <span class="kw">private</span> <span class="ty">int</span> expand(<span class="ty">String</span> s, <span class="ty">int</span> left, <span class="ty">int</span> right) {
+        <span class="kw">while</span> (left &gt;= <span class="nm">0</span> &amp;&amp; right &lt; s.length() &amp;&amp; s.charAt(left) == s.charAt(right)) {
+            left--;
+            right++;
+        }
+        <span class="kw">return</span> right - left - <span class="nm">1</span>; <span class="cm">// 循环多减了一层，要补回来</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n²)</code>
+            <p>2n − 1 个中心，每个中心最坏情况要向外扩 O(n) 步。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了几个指针变量，没有额外的数组或表格。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「回文」相关的题，先想到它的<strong>对称性</strong>——
+          一个回文串总能由更短的回文从中心往外扩得到。中心扩展法把「枚举所有子串再逐个验证」的
+          <code>O(n³)</code> 降到了 <code>O(n²)</code>，且只用常数额外空间，是这类问题里最朴素也最常用的入门解法。
+          （如果还想更快，这道题还有 <code>O(n²)</code> 空间的区间 DP 解法，以及更复杂的 <code>O(n)</code>
+          Manacher 算法，可以作为进阶了解。）
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/5-longest-palindromic-substring/page.js"></script>
+  </body>
+</html>

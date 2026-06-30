@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>98. 验证二叉搜索树 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 98 验证二叉搜索树：为什么只比较父子节点不够、如何用「区间收缩」给每个节点带上合法范围，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/98-validate-binary-search-tree/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一棵树「看起来」左小右大，不代表它真的是二叉搜索树。
+          这道题教你一个所有树形递归都通用的武器：给每个节点带上一对「允许区间」。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一棵二叉树的根节点 <code>root</code>，判断它是不是一棵<strong>合法的二叉搜索树（BST）</strong>。
+          合法的意思是：对树里<strong>每一个</strong>节点，它的左子树里所有节点都要严格小于它，
+          右子树里所有节点都要严格大于它——而且这个要求对左右子树自己也要成立（递归地）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[5,1,4,null,null,3,6]</code></div>
+          <p class="example-box__note">
+            根节点是 5，它的右子树里有个节点 4。可右子树的所有节点都该比根节点
+            <strong>大</strong>，4 却比 5 小——直接违反了 BST 的定义，所以这不是合法 BST，答案是
+            <code>false</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：一个很容易踩的坑</h2>
+        <p>
+          最容易想错的写法是：只比较<strong>每个节点和它的直接孩子</strong>——
+          检查 <code>node.left.val &lt; node.val</code> 且 <code>node.val &lt; node.right.val</code>，
+          递归下去。这样写在示例 2 上会出错：节点 4 和它的左孩子 3、右孩子 6 单独看完全没问题
+          （3 &lt; 4 &lt; 6），但 4 其实出现在根节点 5 的<strong>右子树</strong>里，
+          整个右子树都必须比 5 大，4 却比 5 小——只看父子关系，发现不了这种「跨层级」的违规。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>一个节点合不合法，不能只看它的父节点，
+          要看它<strong>所有祖先</strong>一路收紧下来的合法区间。根节点的区间是
+          <code>(−∞, +∞)</code>；往左走一步，区间的<strong>上界</strong>收紧成父节点的值；
+          往右走一步，区间的<strong>下界</strong>收紧成父节点的值。每个节点的值必须落在
+          它继承到的这个区间里。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用一个显式栈做「区间收缩」</h2>
+        <p>
+          用一个栈模拟「先序遍历」：栈里每一项是 <code>(节点, low, high)</code>。
+          弹出一个节点先检查 <code>low &lt; node.val &lt; high</code>；不满足直接判 false。
+          满足的话，把它的右孩子（区间下界收紧成 <code>node.val</code>）和左孩子（区间上界收紧成
+          <code>node.val</code>）都压栈继续检查——先压右孩子、再压左孩子，这样左子树会先被弹出处理，
+          顺序和递归「先左后右」一致。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在检查</span>
+          <span><i class="sw sw--src"></i> 已验证合法</span>
+          <span><i class="sw sw--bad"></i> 区间外，判定失败</span>
+          <span><i class="sw sw--ok"></i> 全部通过</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把树改成合法的 <code>2,1,3</code>，对比它和默认的 <code>5,1,4,null,null,3,6</code>
+          在哪一步分出胜负。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> isValidBST(<span class="ty">TreeNode</span> root) {
+        <span class="kw">return</span> valid(root, <span class="ty">Long</span>.MIN_VALUE, <span class="ty">Long</span>.MAX_VALUE);
+    }
+
+    <span class="cm">// low、high 用 long，避免节点值正好等于 int 边界时区间判断出错</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> valid(<span class="ty">TreeNode</span> node, <span class="ty">long</span> low, <span class="ty">long</span> high) {
+        <span class="kw">if</span> (node == <span class="kw">null</span>) <span class="kw">return</span> <span class="kw">true</span>; <span class="cm">// 空树天然合法</span>
+        <span class="kw">if</span> (node.val &lt;= low || node.val &gt;= high) {
+            <span class="kw">return</span> <span class="kw">false</span>; <span class="cm">// 跳出了祖先们划定的区间</span>
+        }
+        <span class="cm">// 往左走：上界收紧成当前值；往右走：下界收紧成当前值</span>
+        <span class="kw">return</span> valid(node.left, low, node.val) &amp;&amp; valid(node.right, node.val, high);
+    }
+}</code></pre>
+        <p class="dp-step__hint">
+          动画里展示的「显式栈」版本和这段递归本质上是同一个算法——栈里压的
+          <code>(节点, low, high)</code> 就是一次函数调用的参数，只是把递归用循环摊开，方便逐步演示。
+        </p>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>每个节点恰好被检查一次。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(h)</code>
+            <p>h 是树高，来自递归栈（或显式栈）；平衡树 O(log n)，最坏（链状树）退化到 O(n)。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>判断一棵树「是否满足某种全局性质」时，
+          光比较父子节点常常不够——要想清楚<strong>从根到当前节点这一路上积累下来的约束</strong>，
+          把它打包成参数（这里是 <code>(low, high)</code> 区间）一路传下去。
+          这种「自顶向下传约束」的递归模式，在树形问题里会反复出现。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/98-validate-binary-search-tree/page.js"></script>
+  </body>
+</html>

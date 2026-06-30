@@ -1,0 +1,117 @@
+/* 141. 环形链表 —— 动画舞台专属样式 */
+
+.ll__empty {
+  padding: var(--space-6);
+  color: var(--color-text-soft);
+  font-size: var(--text-base);
+  text-align: center;
+}
+
+.ll__chartwrap {
+  overflow-x: auto;
+}
+.ll__svg {
+  width: 100%;
+  min-width: 280px;
+  max-height: 260px;
+  display: block;
+}
+
+/* 节点圆圈 */
+.ll-node circle {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease);
+}
+.ll-node.is-slow circle {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 3;
+}
+.ll-node.is-fast circle {
+  fill: var(--src-bg);
+  stroke: var(--src);
+  stroke-width: 3;
+}
+.ll-node.is-meet circle {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+  stroke-width: 3.5;
+}
+
+.ll-val {
+  fill: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+.ll-idx {
+  fill: var(--color-text-soft);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+.ll-head {
+  fill: var(--color-text-soft);
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+/* next 指针箭头 */
+.ll-edge {
+  stroke: var(--color-text-soft);
+  stroke-width: 1.75;
+  fill: none;
+}
+.ll-edge--cycle {
+  stroke: var(--gold);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+.ll-arrowhead {
+  fill: var(--color-text-soft);
+}
+.ll-arrowhead--gold {
+  fill: var(--gold);
+}
+
+/* 空指针占位框 */
+.ll-null rect {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+.ll-null text {
+  fill: var(--color-text-soft);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* 慢/快指针标签 */
+.ll-ptr {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+.ll-ptr--slow {
+  fill: var(--hi);
+}
+.ll-ptr--fast {
+  fill: var(--src);
+}
+.ll-ptr--meet {
+  fill: var(--gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ll-node circle {
+    transition: none;
+  }
+}

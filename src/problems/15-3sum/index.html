@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>15. 三数之和 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 15 三数之和：暴力三层循环为什么慢、排序 + 双指针如何把时间降到 O(n²)、如何跳过重复三元组、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/15-3sum/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          两数之和的「升级版」：从找两个数变成找三个数。核心套路是先把数组排序，
+          再把其中一个数当「锚点」，剩下的就退化成你已经会的双指针找两数之和。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个整数数组 <code>nums</code>，要你找出<strong>所有</strong>「三个数加起来等于 0」
+          的组合（不是下标，是数值组成的三元组），而且<strong>不能有重复的组合</strong>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[-1, 0, 1, 2, -1, -4]</code></div>
+          <p class="example-box__note">
+            -1 + 0 + 1 = 0，-1 + (-1) + 2 = 0 → 答案是 <code>[[-1,-1,2],[-1,0,1]]</code>，
+            顺序不重要，但每一组三元组内部和组与组之间都不能重复。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：三层循环枚举所有 <code>i, j, k</code>，看哪些组合的和为 0，
+          再用一个集合去掉重复的三元组。这是 <code>O(n³)</code>，数组长度能到 3000，
+          三次方就是 270 亿次，跑不动。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>每确定一个 <code>i</code>，后面两个数还要再来一次「暴力配对」。
+          但「两个数加起来等于某个目标值」——这不就是两数之和吗？我们已经有更快的办法了。
+        </div>
+      </section>
+
+      <!-- 3. 排序 + 双指针 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：排序后，退化成「双指针版两数之和」</h2>
+        <p>
+          先把数组从小到大<strong>排序</strong>。排序带来两个好处：相同的数会挨在一起（方便去重），
+          而且排好序后可以用双指针从两端向中间夹逼。
+        </p>
+        <p>
+          固定第一个数 <code>nums[i]</code> 当「锚点」，问题就变成：在 <code>i</code> 右边的区间里，
+          找两个数 <code>nums[l] + nums[r] = -nums[i]</code>。这正是双指针解两数之和的套路：
+        </p>
+        <ul>
+          <li>三数之和 <strong>等于</strong> 0 → 记录这组答案，左右指针各跳过和刚才相同的值，再继续夹逼（去重）。</li>
+          <li>三数之和 <strong>小于</strong> 0 → 太小，说明左边的数偏小，左指针右移找更大的数。</li>
+          <li>三数之和 <strong>大于</strong> 0 → 太大，右指针左移找更小的数。</li>
+        </ul>
+        <p>
+          另外两个剪枝：排序后如果 <code>nums[i] &gt; 0</code>，后面的数只会更大，可以直接结束；
+          如果 <code>nums[i]</code> 和上一个锚点相同，跳过它，否则会算出重复的三元组。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 锚点 nums[i]</span>
+          <span><i class="sw sw--hi"></i> 左右指针 l / r</span>
+          <span><i class="sw sw--ok"></i> 命中的三元组</span>
+          <span><i class="sw sw--bad"></i> 跳过重复 / 提前结束</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>0,0,0</code> 或 <code>0,1,1</code>，看它怎么处理「正好一组」和「无解」。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">import</span> java.util.*;
+
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; threeSum(<span class="ty">int</span>[] nums) {
+        <span class="ty">Arrays</span>.sort(nums); <span class="cm">// 排序后才能用双指针、方便跳过重复值</span>
+        <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; ans = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+        <span class="ty">int</span> n = nums.length;
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; n - <span class="nm">2</span>; i++) {
+            <span class="kw">if</span> (nums[i] &gt; <span class="nm">0</span>) <span class="kw">break</span>; <span class="cm">// 最小的数都大于 0，后面只会更大</span>
+            <span class="kw">if</span> (i &gt; <span class="nm">0</span> &amp;&amp; nums[i] == nums[i - <span class="nm">1</span>]) <span class="kw">continue</span>; <span class="cm">// 跳过重复锚点</span>
+
+            <span class="ty">int</span> l = i + <span class="nm">1</span>, r = n - <span class="nm">1</span>;
+            <span class="kw">while</span> (l &lt; r) {
+                <span class="ty">int</span> sum = nums[i] + nums[l] + nums[r];
+                <span class="kw">if</span> (sum == <span class="nm">0</span>) {
+                    ans.add(<span class="ty">Arrays</span>.asList(nums[i], nums[l], nums[r]));
+                    l++; r--;
+                    <span class="kw">while</span> (l &lt; r &amp;&amp; nums[l] == nums[l - <span class="nm">1</span>]) l++; <span class="cm">// 跳过重复左值</span>
+                    <span class="kw">while</span> (l &lt; r &amp;&amp; nums[r] == nums[r + <span class="nm">1</span>]) r--; <span class="cm">// 跳过重复右值</span>
+                } <span class="kw">else if</span> (sum &lt; <span class="nm">0</span>) {
+                    l++; <span class="cm">// 太小，左指针右移找更大的数</span>
+                } <span class="kw">else</span> {
+                    r--; <span class="cm">// 太大，右指针左移找更小的数</span>
+                }
+            }
+        }
+        <span class="kw">return</span> ans;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n²)</code>
+            <p>排序 O(n log n)；外层枚举锚点 O(n)，内层双指针再扫一遍 O(n)，合计 O(n²)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(log n) ~ O(n)</code>
+            <p>不计返回结果的话，主要是排序所用的栈空间；返回的三元组列表本身大小不计入复杂度。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「找 k 个数满足某种和」的题，常见思路是<strong>先排序</strong>，
+          再<strong>固定前 k-2 个数</strong>，把问题降维成「双指针找两数之和」。
+          三数之和把两数之和从 O(n) 升级成了「固定一维 + 双指针扫一维」的 O(n²)，
+          四数之和、最接近的三数之和都是同一个套路的变体。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/15-3sum/page.js"></script>
+  </body>
+</html>

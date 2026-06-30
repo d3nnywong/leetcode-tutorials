@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>53. 最大子数组和 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 53 最大子数组和：暴力枚举为什么慢、Kadane 算法（一维 DP/贪心）如何边走边记把时间降到 O(n)，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/53-maximum-subarray/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一道看似简单、实则很容易掉进 O(n²) 陷阱的题。看完你会明白：
+          只用两个变量边走边记，就能把「找最大连续和」从暴力枚举压成一遍扫描。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一排数字（可能有正有负），要你从中挑出<strong>连续的一段</strong>
+          （子数组，至少 1 个元素），让这一段的和<strong>最大</strong>，返回这个最大和。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[-2, 1, -3, 4, -1, 2, 1, -5, 4]</code></div>
+          <p class="example-box__note">
+            挑出 <code>[4, -1, 2, 1]</code> 这一段，和是 4 − 1 + 2 + 1 = 6，
+            比其他任何一段连续子数组的和都大 → 答案是 <code>6</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：枚举每一个起点 <code>i</code>，再枚举每一个终点 <code>j</code>（
+          <code>j ≥ i</code>），把 <code>nums[i..j]</code> 的和都求出来，记录最大值。
+          光是枚举起点终点就是 <code>O(n²)</code> 对组合，再算每段的和又要 <code>O(n)</code>，
+          总共 <code>O(n³)</code>（用前缀和优化求和能降到 <code>O(n²)</code>）。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>数组长度能到 10⁵，<code>O(n²)</code> 就是上百亿次运算，
+          根本跑不完。问题的本质是——我们对「这一段值不值得要」这件事，<strong>每次都从头重新算</strong>，
+          完全没利用上「往前挪一格」时其实只多了一个数这件事。
+        </div>
+      </section>
+
+      <!-- 3. Kadane 算法 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：边走边记——Kadane 算法</h2>
+        <p>
+          换个思路：维护一个变量 <code>cur</code>，表示「以当前元素<strong>结尾</strong>」的最大子数组和。
+          走到 <code>nums[i]</code> 时只需要回答一个问题——<strong>要不要把前面那段接上来？</strong>
+        </p>
+        <p>
+          如果 <code>cur</code> 已经是负数，说明前面那段对后面只有拖累，不如<strong>丢掉它、从
+          <code>nums[i]</code> 自己重新开始</strong>；如果 <code>cur</code> 还是非负的，就把
+          <code>nums[i]</code> 接到后面继续累加。每走一步，都用当前的 <code>cur</code>
+          去刷新全局看到过的最大值 <code>best</code>。这就是经典的
+          <strong>Kadane 算法</strong>（本质是一维动态规划：<code>dp[i] = max(nums[i], dp[i-1] + nums[i])</code>，
+          这里把 <code>dp</code> 数组压缩成了一个变量 <code>cur</code>）。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前累加段 cur 的范围</span>
+          <span><i class="sw sw--gold"></i> 历史最大子数组 best 的范围</span>
+          <span><i class="sw sw--bad"></i> 在此处丢弃前面、重新开始</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>5,4,-1,7,8</code>（全程不重启）或 <code>-1,-2,-3</code>
+          （每步都重启，答案是最大的那个负数），观察 cur / best 的变化。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> maxSubArray(<span class="ty">int</span>[] nums) {
+        <span class="ty">int</span> cur = nums[<span class="nm">0</span>];  <span class="cm">// 以当前元素结尾的最大子数组和</span>
+        <span class="ty">int</span> best = nums[<span class="nm">0</span>]; <span class="cm">// 全局看到过的最大值</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt; nums.length; i++) {
+            <span class="cm">// cur 已经是负数就丢掉它，从 nums[i] 重新开始；否则接上去</span>
+            cur = <span class="ty">Math</span>.max(nums[i], cur + nums[i]);
+            best = <span class="ty">Math</span>.max(best, cur); <span class="cm">// 随时刷新最大值</span>
+        }
+        <span class="kw">return</span> best;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>数组只扫一遍，每步只做常数次比较和加法。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了 cur、best 两个变量，没有额外数组。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当题目要在数组里找「连续一段」的最优值时，先想想能不能维护一个
+          「以当前元素结尾」的状态，边走边用它去更新全局答案——这样就能把朴素枚举的
+          <code>O(n²)</code>/<code>O(n³)</code> 压成一遍 <code>O(n)</code> 扫描。
+          Kadane 算法是这个套路最经典的入门例子，后面遇到「最大/最小连续和」「环形数组最大和」
+          这类题，都可以照着这个思路去想。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/53-maximum-subarray/page.js"></script>
+  </body>
+</html>

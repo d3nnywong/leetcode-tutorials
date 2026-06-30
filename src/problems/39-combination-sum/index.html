@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>39. 组合总和 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 39 组合总和：回溯（DFS）怎么一边选数字一边试，排序后的剪枝怎么把不可能的分支提前砍掉，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/39-combination-sum/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          「回溯」家族的入门代表作：一边往路径里塞数字、一边检查还差多少，
+          凑够了就记一笔，凑不够或超了就把刚选的数字撤回去，换下一个再试。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一堆候选数字 <code>candidates</code>（没有重复）和一个目标值 <code>target</code>，
+          要你找出<strong>所有</strong>「挑几个数字加起来正好等于 target」的方案。
+          关键规则：<strong>同一个数字可以重复使用</strong>（比如 2 可以连选好几次），
+          但「选了几个不同数字的组合」不能重复出现（顺序不同算同一组）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">candidates</span><code>[2, 3, 6, 7]</code></div>
+          <div><span class="example-box__label">target</span><code>7</code></div>
+          <p class="example-box__note">
+            2 + 2 + 3 = 7，单独一个 7 也等于 7 → 答案是 <code>[[2,2,3], [7]]</code>。
+            注意 <code>[2,2,3]</code> 和 <code>[3,2,2]</code> 算同一组，只算一次。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察：回溯 + 剪枝 -->
+      <section class="article__section">
+        <h2>🌲 第二步：把「试一试」画成一棵树</h2>
+        <p>
+          这题没法用公式直接算，但可以<strong>暴力地一个个试</strong>：
+          每一步面前摆着几个候选数字，选一个加进当前路径，剩下的目标就变小；
+          如果变成 0，说明这条路径凑出了一组解；如果还没到 0，就接着选；
+          选完这一条路之后，要把刚才选的数字<strong>撤回去（回溯）</strong>，
+          换下一个候选再试一遍。这样把所有「选哪个、选几次」的可能性都走一遍，就是
+          <strong>回溯法（Backtracking）</strong>，本质是一棵决策树的深度优先遍历。
+        </p>
+        <p>
+          为了不把 <code>[2,2,3]</code> 和 <code>[3,2,2]</code> 当成两组不同答案，
+          每一层只允许从<strong>当前下标 start 往后</strong>选（不能往回选已经跳过的数字）。
+          又因为同一个数字能重复用，递归下一层时下标传的还是 <code>i</code> 本身，而不是
+          <code>i + 1</code>。
+        </p>
+        <div class="callout">
+          <strong>剪枝优化：</strong>把 <code>candidates</code> 先从小到大排序。
+          这样一旦发现当前候选数字已经比「还差多少（remain）」大，
+          后面排在它右边的数字只会更大，<strong>不可能</strong>再凑出 remain ——
+          直接跳出这一层循环，省掉一大片注定失败的分支，不用一个个再去试。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：看回溯怎么「选 → 试 → 撤」</h2>
+        <p>
+          下面动画把候选数组、当前路径、剩余目标 remain 都画出来。
+          每一步要么「选一个数字压入路径」，要么「发现选过头了/比剩余目标还大，剪枝跳过」，
+          要么「回溯，把刚选的数字弹出路径」。凑齐 remain = 0 的那一刻，
+          这条路径就会被记进右边的「已找到的组合」里。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 正在尝试的候选数</span>
+          <span><i class="sw sw--gold"></i> 命中！remain 刚好减到 0</span>
+          <span><i class="sw sw--bad"></i> 剪枝（比 remain 大，整段跳过）</span>
+          <span><i class="sw sw--src"></i> 不可再选 / 刚被撤销</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把候选数改成 <code>2,3,5</code>、target 改成 <code>8</code>，
+          看它怎么找出 <code>[2,2,2,2]</code>、<code>[2,3,3]</code>、<code>[3,5]</code> 这三组答案。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">private</span> <span class="kw">final</span> <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; result = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+    <span class="kw">private</span> <span class="kw">final</span> <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; path = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; combinationSum(<span class="ty">int</span>[] candidates, <span class="ty">int</span> target) {
+        <span class="ty">Arrays</span>.sort(candidates); <span class="cm">// 排序后才能用「比 remain 大就剪枝」的优化</span>
+        backtrack(candidates, target, <span class="nm">0</span>);
+        <span class="kw">return</span> result;
+    }
+
+    <span class="kw">private</span> <span class="kw">void</span> backtrack(<span class="ty">int</span>[] candidates, <span class="ty">int</span> remain, <span class="ty">int</span> start) {
+        <span class="kw">if</span> (remain == <span class="nm">0</span>) {
+            result.add(<span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;(path)); <span class="cm">// 找到一组合法组合，拷贝一份记下来</span>
+            <span class="kw">return</span>;
+        }
+        <span class="kw">for</span> (<span class="ty">int</span> i = start; i &lt; candidates.length; i++) {
+            <span class="kw">if</span> (candidates[i] &gt; remain) <span class="kw">break</span>; <span class="cm">// 已排序，后面的更大，直接剪枝</span>
+            path.add(candidates[i]);
+            backtrack(candidates, remain - candidates[i], i); <span class="cm">// 传 i 而不是 i+1：可以重复选自己</span>
+            path.remove(path.size() - <span class="nm">1</span>); <span class="cm">// 回溯：撤销这次选择，换下一个候选</span>
+        }
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(N^(T/M + 1))</code>
+            <p>N 是候选数个数，T 是 target，M 是候选中的最小值；本质是搜索树的节点数，
+              和具体输入强相关，剪枝能大幅减少实际访问的分支。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(T / M)</code>
+            <p>递归栈的深度最坏是 target 除以最小候选值（一直选最小的数字往下叠）。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「找出所有满足条件的方案/组合」这类题，
+          先想「能不能一个个试」——选一个、递归往下走、不行就撤回来换下一个，这就是回溯。
+          排好序之后，「发现走不下去就提前跳出循环」是回溯题里最常见、最有效的剪枝手段，
+          后面的子集、排列、分割回文串等题都在用同一套模板。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/39-combination-sum/page.js"></script>
+  </body>
+</html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>268. 丢失的数字 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 268 丢失的数字：为什么排序/哈希表能做但不是最优、高斯求和公式如何用 O(n) 时间、O(1) 空间一步找出丢失的数，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/268-missing-number/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          0 到 n 一共 n+1 个数，数组里只装了 n 个、独一无二、丢了一个。
+          不用排序、不用哈希表，一个加法公式就能把丢的那个数「算」出来。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个长度为 <code>n</code> 的数组 <code>nums</code>，里面装着 <code>[0, n]</code>
+          这个范围内的 <code>n</code> 个<strong>互不相同</strong>的数。也就是说，
+          <code>[0, n]</code> 里一共有 <code>n + 1</code> 个数（0、1、2 … 一直到 n），
+          但数组只装得下 <code>n</code> 个，所以<strong>正好少了一个</strong>。
+          你的任务就是把这个丢失的数字找出来。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[3, 0, 1]</code></div>
+          <p class="example-box__note">
+            n = 3，范围是 <code>[0, 3]</code>，里面应该有 0、1、2、3 共 4 个数。
+            数组里出现了 3、0、1，唯独没有 2 → 答案是 <code>2</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 / 朴素做法 -->
+      <section class="article__section">
+        <h2>🐢 第二步：能想到的几种朴素做法</h2>
+        <p>
+          最直接的想法：把数组<strong>排序</strong>，然后从 0 开始逐个比对，
+          哪个位置对不上就是丢的那个（<code>O(n log n)</code>）；
+          或者用一个<strong>哈希表 / 布尔数组</strong>记下出现过的数字，
+          再扫一遍 <code>0..n</code> 看谁没出现（<code>O(n)</code> 时间，但要 <code>O(n)</code> 额外空间）。
+        </p>
+        <div class="callout callout--warn">
+          <strong>能不能更省：</strong>这两种办法都能做对，但题目的进阶要求是——
+          时间 <code>O(n)</code>、空间只用 <code>O(1)</code>（不许排序，也不许额外开数组/哈希表）。
+          我们需要一个不用「记录」、只靠「算」就能得到答案的办法。
+        </div>
+      </section>
+
+      <!-- 3. 高斯求和 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用「高斯求和」一步算出答案</h2>
+        <p>
+          关键观察：如果数组<strong>没有丢任何数</strong>，它就应该正好是
+          <code>0, 1, 2, …, n</code> 这 <code>n + 1</code> 个数（去掉某一个就剩 <code>n</code> 个）。
+          而 <code>0</code> 到 <code>n</code> 这一串连续整数的和，可以用大数学家高斯小时候的公式
+          直接算出来，不用一个个加：
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">公式</span><code>expectedSum = n × (n + 1) / 2</code></div>
+          <p class="example-box__note">
+            这是「应该有」的总和。再把数组里<strong>实际出现</strong>的数加起来，得到
+            <code>actualSum</code>。因为只丢了一个数，多算的那部分差值，
+            正好就是丢失的那个数：<code>missing = expectedSum − actualSum</code>。
+          </p>
+        </div>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在累加的 nums[i]</span>
+          <span><i class="sw sw--src"></i> 已经加进 actualSum</span>
+          <span><i class="sw sw--gold"></i> 最终算出的丢失数字</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>0,1</code>（答案应该是 2）或更长的乱序数组，
+          看 actualSum 怎么一步步逼近 expectedSum 少的那一块。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> missingNumber(<span class="ty">int</span>[] nums) {
+        <span class="ty">int</span> n = nums.length;
+        <span class="ty">int</span> expectedSum = n * (n + <span class="nm">1</span>) / <span class="nm">2</span>; <span class="cm">// 0..n 这 n+1 个数「应有」的和</span>
+        <span class="ty">int</span> actualSum = <span class="nm">0</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> num : nums) {
+            actualSum += num; <span class="cm">// 数组里「实际」出现的数之和</span>
+        }
+        <span class="kw">return</span> expectedSum - actualSum; <span class="cm">// 差值就是丢失的那个数</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>数组只扫一遍把数加起来，高斯公式那部分是 O(1)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>全程只用了 expectedSum / actualSum 两个变量，不需要排序或额外容器。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当题目告诉你「一组数本该是连续/完整的某个集合，但缺了一个」时，
+          先想想这个「本该有」的整体有没有现成的公式（求和、异或、计数都行），
+          再用「应有 − 实际」这种差值思路一步到位，往往比排序或额外建表更省时间和空间。
+          这道题也常用<strong>按位异或</strong>来做（把 0..n 和数组元素全部异或一遍，
+          相同的数两两抵消，剩下的就是答案），思路是同一个套路的另一种实现。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/268-missing-number/page.js"></script>
+  </body>
+</html>

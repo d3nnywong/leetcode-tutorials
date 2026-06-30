@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>102. 二叉树的层序遍历 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 102 二叉树的层序遍历：为什么要用队列做 BFS、怎么按层把节点分批装进结果、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/102-binary-tree-level-order-traversal/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一棵树要「一层一层」地报数，靠的不是递归的深度优先，而是用一个队列把同层节点
+          打包处理——这就是广度优先搜索（BFS）在树上最经典的应用。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一棵二叉树的根节点 <code>root</code>，要你把所有节点的值按「<strong>一层一层</strong>、
+          每层从左到右」的顺序整理出来，每一层单独放进一个小数组，最后所有小数组拼成一个大数组。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[3, 9, 20, null, null, 15, 7]</code></div>
+          <p class="example-box__note">
+            这棵树长这样：根节点 3，它的左右孩子是 9 和 20，20 的左右孩子是 15 和 7。
+            按层分组就是：第 1 层 <code>[3]</code>，第 2 层 <code>[9, 20]</code>，
+            第 3 层 <code>[15, 7]</code> → 答案 <code>[[3],[9,20],[15,7]]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：为什么不能直接用递归 DFS</h2>
+        <p>
+          一提到二叉树遍历，很多人第一反应是递归（深度优先）。但递归天生是「一头扎到底」的：
+          从根一路冲到叶子，再回溯，它根本不知道「现在走到第几层了」，
+          想用它分层就得额外传一个 <code>depth</code> 参数，麻烦还容易绕晕。
+        </p>
+        <div class="callout callout--warn">
+          <strong>问题的本质：</strong>层序遍历要的是「按层分批」，这正好是<strong>广度优先搜索（BFS）</strong>
+          的拿手好戏——BFS 天生就是一圈一圈往外扩散的，每一圈刚好对应树的每一层。
+          实现 BFS 最简单的方式，就是用一个<strong>队列（先进先出）</strong>。
+        </div>
+      </section>
+
+      <!-- 3. BFS + 队列 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用队列「一层一层」地扫</h2>
+        <p>
+          先把根节点放进队列。然后反复做这件事：<strong>记下当前队列里一共有多少个节点
+          <code>levelSize</code></strong>——这正好就是「这一层」的节点数。
+          接着出队 <code>levelSize</code> 次：每出队一个节点就把它的值记下来，
+          再把它的左右孩子（如果存在）放进队尾。
+        </p>
+        <p>
+          关键就在于「先量好这一层有几个节点，再出队这么多次」——这样不管队列后面又混进了
+          下一层的孩子，这一轮也只会处理到属于<strong>当前层</strong>的节点，绝不会串层。
+          一轮处理完，队列里剩下的全是下一层的节点，继续循环，直到队列空。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 在队列中等待</span>
+          <span><i class="sw sw--hi"></i> 正在出队 / 处理</span>
+          <span><i class="sw sw--gold"></i> 刚被加入队尾的子节点</span>
+          <span><i class="sw sw--ok"></i> 已处理完</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把输入改成 <code>1,2,3,4,5,null,6,7</code>，看看节点更多、层数更深时队列是怎么滚动的；
+          也可以把输入框清空，看看空树是怎么直接返回 <code>[]</code> 的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */</span>
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; levelOrder(<span class="ty">TreeNode</span> root) {
+        <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; result = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+        <span class="kw">if</span> (root == <span class="kw">null</span>) <span class="kw">return</span> result; <span class="cm">// 空树，直接返回空列表</span>
+
+        <span class="ty">Queue</span>&lt;<span class="ty">TreeNode</span>&gt; queue = <span class="kw">new</span> <span class="ty">LinkedList</span>&lt;&gt;();
+        queue.offer(root);
+
+        <span class="kw">while</span> (!queue.isEmpty()) {
+            <span class="ty">int</span> levelSize = queue.size(); <span class="cm">// 先量好这一层有几个节点</span>
+            <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; level = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+            <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; levelSize; i++) {
+                <span class="ty">TreeNode</span> node = queue.poll();
+                level.add(node.val);
+                <span class="kw">if</span> (node.left != <span class="kw">null</span>) queue.offer(node.left);
+                <span class="kw">if</span> (node.right != <span class="kw">null</span>) queue.offer(node.right);
+            }
+            result.add(level); <span class="cm">// 这一层处理完，整批加入结果</span>
+        }
+        <span class="kw">return</span> result;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>每个节点恰好入队、出队一次，n 是节点总数。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>最坏情况（比如一棵完全二叉树的最后一层）队列要同时装下接近一半的节点；
+              加上存结果的空间，总体是 O(n)。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>只要看到「按层」「最短路径」「逐圈扩散」这类字眼，第一反应就该是
+          <strong>BFS + 队列</strong>，而不是递归 DFS。核心动作只有一句话：
+          <strong>先量好当前队列的大小再出队那么多次</strong>，这一招能保证每一轮恰好处理完一层，
+          后面遇到「二叉树的锯齿形层序遍历」「图的最短路径」这类题，都是同一个套路的变形。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/102-binary-tree-level-order-traversal/page.js"></script>
+  </body>
+</html>

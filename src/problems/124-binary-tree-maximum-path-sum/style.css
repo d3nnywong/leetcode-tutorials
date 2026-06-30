@@ -1,0 +1,138 @@
+/* 124. 二叉树中的最大路径和 —— 动画舞台专属样式 */
+
+.bts__stats {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.bts__stats strong {
+  color: var(--color-accent);
+}
+
+.bts__board {
+  display: grid;
+  grid-template-columns: 1fr 11rem;
+  gap: var(--space-4);
+  align-items: start;
+}
+.bts__treewrap {
+  overflow-x: auto;
+}
+.bts__svg {
+  width: 100%;
+  min-width: 320px;
+  max-height: 360px;
+  display: block;
+}
+
+/* 节点 */
+.bts-circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.bts-val {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  fill: var(--color-text);
+  pointer-events: none;
+}
+.bts-gain {
+  text-anchor: middle;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  fill: var(--color-text-soft);
+  pointer-events: none;
+}
+.bts-gain.is-neg {
+  fill: var(--bad);
+  font-weight: 700;
+}
+
+.bts-node.is-stack .bts-circle {
+  stroke: var(--src);
+  fill: var(--src-bg);
+}
+.bts-node.is-src .bts-circle {
+  stroke: var(--src);
+  stroke-dasharray: 4 3;
+}
+.bts-node.is-current .bts-circle {
+  stroke: var(--hi);
+  fill: var(--hi-bg);
+  stroke-width: 3;
+  transform: scale(1.12);
+}
+.bts-node.is-best .bts-circle {
+  stroke: var(--gold);
+  fill: var(--gold-bg);
+  stroke-width: 3;
+}
+
+/* 边 */
+.bts-edge {
+  stroke: var(--color-border);
+  stroke-width: 2;
+  transition: stroke var(--duration) var(--ease), stroke-width var(--duration) var(--ease);
+}
+.bts-edge.is-stack {
+  stroke: var(--src);
+  stroke-width: 3;
+}
+.bts-edge.is-src {
+  stroke: var(--src);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 4;
+}
+.bts-edge.is-best {
+  stroke: var(--gold);
+  stroke-width: 4;
+}
+
+/* 调用栈面板 */
+.bts__stack {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+}
+.bts__stack-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-2);
+}
+.bts__stack-list {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: 1.1em;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+.bts__stack-list li.is-current {
+  color: var(--hi);
+  font-weight: 800;
+}
+.bts__stack-empty {
+  color: var(--color-text-soft);
+  list-style: none;
+  margin-left: -1.1em;
+}
+
+@media (max-width: 640px) {
+  .bts__board {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bts-circle,
+  .bts-edge {
+    transition: none;
+  }
+}

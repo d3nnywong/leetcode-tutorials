@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>191. 位1的个数 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 191 位1的个数（汉明重量）：逐位检查的笨办法为什么要做 32 次、n & (n-1) 这个位运算小技巧如何一步到位清掉最低位的 1，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/191-number-of-1-bits/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          位运算入门第一课：数一个整数的二进制里有几个 1。
+          看完你会明白一个特别巧的小技巧——<code>n &amp; (n - 1)</code>，
+          为什么它每次都能精确清掉最低位的那个 1。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个正整数 <code>n</code>，要你数一数它写成<strong>二进制</strong>之后，
+          一共有几个 <code>1</code>。这个「1 的个数」有个专门的名字，叫<strong>汉明重量</strong>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">n</span><code>11</code></div>
+          <div><span class="example-box__label">二进制</span><code>1011</code></div>
+          <p class="example-box__note">
+            <code>1011</code> 里有 3 个 <code>1</code>（最高位、第 1 位、第 0 位）→ 返回 <code>3</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：把 <code>n</code> 的 32 个二进制位<strong>挨个检查一遍</strong>——
+          每次看最低位是不是 <code>1</code>（<code>n &amp; 1</code>），是就计数加一，
+          然后把整个数右移一位（<code>n &gt;&gt;&gt; 1</code>），继续看下一位，一共要做 32 次。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>不管 <code>n</code> 里实际有几个 1，笨办法永远要把 32 位
+          <strong>全部</strong>检查一遍——哪怕 <code>n = 128</code> 这种只有 1 个 1 的数，
+          也要白白多看 31 次「这一位是 0」。我们能不能<strong>只为真正存在的 1 买单</strong>？
+        </div>
+      </section>
+
+      <!-- 3. 位运算技巧 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：n &amp; (n - 1) 一步清掉一个 1</h2>
+        <p>
+          关键观察：把 <code>n</code> 减去 <code>1</code>，会发生什么？
+          <code>n</code> <strong>最低位的那个 1</strong> 会变成 <code>0</code>，
+          而它<strong>右边所有的 0</strong> 会全部借位变成 <code>1</code>
+          （其余更高位完全不变）。
+        </p>
+        <p>
+          这时候再做 <code>n &amp; (n - 1)</code>：最低位的 1 和它右边的那串 0，
+          跟 <code>n - 1</code> 里翻转后的位逐一相与，<strong>结果正好把那个最低位的 1
+          精确地清成 0</strong>，其他位原样保留。也就是说，每做一次
+          <code>n &amp; (n - 1)</code>，就能干净利落地消掉<strong>一个</strong> 1。
+        </p>
+        <p>
+          于是只要不断重复「<code>n = n &amp; (n - 1)</code>，计数器加一」，直到
+          <code>n</code> 变成 <code>0</code>，循环次数就正好是 1 的个数——而且循环次数只跟
+          <strong>1 的个数</strong>有关，跟 32 位里有多少个 0 完全无关。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 当前还是 1（还没数到）</span>
+          <span><i class="sw sw--hi"></i> 这一步刚被清掉的 1</span>
+          <span><i class="sw sw--ok"></i> 已经数过的小计</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 n 改成 <code>128</code>，看它一步就清完唯一的那个 1；
+          再试试 <code>255</code>，看 8 个 1 是怎么一个个被消掉的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> hammingWeight(<span class="ty">int</span> n) {
+        <span class="ty">int</span> count = <span class="nm">0</span>;
+        <span class="kw">while</span> (n != <span class="nm">0</span>) {
+            n &amp;= (n - <span class="nm">1</span>); <span class="cm">// 精确清掉最低位的那个 1</span>
+            count++;
+        }
+        <span class="kw">return</span> count;
+    }
+}</code></pre>
+        <p>
+          对照一下笨办法：笨办法是 <code>while (n != 0) { count += n &amp; 1; n &gt;&gt;&gt;= 1; }</code>，
+          每一步都在「挪一位、看一眼」；这里的 <code>n &amp;= (n - 1)</code> 则是「一步直接消掉一个 1」，
+          循环次数从固定的 32 次，降到了「恰好等于 1 的个数」。
+        </p>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(k)</code>
+            <p>k 是 n 二进制中 1 的个数，最坏情况 k ≤ 32（远好于固定 32 次的笨办法）。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了一个计数器，没有额外的数据结构。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong><code>n &amp; (n - 1)</code> 是位运算里最常用的小技巧之一——
+          它能把整数二进制中<strong>最低位的 1</strong> 精确清零。除了数 1 的个数，
+          它还能用来快速判断一个数是不是 2 的幂（<code>n &amp; (n - 1) == 0</code>），
+          记住这个技巧，很多位运算题都会变得轻松不少。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/191-number-of-1-bits/page.js"></script>
+  </body>
+</html>

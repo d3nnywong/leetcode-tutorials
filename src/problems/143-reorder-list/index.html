@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>143. 重排链表 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 143 重排链表：为什么不能用数组偷懒、快慢指针找中点 + 反转后半段 + 头尾交替合并三步法、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/143-reorder-list/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          链表不能像数组那样直接「倒着数」。看完你会明白：
+          快慢指针找中点、原地反转后半段、再用两个指针交替拼接——三步组合拳，
+          O(n) 时间、O(1) 额外空间就能把链表掰成头尾交替的样子。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个单链表 <code>head</code>，把它「对折」起来：第 1 个结点后面接最后 1 个，
+          再接第 2 个，再接倒数第 2 个……像这样从两头往中间交替地排列，
+          而且<strong>不能只改值</strong>，必须真的把结点接到新的位置上。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">head</span><code>[1, 2, 3, 4, 5]</code></div>
+          <p class="example-box__note">
+            head 是 1，tail 是 5 → 先接 1 → 5；接下来 2，对应的尾是 4 → 接 2 → 4；
+            中间剩下 3，自己结尾。最终变成 <code>[1, 5, 2, 4, 3]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 笨办法 / 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：先把所有结点的值依次存进一个数组（或双端队列），
+          然后用两个下标一头一尾交替取值，重新连成新链表。这样确实能做对，
+          但用了 <code>O(n)</code> 额外空间——而本题其实可以做到<strong>只用几个指针，不开额外数组</strong>。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>「头尾交替」本质上是「前半段」和「反过来的后半段」一一交错合并。
+          只要能把链表从中间切成两段，再把<strong>后半段原地反转</strong>，
+          那么从前往后同时走前半段和反转后的后半段、轮流接一个结点，
+          自然就拼出了 L0 → Ln → L1 → Ln-1 → … 的顺序——全程不需要额外的数组。
+        </div>
+      </section>
+
+      <!-- 3. 三步法 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：找中点 → 反转后半段 → 交替合并</h2>
+        <p>
+          具体拆成三步：
+        </p>
+        <ul>
+          <li><strong>① 找中点：</strong>用快慢指针 <code>fast</code>/<code>slow</code> 一遍扫描，
+            fast 一次走 2 步、slow 一次走 1 步；fast 走到头时，slow 正好停在前半段的最后一个结点，
+            从这里把链表切成两段。</li>
+          <li><strong>② 反转后半段：</strong>用 <code>prev</code>/<code>cur</code> 把后半段原地反转，
+            反转后它的顺序就变成了「从尾到头」。</li>
+          <li><strong>③ 交替合并：</strong>用 <code>p1</code> 指向前半段头、<code>p2</code> 指向反转后的后半段头，
+            轮流把 p2 接到 p1 后面、再把 p1 原来的下一个接到 p2 后面，两个指针各自前移，直到 p2 走完。</li>
+        </ul>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 指针 fast / cur / p2</span>
+          <span><i class="sw sw--src"></i> 指针 slow / prev / p1</span>
+          <span><i class="sw sw--ok"></i> 后半段结点（淡色底）</span>
+          <span><i class="sw sw--gold"></i> 合并完成后的最终连接</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把链表改成 <code>1,2,3,4</code>（偶数个结点）或 <code>1</code>（只有 1 个结点），
+          看看找中点和合并的边界情况分别长什么样。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">// Definition for singly-linked list.</span>
+<span class="kw">class</span> <span class="ty">ListNode</span> {
+    <span class="ty">int</span> val;
+    <span class="ty">ListNode</span> next;
+    <span class="ty">ListNode</span>() {}
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val) { <span class="kw">this</span>.val = val; }
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val, <span class="ty">ListNode</span> next) { <span class="kw">this</span>.val = val; <span class="kw">this</span>.next = next; }
+}
+
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">void</span> reorderList(<span class="ty">ListNode</span> head) {
+        <span class="kw">if</span> (head == <span class="kw">null</span> || head.next == <span class="kw">null</span>) <span class="kw">return</span>;
+
+        <span class="cm">// 1. 快慢指针找中点：fast 走到头时，slow 停在前半段最后一个结点</span>
+        <span class="ty">ListNode</span> slow = head, fast = head;
+        <span class="kw">while</span> (fast.next != <span class="kw">null</span> && fast.next.next != <span class="kw">null</span>) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+
+        <span class="cm">// 2. 切开，把后半段原地反转</span>
+        <span class="ty">ListNode</span> second = slow.next;
+        slow.next = <span class="kw">null</span>; <span class="cm">// 前半段在此结尾</span>
+        <span class="ty">ListNode</span> prev = <span class="kw">null</span>;
+        <span class="kw">while</span> (second != <span class="kw">null</span>) {
+            <span class="ty">ListNode</span> tmp = second.next;
+            second.next = prev;
+            prev = second;
+            second = tmp;
+        }
+
+        <span class="cm">// 3. p1 走前半段、p2（反转后的后半段头）交替合并</span>
+        <span class="ty">ListNode</span> p1 = head, p2 = prev;
+        <span class="kw">while</span> (p2 != <span class="kw">null</span>) {
+            <span class="ty">ListNode</span> n1 = p1.next;
+            <span class="ty">ListNode</span> n2 = p2.next;
+            p1.next = p2;
+            <span class="kw">if</span> (n1 == <span class="kw">null</span>) <span class="kw">break</span>; <span class="cm">// 前半段用完，合并结束</span>
+            p2.next = n1;
+            p1 = n1;
+            p2 = n2;
+        }
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>找中点、反转、合并各只扫一遍链表，三步相加仍是 O(n)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了 slow/fast、prev/cur、p1/p2 这几个指针，不依赖结点数开额外数组。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>链表上想要「从两头往中间」处理，又不想花 O(n) 额外空间存下标时，
+          就想到<strong>快慢指针找中点 + 原地反转后半段</strong>这套组合——它把「双向访问」的需求，
+          转化成了「反转一半之后照样单向遍历」。这个套路在回文链表、链表重排这类题里非常通用，值得记牢。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/143-reorder-list/page.js"></script>
+  </body>
+</html>

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>19. 删除链表的倒数第 N 个结点 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 19 删除链表的倒数第 N 个结点：为什么链表不能像数组一样直接定位倒数第几个、虚拟头结点 dummy 的作用、快慢指针一趟扫描的可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/19-remove-nth-node-from-end-of-list/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          链表只能往前走，不知道总长度就不知道「倒数第几个」是谁。
+          看完你会明白：加一个虚拟头结点、用快慢指针拉开 n+1 步的间距，一趟扫描就能搞定。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个单链表的头结点 <code>head</code>，再给一个数字 <code>n</code>，
+          要你删掉<strong>倒数第 n 个</strong>结点，返回删除后链表的头结点。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">head</span><code>[1, 2, 3, 4, 5]</code></div>
+          <div><span class="example-box__label">n</span><code>2</code></div>
+          <p class="example-box__note">
+            倒数第 2 个是值为 4 的结点（从右往左数：5 是倒数第 1，4 是倒数第 2）。
+            删掉它之后链表变成 <code>[1, 2, 3, 5]</code>。
+          </p>
+        </div>
+        <p>
+          难点在于：链表不像数组，没法直接用「长度 − n」算出下标去访问——你压根不知道链表有多长，
+          只能从头一个结点一个结点地往后走。
+        </p>
+      </section>
+
+      <!-- 2. 笨办法 / 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：先从头到尾走一遍，数出链表总长度 <code>sz</code>；
+          倒数第 n 个就是正数第 <code>sz − n + 1</code> 个，再从头走一遍找到它的前一个结点，把它摘掉。
+          这样能做对，但要<strong>走两趟</strong>链表。
+        </p>
+        <div class="callout callout--warn">
+          <strong>能不能只走一趟？</strong>
+          关键洞察：如果有两个指针，一个比另一个<strong>先出发 n+1 步</strong>，
+          那么当先出发的那个走到链表末尾（<code>null</code>）时，
+          后出发的那个正好停在「倒数第 n 个结点的前一个」——因为它们之间的距离全程都是
+          <code>n+1</code>，不需要事先知道链表总长度。
+        </div>
+      </section>
+
+      <!-- 3. 快慢指针 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：虚拟头结点 + 快慢指针</h2>
+        <p>
+          为什么还要加一个<strong>虚拟头结点 dummy</strong>？因为如果倒数第 n 个恰好就是
+          <code>head</code> 本身（比如整条链表只有 1 个结点，删它自己），
+          就没有「前一个结点」可以操作了。让 <code>dummy.next = head</code>，
+          一切删除操作都变成「修改某个结点的 <code>next</code>」，不用再特殊处理头结点。
+        </p>
+        <p>
+          具体三步：
+        </p>
+        <ul>
+          <li><strong>① 拉开间距：</strong>fast、slow 都从 dummy 出发，先让 fast 单独走 <code>n+1</code> 步。</li>
+          <li><strong>② 一起走：</strong>fast、slow 同时往前走，直到 fast 走到链表末尾 <code>null</code>。</li>
+          <li><strong>③ 摘掉结点：</strong>此时 slow 正好停在待删除结点的前一个，执行
+            <code>slow.next = slow.next.next</code>，返回 <code>dummy.next</code>。</li>
+        </ul>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> fast 指针</span>
+          <span><i class="sw sw--src"></i> slow 指针</span>
+          <span><i class="sw sw--bad"></i> 待删除 / 已删除的结点</span>
+          <span><i class="sw sw--gold"></i> 删除后新的 next 连接</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把链表改成 <code>1,2</code>、n 改成 <code>2</code>，看它怎么连「前一个结点」都没有就直接删掉 head。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">// Definition for singly-linked list.</span>
+<span class="kw">class</span> <span class="ty">ListNode</span> {
+    <span class="ty">int</span> val;
+    <span class="ty">ListNode</span> next;
+    <span class="ty">ListNode</span>() {}
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val) { <span class="kw">this</span>.val = val; }
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val, <span class="ty">ListNode</span> next) { <span class="kw">this</span>.val = val; <span class="kw">this</span>.next = next; }
+}
+
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">ListNode</span> removeNthFromEnd(<span class="ty">ListNode</span> head, <span class="ty">int</span> n) {
+        <span class="cm">// 虚拟头结点：避免「删的正好是 head」这种特殊情况</span>
+        <span class="ty">ListNode</span> dummy = <span class="kw">new</span> <span class="ty">ListNode</span>(<span class="nm">0</span>);
+        dummy.next = head;
+
+        <span class="ty">ListNode</span> fast = dummy;
+        <span class="ty">ListNode</span> slow = dummy;
+
+        <span class="cm">// 1. fast 先单独走 n + 1 步，拉开 fast 与 slow 的间距</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt;= n; i++) {
+            fast = fast.next;
+        }
+
+        <span class="cm">// 2. fast、slow 一起走，直到 fast 越过链表末尾（变成 null）</span>
+        <span class="kw">while</span> (fast != <span class="kw">null</span>) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+
+        <span class="cm">// 3. 此时 slow 正好停在待删除结点的前一个，摘掉它</span>
+        slow.next = slow.next.next;
+
+        <span class="kw">return</span> dummy.next;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(sz)</code>
+            <p>链表只扫一遍（fast 走到底，slow 跟着走），sz 是结点数。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了 dummy、fast、slow 三个指针，不依赖结点数。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>链表上要找「倒数第 n 个」，别想着先数长度再算下标——
+          用<strong>快慢指针拉开固定间距</strong>，让快指针探路、慢指针跟着停在正确位置，一趟扫描搞定。
+          再配上<strong>虚拟头结点</strong>统一处理「删的正好是 head」这种边界情况，
+          这是链表题里最常见、最值得记住的组合技巧之一。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/19-remove-nth-node-from-end-of-list/page.js"></script>
+  </body>
+</html>

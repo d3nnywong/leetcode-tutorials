@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>23. 合并 K 个升序链表 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 23 合并 K 个升序链表：两两合并为什么慢、小顶堆（优先队列）如何把 k 路归并降到 O(N log k)、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/23-merge-k-sorted-lists/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          k 条已经各自排好序的链表，怎么把它们拼成一条更长的有序链表？
+          看完你会明白：一个小顶堆，怎么把「每次都要从 k 个候选里挑最小」这件事做到飞快。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你 <code>k</code> 条链表，<strong>每一条自己内部都已经是升序的</strong>。
+          要求把它们全部合并成<strong>一条</strong>链表，合并后的结果也必须是升序的。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">lists</span><code>[[1,4,5],[1,3,4],[2,6]]</code></div>
+          <p class="example-box__note">
+            三条链表各自有序：1→4→5、1→3→4、2→6。把它们「拧」成一条：
+            1→1→2→3→4→4→5→6。注意里面可以有重复值（两个 1）。
+          </p>
+        </div>
+        <p>
+          如果只有两条链表，这就是经典的「合并两个有序链表」（每次比较两条链表的头节点，
+          小的接到结果末尾，往前走一格）。现在难点是 <code>k</code> 可以很多——怎么把这个思路扩展到
+          <code>k</code> 条？
+        </p>
+      </section>
+
+      <!-- 2. 暴力 / 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：直接的笨办法，慢在哪</h2>
+        <p>
+          最容易想到的：把 <code>k</code> 条链表<strong>两两合并</strong>——先合并链表 1 和链表 2，
+          结果再去和链表 3 合并，再和链表 4 合并……依次做 <code>k − 1</code> 次「合并两个有序链表」。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>设所有节点总数是 <code>N</code>。每一次「合并两个有序链表」最坏要扫完当前已经合并出的那条
+          （越往后越长），<code>k − 1</code> 次合并下来，总代价是 <code>O(N·k)</code>。
+          <code>k</code> 一大（题目里能到 10⁴），就会很慢。
+        </div>
+        <p>
+          换个角度想：在任意时刻，我们其实只关心一件事——<strong>k 条链表「当前最前面那个还没用掉的节点」里，
+          谁的值最小</strong>。每次把这个最小的拿出来接到结果末尾，它所在的链表就往前挪一格，
+          换出一个新的候选节点。这正是<strong>小顶堆（优先队列）</strong>最擅长的事：
+          维护一堆候选值，随时能 <code>O(log k)</code> 地拿出最小的那个。
+        </p>
+      </section>
+
+      <!-- 3. 小顶堆 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用小顶堆做 k 路归并</h2>
+        <p>
+          先把每条链表的<strong>头节点</strong>都放进一个小顶堆（按节点值排序，堆顶永远是当前最小值）。
+          然后反复：从堆顶弹出最小的节点，接到结果链表末尾；如果它在原链表里还有下一个节点，
+          就把那个节点放进堆里继续候选。堆空了，说明所有节点都合并完了。
+        </p>
+        <p>
+          每个节点入堆、出堆各一次，堆里最多同时存在 <code>k</code> 个节点，
+          所以每次堆操作是 <code>O(log k)</code>，总共做 <code>N</code> 次，整体就是
+          <code>O(N log k)</code>——比两两合并的 <code>O(N·k)</code> 快得多。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 堆中候选节点（各链表当前最前面的节点）</span>
+          <span><i class="sw sw--hi"></i> 堆顶最小值（即将弹出）</span>
+          <span><i class="sw sw--gold"></i> 已接入结果链表的节点</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试着改成 <code>5,6|1,2,9|3</code> 或者带一条空链表 <code>1,4,5|</code>，
+          看看堆是怎么始终维护「每条链表当前候选」并挑出最小值的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">// 单链表节点定义（LeetCode 已给出）</span>
+<span class="kw">class</span> <span class="ty">ListNode</span> {
+    <span class="ty">int</span> val;
+    <span class="ty">ListNode</span> next;
+    <span class="ty">ListNode</span>() {}
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val) { <span class="kw">this</span>.val = val; }
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val, <span class="ty">ListNode</span> next) { <span class="kw">this</span>.val = val; <span class="kw">this</span>.next = next; }
+}
+
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">ListNode</span> mergeKLists(<span class="ty">ListNode</span>[] lists) {
+        <span class="kw">if</span> (lists == <span class="kw">null</span> || lists.length == <span class="nm">0</span>) <span class="kw">return</span> <span class="kw">null</span>;
+
+        <span class="cm">// 小顶堆：按节点值从小到大排，堆顶永远是当前最小候选</span>
+        <span class="ty">PriorityQueue</span>&lt;<span class="ty">ListNode</span>&gt; heap =
+            <span class="kw">new</span> <span class="ty">PriorityQueue</span>&lt;&gt;((a, b) -&gt; a.val - b.val);
+
+        <span class="cm">// 把每条链表的头节点放进堆（跳过空链表）</span>
+        <span class="kw">for</span> (<span class="ty">ListNode</span> head : lists) {
+            <span class="kw">if</span> (head != <span class="kw">null</span>) heap.offer(head);
+        }
+
+        <span class="ty">ListNode</span> dummy = <span class="kw">new</span> <span class="ty">ListNode</span>(-<span class="nm">1</span>); <span class="cm">// 哨兵节点，简化「结果链表为空」的边界</span>
+        <span class="ty">ListNode</span> tail = dummy;
+
+        <span class="kw">while</span> (!heap.isEmpty()) {
+            <span class="ty">ListNode</span> min = heap.poll();   <span class="cm">// 弹出当前全局最小</span>
+            tail.next = min;                  <span class="cm">// 接到结果链表末尾</span>
+            tail = tail.next;
+            <span class="kw">if</span> (min.next != <span class="kw">null</span>) heap.offer(min.next); <span class="cm">// 它所在链表还有下一个，补入堆</span>
+        }
+
+        <span class="kw">return</span> dummy.next;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(N log k)</code>
+            <p>
+              <code>N</code> 是所有节点总数，<code>k</code> 是链表条数。每个节点恰好入堆、
+              出堆各一次，堆大小不超过 <code>k</code>，单次堆操作 <code>O(log k)</code>。
+            </p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(k)</code>
+            <p>堆里最多同时存放 <code>k</code> 个节点；不算输出结果链表本身占用的空间。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当你要从「<code>k</code> 个有序来源」里不断挑出当前最小（或最大）的元素时，
+          不需要每次都把 <code>k</code> 个候选重新比一遍——用<strong>小顶堆</strong>把「挑最小」这件事从
+          <code>O(k)</code> 降到 <code>O(log k)</code>。这个套路不只适用于合并 k 个有序链表，
+          也是「外部排序」「Top K」「多路归并」这类问题的通用解法。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/23-merge-k-sorted-lists/page.js"></script>
+  </body>
+</html>

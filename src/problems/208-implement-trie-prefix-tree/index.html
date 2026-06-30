@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>208. 实现 Trie (前缀树) · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 208 实现 Trie (前缀树)：什么是前缀树、为什么节点不直接存字母、insert/search/startsWith 三个操作如何共用同一套逐字符下树的逻辑、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/208-implement-trie-prefix-tree/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          自动补全、拼写检查背后最常见的数据结构。看完你会明白：一棵树，怎么把一堆字符串的
+          「公共前缀」压缩共享，让插入和查找都变成「沿着字符往下走几步」这么简单的事。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          要你实现一个叫 <strong>Trie</strong>（前缀树）的结构，支持三个操作：
+          <code>insert(word)</code> 插入一个单词、<code>search(word)</code> 判断某个单词
+          <strong>是不是被完整插入过</strong>、<code>startsWith(prefix)</code> 判断有没有任何插入过的单词
+          <strong>以它为前缀</strong>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">操作</span><code>insert("apple")</code></div>
+          <div><span class="example-box__label">操作</span><code>search("app")</code></div>
+          <p class="example-box__note">
+            "app" 没有被单独插入过（只插入了 "apple"）→ <code>search("app")</code> 应该返回
+            <code>false</code>；但 <code>startsWith("app")</code> 应该返回 <code>true</code>，
+            因为存在以 "app" 开头的单词 "apple"。这一组对比就是这题的核心。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 vs 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先想想笨办法，再看为什么要用树</h2>
+        <p>
+          最直接的想法：拿一个 <code>List&lt;String&gt;</code> 把所有插入过的单词存下来。
+          <code>search</code> 就遍历一遍看有没有完全相等的；<code>startsWith</code>
+          就遍历一遍看有没有谁是以 <code>prefix</code> 开头的。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>每次查询都要把<strong>所有</strong>单词扫一遍、逐个字符比较，
+          单词数一多、单词一长就很慢。而且大量单词其实有<strong>公共前缀</strong>
+          （比如 "app"、"apple"、"application" 都以 "app" 开头），笨办法每次都在重复比较这部分。
+        </div>
+        <p>
+          关键洞察：既然很多单词共享前缀，那就把<strong>相同的前缀部分只存一份</strong>——
+          用一棵树，从根出发，每往下走一条边就代表「拼上一个字符」。多个单词如果前几个字符一样，
+          它们在树上就走的是<strong>同一条路径</strong>，到了字符不一样的地方才分叉。
+        </p>
+      </section>
+
+      <!-- 3. Trie 结构 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：Trie 长什么样，三个操作怎么共用一套逻辑</h2>
+        <p>
+          根节点不代表任何字符，是「还没拼任何东西」的起点。每个节点最多有 26 个子节点
+          （对应 a~z），<strong>边</strong>上的字符决定走到哪个子节点。节点自己有一个标记
+          <code>isEnd</code>：表示「走到这个节点，正好拼出了一个被插入过的完整单词」。
+        </p>
+        <p>
+          三个操作其实是同一套骨架——<strong>从根出发，逐个字符往下走</strong>，区别只在两点：
+        </p>
+        <ul>
+          <li><strong>走不到怎么办：</strong>某一步没有对应的子节点。
+            <code>insert</code> 会<strong>新建</strong>一个节点继续走；
+            <code>search</code> / <code>startsWith</code> 会立刻判定 <code>false</code>。</li>
+          <li><strong>走到终点之后还要不要看 isEnd：</strong>
+            <code>search</code> 走完整个单词后，还要检查终点的 <code>isEnd</code>
+            是不是 <code>true</code>（光走得到不算数，得是个「完整插入过」的单词）；
+            <code>startsWith</code> 走完就直接算成功，不用管 <code>isEnd</code>
+            （只要存在以它为前缀的词就够了）。</li>
+        </ul>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前指针所在节点</span>
+          <span><i class="sw sw--src"></i> 本次操作已走过的路径</span>
+          <span><i class="sw sw--bad"></i> 走不下去（分支不存在）</span>
+          <span><i class="sw sw--ok"></i> 操作成功（返回 true / 插入完成）</span>
+          <span>● 黄点 = 这个节点是某个完整单词的结尾（isEnd）</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          默认演示就是官方示例的那 6 步操作。试着把序列改成
+          <code>insert cat, insert car, search cat, search ca, startsWith ca</code>，
+          看 "cat" 和 "car" 怎么共享前缀 "ca"、又在哪里分叉。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Trie</span> {
+    <span class="cm">// children[i] 对应字符 'a' + i；为 null 表示这条分支还不存在</span>
+    <span class="kw">private</span> <span class="ty">Trie</span>[] children = <span class="kw">new</span> <span class="ty">Trie</span>[<span class="nm">26</span>];
+    <span class="cm">// 走到这个节点时，是否正好拼出了一个完整插入过的单词</span>
+    <span class="kw">private</span> <span class="ty">boolean</span> isEnd;
+
+    <span class="kw">public</span> <span class="ty">Trie</span>() {
+    }
+
+    <span class="kw">public</span> <span class="ty">void</span> insert(<span class="ty">String</span> word) {
+        <span class="ty">Trie</span> node = <span class="kw">this</span>;
+        <span class="kw">for</span> (<span class="ty">char</span> c : word.toCharArray()) {
+            <span class="ty">int</span> idx = c - <span class="st">'a'</span>;
+            <span class="kw">if</span> (node.children[idx] == <span class="kw">null</span>) {
+                node.children[idx] = <span class="kw">new</span> <span class="ty">Trie</span>(); <span class="cm">// 没有这条分支就新建</span>
+            }
+            node = node.children[idx]; <span class="cm">// 指针下移一层</span>
+        }
+        node.isEnd = <span class="kw">true</span>; <span class="cm">// 走到的终点标记为「单词结尾」</span>
+    }
+
+    <span class="kw">public</span> <span class="ty">boolean</span> search(<span class="ty">String</span> word) {
+        <span class="ty">Trie</span> node = find(word);
+        <span class="cm">// 不仅要走得到，终点还必须是某个单词的结尾</span>
+        <span class="kw">return</span> node != <span class="kw">null</span> &amp;&amp; node.isEnd;
+    }
+
+    <span class="kw">public</span> <span class="ty">boolean</span> startsWith(<span class="ty">String</span> prefix) {
+        <span class="cm">// 只要走得到就够了，不用管是不是单词结尾</span>
+        <span class="kw">return</span> find(prefix) != <span class="kw">null</span>;
+    }
+
+    <span class="cm">// 三个操作共用的「逐字符下树」骨架：走不到就返回 null</span>
+    <span class="kw">private</span> <span class="ty">Trie</span> find(<span class="ty">String</span> word) {
+        <span class="ty">Trie</span> node = <span class="kw">this</span>;
+        <span class="kw">for</span> (<span class="ty">char</span> c : word.toCharArray()) {
+            <span class="ty">int</span> idx = c - <span class="st">'a'</span>;
+            <span class="kw">if</span> (node.children[idx] == <span class="kw">null</span>) {
+                <span class="kw">return</span> <span class="kw">null</span>;
+            }
+            node = node.children[idx];
+        }
+        <span class="kw">return</span> node;
+    }
+}
+
+<span class="cm">/**
+ * Your Trie object will be instantiated and called as such:
+ * Trie obj = new Trie();
+ * obj.insert(word);
+ * boolean param_2 = obj.search(word);
+ * boolean param_3 = obj.startsWith(prefix);
+ */</span></code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(L)</code>
+            <p>L 是单词或前缀的长度。三个操作都只是沿树走 L 步，和树里已经存了多少单词无关。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(Σ L · 26)</code>
+            <p>最坏情况下每个字符都要新建一个节点，每个节点固定带 26 个子指针的数组。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当一堆字符串有大量重复的前缀，又要频繁做「精确匹配」或
+          「前缀匹配」时，用 Trie 把公共前缀<strong>压缩成共享路径</strong>，
+          把每次查询的代价从「扫描所有字符串」降到「只走查询本身的长度」。
+          这正是自动补全、敏感词过滤、IP 路由表这些场景背后常用的结构。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/208-implement-trie-prefix-tree/page.js"></script>
+  </body>
+</html>

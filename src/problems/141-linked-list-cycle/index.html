@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>141. 环形链表 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 141 环形链表：哈希表怎么暴力判环、快慢指针（Floyd 判圈）为什么一定能追上、O(1) 空间解法与可交互动画、Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/141-linked-list-cycle/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一根链表绕成了圈，怎么在不做标记、不开额外空间的前提下发现它？
+          答案是让两个指针一快一慢地跑——如果赛道是个圈，快的迟早会从背后追上慢的。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一条单链表的头节点 <code>head</code>，链表里的每个节点只知道
+          <code>next</code> 指向谁。判断这条链表顺着 <code>next</code> 走下去，
+          会不会走进一个<strong>环</strong>——也就是某个节点的 <code>next</code>
+          绕回了前面已经走过的节点，导致永远走不到尽头（<code>null</code>）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">head</span><code>[3, 2, 0, -4]</code></div>
+          <div><span class="example-box__label">pos</span><code>1</code></div>
+          <p class="example-box__note">
+            最后一个节点 <code>-4</code> 的 <code>next</code> 又指回了下标 1（值 2）的节点，
+            于是 <code>3 → 2 → 0 → -4 → 2 → 0 → -4 → …</code> 永远走不完 → 有环，返回
+            <code>true</code>。<br />
+            <strong>注意：</strong><code>pos</code> 只是评测系统内部用来「造环」的标记，并不会真的
+            作为参数传给你的函数——你拿到手的只有一个 <code>head</code>，要自己想办法判断。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法——用哈希表记「走过的节点」</h2>
+        <p>
+          既然不知道有没有环，那就一边走一边把<strong>访问过的节点</strong>（注意是节点本身，不是值）
+          存进一个哈希表（<code>HashSet</code>）。每走到一个新节点，先查它在不在表里：
+        </p>
+        <ul>
+          <li>在表里 → 说明这个节点被第二次访问到了，链表有环。</li>
+          <li>不在表里 → 存进去，继续往后走。</li>
+          <li>一路走到 <code>null</code> 还没撞见重复节点 → 没有环。</li>
+        </ul>
+        <div class="callout callout--warn">
+          <strong>能用，但不是最优：</strong>时间 <code>O(n)</code> 没问题，但额外用了一个能装下
+          所有节点的哈希表，空间 <code>O(n)</code>。题目的进阶要求是
+          <code>O(1)</code> 空间——一个额外的哈希表都不能要。
+        </div>
+      </section>
+
+      <!-- 3. 快慢指针 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：快慢指针（Floyd 判圈），O(1) 空间</h2>
+        <p>
+          换个思路：不记录任何节点，只用<strong>两个指针</strong>。
+          慢指针 <code>slow</code> 每次走 1 步，快指针 <code>fast</code> 每次走 2 步，
+          两人从 <code>head</code> 一起出发。
+        </p>
+        <ul>
+          <li>
+            <strong>如果没有环：</strong>链表迟早会走到尽头，<code>fast</code> 跑得快，
+            会先于 <code>slow</code> 撞上 <code>null</code>，于是循环结束，返回
+            <code>false</code>。
+          </li>
+          <li>
+            <strong>如果有环：</strong>一旦两人都进了环，就像在环形跑道上赛跑——
+            <code>fast</code> 每一轮都比 <code>slow</code> 多跑 1 步，差距不断缩小，
+            <strong>迟早会从后面追上 <code>slow</code></strong>，也就是
+            <code>slow === fast</code>（同一个节点）。这一定会发生，最多再绕一圈。
+          </li>
+        </ul>
+        <p>
+          全程只用了两个指针变量，没有额外的数据结构，空间 <code>O(1)</code>；
+          指针总共移动不超过 <code>O(n)</code> 步，时间也是 <code>O(n)</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 慢指针 slow（走 1 步）</span>
+          <span><i class="sw sw--src"></i> 快指针 fast（走 2 步）</span>
+          <span><i class="sw sw--gold"></i> 相遇节点 / 成环的那条 next</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          默认演示的就是官方示例 1：<code>[3,2,0,-4]</code>、<code>pos = 1</code>。
+          也可以把 pos 改成 <code>-1</code>，看 fast 怎么先一步走到 <code>null</code>、判定没有环。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">// ListNode 由题目给定：</span>
+<span class="cm">// class ListNode {</span>
+<span class="cm">//     int val;</span>
+<span class="cm">//     ListNode next;</span>
+<span class="cm">// }</span>
+<span class="kw">public</span> <span class="ty">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> hasCycle(<span class="ty">ListNode</span> head) {
+        <span class="ty">ListNode</span> slow = head;
+        <span class="ty">ListNode</span> fast = head;
+        <span class="cm">// fast 走两步，必须保证 fast 和 fast.next 都不是 null</span>
+        <span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+            slow = slow.next;        <span class="cm">// 慢指针走 1 步</span>
+            fast = fast.next.next;   <span class="cm">// 快指针走 2 步</span>
+            <span class="kw">if</span> (slow == fast) {
+                <span class="kw">return</span> <span class="kw">true</span>;  <span class="cm">// 两者相遇 → 有环</span>
+            }
+        }
+        <span class="kw">return</span> <span class="kw">false</span>; <span class="cm">// fast 走到了 null → 没有环</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>有环时 slow 走不超过一圈、fast 再多绕一圈就能追上；没环时 fast 最多走 n 步到 null。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了 slow、fast 两个指针变量，不需要额外的哈希表。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「链表 / 序列里判断是否会无限循环」的题，先想哈希表记访问过的节点
+          （直观但要 O(n) 空间），再想能不能用<strong>快慢指针</strong>把空间压到 O(1)——
+          只要存在「一快一慢、差距恒定缩小」的关系，相遇就一定会发生。这个套路后面在
+          找环入口（142 题）、链表找中点等问题里还会反复用到。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/141-linked-list-cycle/page.js"></script>
+  </body>
+</html>

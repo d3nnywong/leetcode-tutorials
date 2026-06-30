@@ -1,0 +1,121 @@
+/* 121. 买卖股票的最佳时机 —— 动画舞台专属样式 */
+
+.bs__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.bs__profit strong {
+  color: var(--ok);
+}
+.bs__max strong {
+  color: var(--color-accent);
+}
+.bs__chartwrap {
+  overflow-x: auto;
+}
+.bs__svg {
+  width: 100%;
+  min-width: 280px;
+  max-height: 240px;
+  display: block;
+}
+
+/* 柱子 */
+.bs-bar {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease);
+}
+.bs-bar.is-min {
+  fill: var(--src-bg);
+  stroke: var(--src);
+  stroke-width: 2.5;
+}
+.bs-bar.is-current {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 2.5;
+}
+.bs-bar.is-best {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+
+/* 数值 / 下标文字 */
+.bs-price {
+  fill: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+.bs-idx {
+  fill: var(--color-text-soft);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+
+/* 历史最低价参考线 */
+.bs-minline {
+  stroke: var(--src);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  opacity: 0.7;
+  transition: y1 var(--duration) var(--ease), y2 var(--duration) var(--ease);
+}
+.bs-minline.is-hidden {
+  opacity: 0;
+}
+
+/* 利润色带（买入日 → 卖出日 之间的高度差） */
+.bs-profit {
+  fill: var(--ok-bg);
+  stroke: var(--ok);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  transition: x var(--duration) var(--ease), width var(--duration) var(--ease),
+    y var(--duration) var(--ease), height var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.bs-profit.is-record {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+}
+.bs-profit.is-hidden {
+  opacity: 0;
+}
+
+.bs-profit-label {
+  fill: var(--ok);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+  transition: opacity var(--duration) var(--ease);
+}
+.bs-profit-label.is-record {
+  fill: var(--gold);
+}
+.bs-profit-label.is-hidden {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-bar,
+  .bs-minline,
+  .bs-profit,
+  .bs-profit-label {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .bs__stats {
+    gap: var(--space-3);
+  }
+}

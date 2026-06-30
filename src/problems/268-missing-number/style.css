@@ -1,0 +1,122 @@
+/* 268. 丢失的数字 —— 动画舞台专属样式 */
+
+.mn__expected {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.mn__expected strong {
+  color: var(--color-text);
+}
+
+.mn__nums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+.mn__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition:
+    background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+.mn__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.mn__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.mn__cell.is-stored {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.mn__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+.mn__sumrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+.mn__sumbox {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-5);
+  min-width: 8rem;
+  transition:
+    background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease);
+}
+.mn__sumbox-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.mn__sumbox-val {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+}
+.mn__sumbox--actual {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.mn__sumbox--missing {
+  border-style: dashed;
+}
+.mn__sumbox--missing.is-final {
+  border-style: solid;
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+.mn__sumbox--missing.is-final .mn__sumbox-val {
+  color: var(--gold);
+  font-weight: 800;
+}
+.mn__sumop {
+  font-size: 1.2rem;
+  color: var(--color-text-soft);
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .mn__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .mn__sumrow {
+    gap: var(--space-2);
+  }
+  .mn__sumbox {
+    min-width: 6.5rem;
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mn__cell {
+    transition: none;
+  }
+}

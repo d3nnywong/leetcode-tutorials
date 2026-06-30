@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>125. 验证回文串 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 125 验证回文串：为什么要先想清楚哪些字符算数、双指针怎么从两端往中间靠拢、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/125-valid-palindrome/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          判断一个字符串是不是回文串，关键不在「怎么比较」，而在「哪些字符算数」。
+          想清楚这一点，双指针从两端往中间走，一遍就能扫完。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个字符串 <code>s</code>，把它里面<strong>大写字母变小写</strong>、
+          再<strong>去掉所有不是字母和数字的字符</strong>（空格、逗号、冒号……统统去掉），
+          剩下的字符串如果<strong>正着读和倒着读一样</strong>，就是回文串，返回
+          <code>true</code>，否则返回 <code>false</code>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">s</span><code>"A man, a plan, a canal: Panama"</code></div>
+          <div><span class="example-box__label">处理后</span><code>"amanaplanacanalpanama"</code></div>
+          <p class="example-box__note">
+            把大写变小写、去掉逗号/空格/冒号之后剩下这串字母，从左往右读和从右往左读完全一样 → 是回文串。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的办法：先老老实实走一遍字符串，把字母数字都转小写、拼成一个
+          <strong>新字符串</strong>，再用「头尾向中间比较」或者直接和它的反转比一比，看是否相等。
+        </p>
+        <div class="callout callout--warn">
+          <strong>能用，但多花了空间：</strong>这样需要额外建一个新字符串（甚至再建一个反转串），
+          多用了 <code>O(n)</code> 的空间。其实我们完全不需要真的「造出」这个干净的字符串——
+          原字符串上直接用两个指针扫一遍就够了。
+        </div>
+      </section>
+
+      <!-- 3. 双指针 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：双指针从两端向中间靠拢</h2>
+        <p>
+          在<strong>原字符串</strong>上放两个指针：<code>l</code> 从最左边开始，
+          <code>r</code> 从最右边开始。每一步：
+        </p>
+        <p>
+          如果 <code>s[l]</code> 不是字母或数字，它不算数，<strong>左指针右移</strong>，跳过它；
+          如果 <code>s[r]</code> 不是字母或数字，同理<strong>右指针左移</strong>。
+          直到两边都停在「真正算数」的字符上，再忽略大小写比较它们：
+        </p>
+        <p>
+          不同 → 立刻可以断定<strong>不是</strong>回文串，直接返回 <code>false</code>；
+          相同 → 这一对字符没问题，两个指针<strong>同时向中间靠拢</strong>一格，继续下一轮。
+          一直比到两个指针相遇或交错，说明每一对都比对成功，是回文串。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 左指针 L</span>
+          <span><i class="sw sw--src"></i> 右指针 R</span>
+          <span><i class="sw sw--ok"></i> 比对相同</span>
+          <span><i class="sw sw--bad"></i> 比对不同</span>
+          <span><i class="sw sw--gold"></i> 相遇的中心字符</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          淡色虚线框的格子是标点/空格，不参与比较。试试把字符串改成
+          <code>race a car</code>，看它在哪一步发现不匹配。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> isPalindrome(<span class="ty">String</span> s) {
+        <span class="ty">int</span> l = <span class="nm">0</span>, r = s.length() - <span class="nm">1</span>;
+        <span class="kw">while</span> (l &lt; r) {
+            <span class="ty">char</span> cl = s.charAt(l);
+            <span class="ty">char</span> cr = s.charAt(r);
+            <span class="cm">// 不是字母/数字就跳过，指针往中间挪一格</span>
+            <span class="kw">if</span> (!<span class="ty">Character</span>.isLetterOrDigit(cl)) {
+                l++;
+                <span class="kw">continue</span>;
+            }
+            <span class="kw">if</span> (!<span class="ty">Character</span>.isLetterOrDigit(cr)) {
+                r--;
+                <span class="kw">continue</span>;
+            }
+            <span class="cm">// 忽略大小写比较这一对字符</span>
+            <span class="kw">if</span> (<span class="ty">Character</span>.toLowerCase(cl) != <span class="ty">Character</span>.toLowerCase(cr)) {
+                <span class="kw">return</span> <span class="kw">false</span>;
+            }
+            l++;
+            r--;
+        }
+        <span class="kw">return</span> <span class="kw">true</span>;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>两个指针总共最多移动 n 步，每步只做常数次比较。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>直接在原字符串上用两个下标扫描，没有额外建新字符串。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「先清洗字符串再判断回文/对称」的题，先别急着真的造一个新字符串——
+          想想能不能在<strong>原字符串</strong>上用双指针、靠「跳过不算数的字符」来省掉这一步。
+          这是双指针处理字符串清洗类问题最常用的省空间技巧。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/125-valid-palindrome/page.js"></script>
+  </body>
+</html>

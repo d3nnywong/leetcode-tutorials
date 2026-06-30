@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>200. 岛屿数量 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 200 岛屿数量：网格里怎么数连通块、为什么要标记已访问、DFS 灌水法如何一遍扫描数出所有岛屿，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/200-number-of-islands/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一张由陆地和水组成的地图，怎么数出有几座「岛」？答案是
+          <strong>网格上的 DFS/BFS</strong>——把每一片连在一起的陆地「淹没」一遍，
+          淹过的不再重复计数，淹了几次就是几座岛。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个二维网格，每个格子要么是 <code>'1'</code>（陆地）要么是
+          <code>'0'</code>（水）。<strong>上下左右相邻</strong>的陆地会连成同一座岛，
+          斜着挨着不算。问：这张地图上一共有几座岛？
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">grid</span><code>11000 / 11000 / 00100 / 00011</code></div>
+          <p class="example-box__note">
+            左上角 4 个 1 连成一片是第 1 座岛；中间单独的 1 是第 2 座岛；
+            右下角两个 1 挨在一起是第 3 座岛 → 答案 3。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：暴力会怎么数错</h2>
+        <p>
+          如果只是「数一数有多少个 <code>1</code>」，那是错的——一片连起来的陆地不管有多少个
+          <code>1</code>，都只能算<strong>一座岛</strong>。真正要数的是
+          <strong>「连通块」的个数</strong>。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>从任意一个陆地格子出发，往上下左右四个方向「扩散」，
+          能摸到的陆地都属于同一座岛。只要扩散时<strong>把摸过的格子标记为已访问</strong>，
+          扫描时跳过已访问的格子，每发现一块「全新」的陆地就让岛屿数 +1——
+          网格只需要整体扫一遍，每个格子最多被访问一次。
+        </div>
+      </section>
+
+      <!-- 3. DFS 灌水 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：DFS 灌水法</h2>
+        <p>
+          按行扫描网格，遇到一个<strong>未访问的陆地</strong>，就说明发现了新岛屿（岛屿数
+          +1），然后从这个格子开始做一次 <strong>DFS</strong>：用一个栈，不断弹出栈顶格子、
+          标记为已访问、把它四周还没访问过的陆地压进栈，直到栈空——这一整片陆地就被
+          「淹没」完了，继续扫描下一个格子。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前格子（扫描指针 / 正在 DFS 访问）</span>
+          <span><i class="sw sw--src"></i> 本步新发现、压入栈的陆地</span>
+          <span><i class="sw sw--gold"></i> 已访问、归入某座岛屿（不同颜色 = 不同岛屿）</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把网格改成 <code>11110,11010,11000,00000</code>（这是官方示例 1，只有 1 座岛），
+          看看一整片陆地是怎么被一次 DFS 全部淹没的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> numIslands(<span class="ty">char</span>[][] grid) {
+        <span class="ty">int</span> rows = grid.length, cols = grid[<span class="nm">0</span>].length;
+        <span class="ty">int</span> count = <span class="nm">0</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> r = <span class="nm">0</span>; r &lt; rows; r++) {
+            <span class="kw">for</span> (<span class="ty">int</span> c = <span class="nm">0</span>; c &lt; cols; c++) {
+                <span class="kw">if</span> (grid[r][c] == <span class="st">'1'</span>) {
+                    count++; <span class="cm">// 发现一块未访问的陆地，新岛屿</span>
+                    dfs(grid, r, c); <span class="cm">// 把这一整片陆地「淹没」</span>
+                }
+            }
+        }
+        <span class="kw">return</span> count;
+    }
+
+    <span class="cm">// 把 (r, c) 这片陆地连通的所有格子都标记为已访问（淹没成 '0'）</span>
+    <span class="kw">private</span> <span class="kw">void</span> dfs(<span class="ty">char</span>[][] grid, <span class="ty">int</span> r, <span class="ty">int</span> c) {
+        <span class="ty">int</span> rows = grid.length, cols = grid[<span class="nm">0</span>].length;
+        <span class="kw">if</span> (r &lt; <span class="nm">0</span> || r &gt;= rows || c &lt; <span class="nm">0</span> || c &gt;= cols || grid[r][c] != <span class="st">'1'</span>) {
+            <span class="kw">return</span>; <span class="cm">// 越界，或者是水/已访问过，停止扩散</span>
+        }
+        grid[r][c] = <span class="st">'0'</span>; <span class="cm">// 标记为已访问</span>
+        dfs(grid, r - <span class="nm">1</span>, c);
+        dfs(grid, r + <span class="nm">1</span>, c);
+        dfs(grid, r, c - <span class="nm">1</span>);
+        dfs(grid, r, c + <span class="nm">1</span>);
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m × n)</code>
+            <p>每个格子最多被访问一次（成为陆地后立刻被标记，不会重复扩散）。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(m × n)</code>
+            <p>最坏情况整张网格都是陆地，DFS 递归栈（或显式栈）深度可达 m × n。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>网格上「数连通块」的题，核心就是
+          <strong>扫描 + 灌水（flood fill）</strong>：扫到一个未访问的目标格子就计数 +1，
+          再用 DFS 或 BFS 把它所在的整个连通块标记为已访问，避免重复计数。
+          这个套路同样适用于「最大岛屿面积」「被围绕的区域」等一大类网格连通性问题。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/200-number-of-islands/page.js"></script>
+  </body>
+</html>

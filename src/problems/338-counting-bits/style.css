@@ -1,0 +1,97 @@
+/* 338. 比特位计数 —— 动画舞台专属样式（前缀 cb__ = counting bits，避免和其他题冲突） */
+
+.cb__n {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+
+.cb__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cb__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 3rem;
+  padding: var(--space-2) var(--space-2);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+
+.cb__idx {
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+  font-family: var(--font-mono);
+}
+
+.cb__bin {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+  letter-spacing: 0.05em;
+}
+
+.cb__dp {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* 当前正在计算的 dp[i] */
+.cb__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.1);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.cb__cell.is-current .cb__dp {
+  color: var(--hi);
+}
+
+/* 被参考的来源：i >> 1 */
+.cb__cell.is-source {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.cb__cell.is-source .cb__dp {
+  color: var(--src);
+}
+
+.cb__eq {
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  line-height: 1.6;
+}
+.cb__eq code {
+  background: var(--color-surface);
+}
+.cb__eq strong {
+  color: var(--color-accent);
+}
+
+@media (max-width: 560px) {
+  .cb__cell {
+    min-width: 2.4rem;
+  }
+  .cb__bin {
+    font-size: 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cb__cell {
+    transition: none;
+  }
+}

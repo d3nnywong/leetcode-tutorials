@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>62. 不同路径 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 62 不同路径：机器人只能向下或向右走，为什么暴力 DFS 会指数爆炸、二维 DP 表如何把它降到 O(m·n)，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/62-unique-paths/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一个机器人只能往下或往右走，从网格左上角走到右下角，
+          走法的数量就藏在一张「逐格相加」的二维 DP 表里。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          一个 <code>m x n</code> 的网格，机器人站在<strong>左上角</strong>，
+          每一步只能<strong>往下</strong>或<strong>往右</strong>走，目标是走到<strong>右下角</strong>。
+          问：一共有多少条不同的走法？
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">m, n</span><code>3, 2</code></div>
+          <p class="example-box__note">
+            3 行 2 列的网格，从左上角到右下角一共要走 2 步「向下」 + 1 步「向右」，
+            三步的不同排列方式正好有 <code>3</code> 种 → 答案是 <code>3</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：暴力搜索为什么会爆炸</h2>
+        <p>
+          最直接的想法：从起点开始，每一步都试「往下」和「往右」两种选择，递归地把所有路径都走一遍，
+          走到右下角就算一条路径。这样确实能数出答案，但同一个格子会被<strong>反反复复</strong>地重复经过——
+          路径数本身就是指数级的，<code>m、n</code> 稍微大一点（题目里能到 100）就完全跑不动。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>机器人走到格子 <code>(i, j)</code> 的「最后一步」只有两种可能——
+          要么是从<strong>上面</strong> <code>(i-1, j)</code> 往下走一步，
+          要么是从<strong>左边</strong> <code>(i, j-1)</code> 往右走一步，这两种来源完全不重叠。
+          所以「到 (i, j) 的走法数」就等于「到上面的走法数」加上「到左边的走法数」——
+          这是一个典型的<strong>动态规划</strong>结构：大问题的答案 = 子问题答案的组合。
+        </div>
+      </section>
+
+      <!-- 3. DP + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用二维 DP 表逐格填出答案</h2>
+        <p>
+          设 <code>dp[i][j]</code> 表示「从左上角走到格子 (i, j) 的不同路径数」，于是有：
+        </p>
+        <ul>
+          <li><strong>第一行</strong>（<code>i = 0</code>）和<strong>第一列</strong>（<code>j = 0</code>）是边界：
+            只能沿着同一个方向一直走，所以这些格子全部是 <code>1</code>。</li>
+          <li><strong>其余格子</strong>：<code>dp[i][j] = dp[i-1][j] + dp[i][j-1]</code>（上面 + 左边）。</li>
+        </ul>
+        <p>
+          按从上到下、从左到右的顺序把整张表填满，<strong>右下角</strong>的值就是最终答案。
+          每个格子只需要看一眼它正上方和正左方，时间复杂度从指数级降到了 <code>O(m·n)</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在计算的格子</span>
+          <span><i class="sw sw--src"></i> 已经算好的格子</span>
+          <span><i class="sw sw--ok"></i> 本步依赖的来源格（上 / 左）</span>
+          <span><i class="sw sw--gold"></i> 终点（最终答案）</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 m、n 改成示例里的 <code>3, 3</code>（答案 6）或 <code>7, 3</code>（答案 28），
+          看看表格是怎么一格一格被「上面 + 左边」累加出来的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> uniquePaths(<span class="ty">int</span> m, <span class="ty">int</span> n) {
+        <span class="cm">// dp[i][j]：从左上角走到 (i, j) 的不同路径数</span>
+        <span class="ty">int</span>[][] dp = <span class="kw">new</span> <span class="ty">int</span>[m][n];
+
+        <span class="cm">// 第一列：只能一直往下走，每个格子都只有 1 种走法</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; m; i++) dp[i][<span class="nm">0</span>] = <span class="nm">1</span>;
+        <span class="cm">// 第一行：只能一直往右走，每个格子都只有 1 种走法</span>
+        <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">0</span>; j &lt; n; j++) dp[<span class="nm">0</span>][j] = <span class="nm">1</span>;
+
+        <span class="cm">// 其余格子：要么从上面下来，要么从左边过来</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt; m; i++) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">1</span>; j &lt; n; j++) {
+                dp[i][j] = dp[i - <span class="nm">1</span>][j] + dp[i][j - <span class="nm">1</span>];
+            }
+        }
+        <span class="kw">return</span> dp[m - <span class="nm">1</span>][n - <span class="nm">1</span>];
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m·n)</code>
+            <p>每个格子只算一次，每次只看上面和左边两个值。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(m·n)</code>
+            <p>用了一张完整的二维表；如果只保留「上一行」，可以压缩到 <code>O(n)</code>。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当「到达某个状态的方式」可以拆成「来自几个互不重叠的子状态」时，
+          就把这个状态的答案设成 <code>dp[i][j]</code>，再把它表达成子状态答案的和——
+          这正是网格类动态规划的核心。后面遇到「最小路径和」「不同路径 II（带障碍物）」这类题，
+          都是在这个 <code>dp[i][j] = dp[i-1][j] + dp[i][j-1]</code> 的骨架上做小改动。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/62-unique-paths/page.js"></script>
+  </body>
+</html>

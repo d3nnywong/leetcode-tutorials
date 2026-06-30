@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>253. 会议室 II · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 253 会议室 II：为什么要按结束时间维护一个最小堆、堆顶代表什么、O(n log n) 解法与可交互动画、Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/253-meeting-rooms-ii/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          上一题（252 会议室）只问「能不能」，这题更进一步：要凑齐<strong>最少几间</strong>会议室，
+          才能把所有会议都安排下去。答案藏在一个「最小堆」里。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一堆会议时间 <code>[start, end)</code>，这次不是判断「行不行」，而是要算出
+          同一时间最多有<strong>几场会议在重叠</strong>——因为重叠的会议必须分到不同房间，
+          重叠最多的那一刻，就决定了你至少要准备多少间房。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">输入</span><code>[[0,30],[5,10],[15,20]]</code></div>
+          <p class="example-box__note">
+            [0,30] 同时跟 [5,10]、[15,20] 重叠（但 [5,10] 和 [15,20] 互不重叠），
+            最多只在某一刻同时撞上 2 场 → 答案是 <code>2</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：从「判断冲突」到「数房间」</h2>
+        <p>
+          252 题里我们学到：把会议按开始时间排序，重叠一定发生在「正在进行中的会议」和
+          「新来的会议」之间。这题的区别是，重叠可能不止两两一对，而是好几场会议<strong>同时</strong>占用着房间。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>按开始时间从早到晚处理每场会议时，我们只关心一件事——
+          <strong>当前正在使用的房间里，最早会空出来的那一间，它的结束时间是多少</strong>。
+          如果它已经 ≤ 新会议的开始时间，这间房就能直接复用；否则所有房间都还占着，
+          只能新开一间。每次只需要看「最早空出来的房间」，而不用挨个比较所有房间——
+          这正是<strong>最小堆</strong>最擅长的事：堆顶永远是最小值，取它只要 O(1)，
+          更新堆只要 O(log n)。
+        </div>
+      </section>
+
+      <!-- 3. 最小堆 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：维护一个「结束时间」最小堆</h2>
+        <p>
+          做法：先把会议按开始时间排序；用一个小顶堆 <code>heap</code> 记录每个正在使用中的
+          房间「何时结束」。依次处理每场会议 <code>cur</code>：
+        </p>
+        <ul>
+          <li>
+            看一眼堆顶 <code>heap.peek()</code>（最早会空出来的房间）。如果
+            <code>heap.peek() &lt;= cur.start</code>，说明那间房已经空出来了，<strong>弹出堆顶</strong>，
+            把它腾给 <code>cur</code> 用。
+          </li>
+          <li>
+            不管复用没复用，都把 <code>cur.end</code> <strong>压入堆</strong>——
+            能复用就是「替换」堆顶（房间数不变），不能复用就是「新增」一个房间（房间数 +1）。
+          </li>
+        </ul>
+        <p>
+          扫完所有会议后，堆里还剩多少个元素，就代表同一时刻最多同时开着多少间房，
+          也就是题目要的答案。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在处理的会议</span>
+          <span><i class="sw sw--src"></i> 已分配房间的会议</span>
+          <span><i class="sw sw--ok"></i> 复用了空出来的房间</span>
+          <span><i class="sw sw--gold"></i> 新开的房间 / 最终房间数</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试改成 <code>7,10;2,4</code>，看两场会议完全不挨着，自始至终只用 1 间房；
+          再试试 <code>1,5;2,6;3,7</code>，看三场会议两两重叠，需要开到 3 间房。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> minMeetingRooms(<span class="ty">int</span>[][] intervals) {
+        <span class="cm">// 按开始时间从小到大排序</span>
+        <span class="ty">Arrays</span>.sort(intervals, (a, b) -&gt; a[<span class="nm">0</span>] - b[<span class="nm">0</span>]);
+
+        <span class="cm">// 小顶堆：保存正在使用中的房间的「结束时间」，堆顶 = 最早空出来的房间</span>
+        <span class="ty">PriorityQueue</span>&lt;<span class="ty">Integer</span>&gt; heap = <span class="kw">new</span> <span class="ty">PriorityQueue</span>&lt;&gt;();
+
+        <span class="kw">for</span> (<span class="ty">int</span>[] cur : intervals) {
+            <span class="cm">// 堆顶房间的结束时间 &lt;= 当前会议的开始时间 → 已经空出来了，弹出复用</span>
+            <span class="kw">if</span> (!heap.isEmpty() &amp;&amp; heap.peek() &lt;= cur[<span class="nm">0</span>]) {
+                heap.poll();
+            }
+            <span class="cm">// 能复用就是替换堆顶（房间数不变）；不能复用就是新增一个房间</span>
+            heap.offer(cur[<span class="nm">1</span>]);
+        }
+
+        <span class="kw">return</span> heap.size(); <span class="cm">// 堆的大小 = 同一时刻最多需要的房间数</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n log n)</code>
+            <p>排序 O(n log n)；n 场会议每次堆操作 O(log n)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>最坏情况下所有会议互相重叠，堆里要存下 n 个结束时间。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「区间，求同一时刻最多重叠多少个」的题，按开始时间排序后，
+          维护一个按<strong>结束时间</strong>排序的最小堆来代表「正在占用的资源」——堆顶就是
+          最快被释放的那一个，每来一个新区间只需要跟堆顶比一次。这比 252 题的「相邻比较」
+          更进一步：从只回答「有没有冲突」，升级成了「同时冲突的最大数量是多少」。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/253-meeting-rooms-ii/page.js"></script>
+  </body>
+</html>

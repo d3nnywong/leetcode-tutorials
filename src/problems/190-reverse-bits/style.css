@@ -1,0 +1,96 @@
+/* 190. 颠倒二进制位 —— 动画舞台专属样式 */
+
+.rb__nrow-label,
+.rb__rrow-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.rb__nrow-label strong,
+.rb__rrow-label strong {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+}
+
+.rb__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.rb__cell {
+  position: relative;
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.rb__cell--group {
+  margin-right: var(--space-2);
+}
+.rb__pos {
+  position: absolute;
+  bottom: -1.05rem;
+  font-size: 0.55rem;
+  font-weight: 400;
+  color: var(--color-text-soft);
+}
+
+/* 输入行：当前正在读取 / 已读取过 */
+.rb__row--in .rb__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.18);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.rb__row--in .rb__cell.is-consumed {
+  border-color: var(--src);
+  background: var(--src-bg);
+  opacity: 0.5;
+}
+
+/* 输出行：空位 / 当前正在写入 / 已写入 */
+.rb__cell--empty {
+  color: var(--color-text-soft);
+  border-style: dashed;
+}
+.rb__row--out .rb__cell.is-current {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  transform: scale(1.18);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.rb__row--out .rb__cell.is-filled {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.rb__arrowline {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 560px) {
+  .rb__cell {
+    width: 1.4rem;
+    height: 1.4rem;
+    font-size: 0.72rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb__cell {
+    transition: none;
+  }
+}

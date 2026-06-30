@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>190. 颠倒二进制位 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 190 颠倒二进制位：32 位二进制串怎么整体翻转、bit i 为什么最终落在 bit (31-i)，配可交互逐位动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/190-reverse-bits/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一个整数的 32 个二进制位，怎么「整体左右翻个个儿」？
+          看完你会发现：这其实就是一道披着位运算外衣的「数组首尾对调」题。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个 32 位整数 <code>n</code>，把它的<strong>二进制表示</strong>整体倒过来：
+          原来排在最左边（最高位）的那一位，挪到最右边（最低位）；
+          原来排第 2 位的，挪到倒数第 2 位……以此类推，最后把这串翻转后的二进制
+          再当成一个新的整数返回。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">n</span><code>43261596</code></div>
+          <div><span class="example-box__label">二进制</span><code>00000010100101000001111010011100</code></div>
+          <div><span class="example-box__label">翻转后</span><code>00111001011110000010100101000000</code></div>
+          <p class="example-box__note">
+            翻转后的二进制再读成十进制，就是 <code>964176192</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>💡 第二步：换个角度看「位运算」</h2>
+        <p>
+          32 个二进制位排成一排，「整体翻转」和「翻转一个长度为 32 的数组」完全是同一件事——
+          只不过数组里装的是 0/1，而且我们最后要把翻转结果重新读成一个整数。
+        </p>
+        <p>
+          翻转规律很简单：原数<strong>第 <code>i</code> 位</strong>（从最低位 <code>bit0</code> 数起），
+          翻转之后会变成新数<strong>第 <code>(31 - i)</code> 位</strong>。
+          也就是说 <code>bit0</code> 和 <code>bit31</code> 对调、<code>bit1</code> 和
+          <code>bit30</code> 对调……像数组的双指针那样，从两端往中间逐位「对调」。
+        </p>
+        <div class="callout callout--warn">
+          <strong>代码里怎么实现：</strong>不用真的开一个 32 格的数组。
+          每次循环把 <code>result</code> 整体左移一位腾出最低位，再把 <code>n</code>
+          当前的最低位塞进去，然后把 <code>n</code> 右移一位丢掉这一位、留出下一位。
+          循环 32 次，<code>n</code> 的每一位都被取出来用过一次——
+          第 <code>i</code> 次循环塞进去的那一位，后面还会被再左移 <code>(31-i)</code> 次，
+          所以它最终正好停在第 <code>(31-i)</code> 位，和上面的翻转规律完全对应。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：逐位搬运动画</h2>
+        <p>
+          下面把这个翻转过程逐位演示出来：上排是原数 <code>n</code> 的 32 位（从左到右
+          <code>bit31 → bit0</code>），下排是正在拼出来的 <code>result</code>。
+          每一步从原数<strong>第 <code>i</code> 位</strong>取一位，直接搬到结果的
+          <strong>第 <code>(31-i)</code> 位</strong>——上排的「读取头」从右往左走，
+          下排的「写入头」从左往右走，两边同步推进，正好对称。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 正在读取（上排）/ 正在写入（下排）</span>
+          <span><i class="sw sw--src"></i> 已读取过</span>
+          <span><i class="sw sw--ok"></i> 已写入</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 n 改成 <code>2147483644</code>，看看接近全 1 的二进制翻转后长什么样。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> reverseBits(<span class="ty">int</span> n) {
+        <span class="ty">int</span> result = <span class="nm">0</span>;
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; <span class="nm">32</span>; i++) {
+            result &lt;&lt;= <span class="nm">1</span>;          <span class="cm">// 给 result 腾出最低位</span>
+            result |= (n &amp; <span class="nm">1</span>);     <span class="cm">// 把 n 当前最低位塞进去</span>
+            n &gt;&gt;&gt;= <span class="nm">1</span>;              <span class="cm">// 无符号右移，丢掉刚处理过的那一位</span>
+        }
+        <span class="kw">return</span> result;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(1)</code>
+            <p>固定循环 32 次，与输入的数值大小无关。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了几个整型变量，不需要额外数组。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「按位翻转 / 按位重排」类题目，先把二进制位想象成一个
+          普通数组，套用数组翻转（首尾对调、双指针）的直觉；再回到位运算，用
+          <code>&lt;&lt;</code>、<code>&gt;&gt;&gt;</code>、<code>&amp;</code>、<code>|</code>
+          把「数组操作」翻译成「移位 + 位或」即可。如果同一个数要反复调用这个函数，
+          还可以按 8 位一组做<strong>查表法</strong>，把 32 次循环压缩成 4 次查表，
+          这正是题目「进阶」想引导你想到的优化方向。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/190-reverse-bits/page.js"></script>
+  </body>
+</html>

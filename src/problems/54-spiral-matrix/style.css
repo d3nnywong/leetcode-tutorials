@@ -1,0 +1,92 @@
+/* 54. 螺旋矩阵 —— 动画舞台专属样式 */
+
+.sm__board {
+  display: grid;
+  grid-template-columns: repeat(var(--sm-cols), 3rem);
+  gap: var(--space-2);
+}
+.sm__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.sm__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.sm__arrow {
+  position: absolute;
+  top: -0.95rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--hi);
+}
+.sm__cell.is-visited {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.sm__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+.sm__outlabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.sm__output {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.sm__out-chip {
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.sm__out-chip.is-last {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  font-weight: 700;
+}
+.sm__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sm__cell {
+    transition: none;
+  }
+  .sm__cell.is-current {
+    transform: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .sm__board {
+    grid-template-columns: repeat(var(--sm-cols), 2.5rem);
+  }
+  .sm__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}

@@ -1,0 +1,154 @@
+/* 19. 删除链表的倒数第 N 个结点 —— 动画舞台专属样式 */
+
+.rn__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.rn__stats strong {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+}
+.rn__chartwrap {
+  overflow-x: auto;
+}
+.rn__svg {
+  width: 100%;
+  min-width: 360px;
+  max-height: 260px;
+  display: block;
+}
+
+/* 结点框 */
+.rn-box__rect {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    opacity var(--duration) var(--ease);
+}
+.rn-box.is-dummy .rn-box__rect,
+.rn-box.is-null .rn-box__rect {
+  fill: none;
+  stroke-dasharray: 4 3;
+}
+.rn-box__val {
+  fill: var(--color-text);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+  transition: fill var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.rn-box.is-dummy .rn-box__val,
+.rn-box.is-null .rn-box__val {
+  fill: var(--color-text-soft);
+  font-size: 11px;
+}
+.rn-box__idx {
+  fill: var(--color-text-soft);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+
+.rn-box.is-fast .rn-box__rect {
+  stroke: var(--hi);
+  stroke-width: 2.5;
+  fill: var(--hi-bg);
+}
+.rn-box.is-slow .rn-box__rect {
+  stroke: var(--src);
+  stroke-width: 2.5;
+  fill: var(--src-bg);
+}
+.rn-box.is-fast.is-slow .rn-box__rect {
+  stroke: var(--hi);
+  fill: var(--src-bg);
+}
+.rn-box.is-target .rn-box__rect {
+  stroke: var(--bad);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 3;
+}
+.rn-box.is-removed .rn-box__rect {
+  fill: var(--bad-bg);
+  stroke: var(--bad);
+  opacity: 0.45;
+}
+.rn-box.is-removed .rn-box__val {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+/* 箭头（next 指针） */
+.rn-arrow {
+  stroke: var(--color-text-soft);
+  stroke-width: 1.6;
+  transition: stroke var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.rn-arrow.is-cut {
+  stroke-dasharray: 3 3;
+  opacity: 0.3;
+}
+.rn-arrowhead-path {
+  fill: var(--color-text-soft);
+}
+
+/* 旁路箭头：slow.next = slow.next.next */
+.rn-bypass {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.5;
+  marker-end: url(#rn-arrowhead);
+  opacity: 0;
+  transition: opacity var(--duration) var(--ease);
+}
+.rn-bypass.is-visible {
+  opacity: 1;
+}
+
+/* fast / slow 指针标签 */
+.rn-ptr {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+  transition: x var(--duration) var(--ease);
+}
+.rn-ptr--fast {
+  fill: var(--hi);
+}
+.rn-ptr--slow {
+  fill: var(--src);
+}
+.rn-tick {
+  stroke-width: 1.5;
+  stroke-dasharray: 2 2;
+  transition: x1 var(--duration) var(--ease), x2 var(--duration) var(--ease);
+}
+.rn-tick--fast {
+  stroke: var(--hi);
+}
+.rn-tick--slow {
+  stroke: var(--src);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rn-box__rect,
+  .rn-box__val,
+  .rn-arrow,
+  .rn-bypass,
+  .rn-ptr,
+  .rn-tick {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .rn__svg {
+    min-width: 460px;
+  }
+}

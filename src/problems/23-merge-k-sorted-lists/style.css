@@ -1,0 +1,134 @@
+/* 23. 合并 K 个升序链表 —— 动画舞台专属样式 */
+
+.mkl__lists {
+  display: grid;
+  gap: var(--space-3);
+}
+.mkl__list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.mkl__list-label {
+  flex-shrink: 0;
+  width: 4.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+.mkl__nodes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.mkl__node {
+  display: grid;
+  place-items: center;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 var(--space-2);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    transform var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.mkl__node.is-candidate {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.mkl__node.is-min {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.15);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.mkl__node.is-consumed {
+  opacity: 0.35;
+  border-style: dashed;
+}
+.mkl__node--merged {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+
+.mkl__arrow {
+  color: var(--color-text-soft);
+  font-size: 1.1rem;
+}
+.mkl__null {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-family: var(--font-mono);
+}
+.mkl__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+/* 堆面板 */
+.mkl__heap,
+.mkl__merged {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.mkl__panel-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-2);
+}
+.mkl__heap-chips,
+.mkl__merged-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.4rem;
+}
+.mkl__chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  padding: 0.3em 0.7em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  transition: border-color var(--duration) var(--ease), background var(--duration) var(--ease);
+}
+.mkl__chip small {
+  font-weight: 400;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.mkl__chip.is-min {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkl__node,
+  .mkl__chip {
+    transition: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .mkl__list-label {
+    width: 100%;
+  }
+  .mkl__node {
+    min-width: 2.2rem;
+    height: 2.2rem;
+  }
+}

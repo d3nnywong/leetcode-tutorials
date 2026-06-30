@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>242. 有效的字母异位词 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 242 有效的字母异位词：什么是字母异位词、排序比较的笨办法为什么慢、计数数组一次扫描如何把时间降到 O(n)，配可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/242-valid-anagram/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          两个字符串的字母「拆开打乱重排」会不会长得一样？
+          看完你会明白：一张 26 格的计数表，就能一次扫描把答案算出来。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：什么是「字母异位词」</h2>
+        <p>
+          字母异位词（anagram）就是把一个字符串里的字母<strong>打乱顺序重新排列</strong>，
+          能不能拼出另一个字符串。换句话说：两个字符串<strong>长度一样</strong>，
+          而且<strong>每种字母出现的次数也完全一样</strong>，只是顺序不同。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">s</span><code>anagram</code></div>
+          <div><span class="example-box__label">t</span><code>nagaram</code></div>
+          <p class="example-box__note">
+            两边都用了 a×3、n×1、g×1、r×1、m×1，只是排列顺序不同 → <code>t</code> 是
+            <code>s</code> 的字母异位词，返回 <code>true</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的办法：把 <code>s</code> 和 <code>t</code> 各自<strong>排序</strong>，
+          排完序的两个字符串如果一模一样，那它俩用的字母种类和个数肯定也一样，
+          自然就是字母异位词。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>排序一次是 <code>O(n log n)</code>，比线性扫描慢；而且这种做法
+          没有真正利用「字母只有 26 种」这个特点——其实我们根本不需要排序，只要
+          <strong>数一数每个字母出现了几次</strong>就够了。
+        </div>
+      </section>
+
+      <!-- 3. 计数数组 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用计数数组「一边数一边抵消」</h2>
+        <p>
+          换个思路：先把 <code>s</code> 的每个字符都数一遍，记进一张「字母 → 次数」的计数表
+          <code>count</code> 里（每个字母 +1）。
+        </p>
+        <p>
+          接着扫一遍 <code>t</code>，每碰到一个字符就把它在 <code>count</code> 里的次数 −1
+          （相当于「拿 t 的字母去抵消 s 记下的字母」）。如果某个字符要抵消时，<code>count</code>
+          里它的次数<strong>已经是 0</strong>，说明 <code>t</code> 里这个字母比 <code>s</code>
+          多，肯定不是异位词，直接判 <code>false</code>；如果 <code>t</code> 顺利扫完、全部抵消干净，
+          就是异位词。整个过程只扫两遍字符串，是 <code>O(n)</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在处理的字符</span>
+          <span><i class="sw sw--src"></i> 已统计 / 已抵消</span>
+          <span><i class="sw sw--bad"></i> 计数已是 0，抵消失败</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 s 改成 <code>rat</code>、t 改成 <code>car</code>，看它在第一个字符 'c' 就抵消失败。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> isAnagram(<span class="ty">String</span> s, <span class="ty">String</span> t) {
+        <span class="cm">// 长度都不同，字母个数不可能凑成一样</span>
+        <span class="kw">if</span> (s.length() != t.length()) {
+            <span class="kw">return</span> <span class="kw">false</span>;
+        }
+        <span class="cm">// count[c - 'a']：字母 c 在 s 里还剩多少个「没被抵消」</span>
+        <span class="ty">int</span>[] count = <span class="kw">new</span> <span class="ty">int</span>[<span class="nm">26</span>];
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; s.length(); i++) {
+            count[s.charAt(i) - <span class="st">'a'</span>]++;
+        }
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; t.length(); i++) {
+            <span class="ty">int</span> idx = t.charAt(i) - <span class="st">'a'</span>;
+            <span class="kw">if</span> (count[idx] == <span class="nm">0</span>) {
+                <span class="cm">// s 里没有多余的这个字母可以抵消了</span>
+                <span class="kw">return</span> <span class="kw">false</span>;
+            }
+            count[idx]--;
+        }
+        <span class="kw">return</span> <span class="kw">true</span>;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>s、t 各扫一遍，n 是字符串长度。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>计数表固定 26 格，跟字符串长度无关（如果是 unicode 字符就不能这样固定大小了，这正是进阶问题问的）。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当题目的字符集合很小（比如只有 26 个小写字母）时，
+          排序往往不是最优解——<strong>开一张固定大小的计数表</strong>，边扫边加边减，
+          能把时间复杂度从 <code>O(n log n)</code> 降到 <code>O(n)</code>，
+          额外空间也从「跟输入相关」变成常数级的 <code>O(1)</code>。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/242-valid-anagram/page.js"></script>
+  </body>
+</html>

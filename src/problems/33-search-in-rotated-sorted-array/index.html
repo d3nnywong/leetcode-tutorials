@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>33. 搜索旋转排序数组 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 33 搜索旋转排序数组：旋转数组为什么仍有一半有序、怎么用二分法在 O(log n) 内定位 target，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/33-search-in-rotated-sorted-array/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          数组被「切了一刀」整体旋转，看起来乱了，但只要在心里多问一句
+          ——「现在这一半到底有没有序」，二分查找照样能用，O(log n) 照样拿下。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底在说什么</h2>
+        <p>
+          一个本来<strong>升序排列</strong>的数组，被从中间「掰断」，前后两段调了个个儿，
+          这就叫「旋转」。比如 <code>[0,1,2,4,5,6,7]</code> 从下标 4 处旋转，就变成了
+          <code>[4,5,6,7,0,1,2]</code>。现在给你这个旋转后的数组和一个 <code>target</code>，
+          要你找到它的下标；找不到就返回 <code>-1</code>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[4,5,6,7,0,1,2]</code></div>
+          <div><span class="example-box__label">target</span><code>0</code></div>
+          <p class="example-box__note">
+            target = 0 在下标 4 上 → 返回 <code>4</code>。题目还要求时间复杂度必须是
+            <code>O(log n)</code>，这就把「从头扫到尾」的办法直接排除了。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 vs 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：为什么不能直接二分</h2>
+        <p>
+          最笨的办法是从头到尾线性扫描，<code>O(n)</code>，能过但不满足题目要求。
+          普通二分查找又要求数组<strong>整体有序</strong>，而旋转数组整体看是「乱」的——
+          直接套用 <code>nums[mid]</code> 和 <code>target</code> 比大小，没法判断该往哪边走。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>虽然整个数组不是有序的，但用 <code>mid</code> 把它切成两半后，
+          <strong>至少有一半仍然是严格升序的</strong>。只要先看出哪一半有序，
+          再判断 <code>target</code> 是否落在这段有序区间里，就总能把搜索范围砍掉一半。
+        </div>
+      </section>
+
+      <!-- 3. 二分查找 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：带「先判断哪半有序」的二分</h2>
+        <p>
+          每一步先取 <code>mid = (lo + hi) / 2</code>，分三种情况：
+        </p>
+        <ul>
+          <li><strong><code>nums[mid] == target</code></strong>：直接命中，返回 <code>mid</code>。</li>
+          <li>
+            <strong>左半 <code>[lo, mid]</code> 有序</strong>（即 <code>nums[lo] &lt;= nums[mid]</code>）：
+            看 <code>target</code> 是否落在 <code>[nums[lo], nums[mid])</code> 里——
+            是就去左半找（<code>hi = mid - 1</code>），不是就去右半找（<code>lo = mid + 1</code>）。
+          </li>
+          <li>
+            <strong>否则右半 <code>[mid, hi]</code> 有序</strong>：
+            看 <code>target</code> 是否落在 <code>(nums[mid], nums[hi]]</code> 里——
+            是就去右半找（<code>lo = mid + 1</code>），不是就去左半找（<code>hi = mid - 1</code>）。
+          </li>
+        </ul>
+        <p>
+          不管哪种情况，每一步都能确定地排除一半，区间指数级收缩，整体 <code>O(log n)</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 区间边界 lo / hi</span>
+          <span><i class="sw sw--hi"></i> 当前检查 mid</span>
+          <span><i class="sw sw--gold"></i> 本步判定为「有序」的那一半</span>
+          <span><i class="sw sw--ok"></i> 命中 target</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>1,2,3,4,5</code>（其实是没旋转，k=0）、target 改成
+          <code>3</code>，看二分依旧正确收敛。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> search(<span class="ty">int</span>[] nums, <span class="ty">int</span> target) {
+        <span class="ty">int</span> lo = <span class="nm">0</span>, hi = nums.length - <span class="nm">1</span>;
+        <span class="kw">while</span> (lo &lt;= hi) {
+            <span class="ty">int</span> mid = lo + (hi - lo) / <span class="nm">2</span>;
+            <span class="kw">if</span> (nums[mid] == target) {
+                <span class="kw">return</span> mid;
+            }
+            <span class="kw">if</span> (nums[lo] &lt;= nums[mid]) {
+                <span class="cm">// 左半 [lo, mid] 有序</span>
+                <span class="kw">if</span> (nums[lo] &lt;= target &amp;&amp; target &lt; nums[mid]) {
+                    hi = mid - <span class="nm">1</span>; <span class="cm">// target 在左半里</span>
+                } <span class="kw">else</span> {
+                    lo = mid + <span class="nm">1</span>; <span class="cm">// target 在右半里</span>
+                }
+            } <span class="kw">else</span> {
+                <span class="cm">// 右半 [mid, hi] 有序</span>
+                <span class="kw">if</span> (nums[mid] &lt; target &amp;&amp; target &lt;= nums[hi]) {
+                    lo = mid + <span class="nm">1</span>; <span class="cm">// target 在右半里</span>
+                } <span class="kw">else</span> {
+                    hi = mid - <span class="nm">1</span>; <span class="cm">// target 在左半里</span>
+                }
+            }
+        }
+        <span class="kw">return</span> -<span class="nm">1</span>;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(log n)</code>
+            <p>每一步都能排除一半区间，和普通二分查找一样的收敛速度。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了 lo / mid / hi 几个变量。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>看到「局部有序」或者「被切了一刀的有序数组」，先别急着否定二分查找——
+          每次用 <code>mid</code> 把数组切开，<strong>总有一半是规规矩矩升序的</strong>，
+          先认出这一半，再用普通的「target 是否在区间内」去判断走哪边，
+          二分查找的框架完全不用变，只是多了一步「先看哪边有序」的判断。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/33-search-in-rotated-sorted-array/page.js"></script>
+  </body>
+</html>

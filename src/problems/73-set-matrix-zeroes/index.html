@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>73. 矩阵置零 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 73 矩阵置零：如何不借助额外数组，用矩阵自己的第一行第一列当标记位，O(1) 空间原地把含 0 的行列清零，附可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/73-set-matrix-zeroes/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一道经典的「原地修改」题：表面上一遍遍历就能做完，但稍不注意就会用提前清零的 0
+          污染后面的判断。看完你会明白怎么只用两个布尔变量，把矩阵自己当成记事本。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个 <code>m</code> 行 <code>n</code> 列的矩阵，只要某个格子的值是
+          <strong>0</strong>，就要把它<strong>所在的整行和整列</strong>都变成 0。
+          而且要求<strong>原地</strong>修改——不能新开一个一模一样大小的矩阵来存结果。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">matrix</span><code>[[1,1,1],[1,0,1],[1,1,1]]</code></div>
+          <p class="example-box__note">
+            中间的 <code>matrix[1][1] = 0</code>，所以第 1 行和第 1 列全部变成 0
+            → <code>[[1,0,1],[0,0,0],[1,0,1]]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🔑 第二步：为什么不能扫到 0 就立刻清零</h2>
+        <p>
+          第一反应可能是：扫一遍矩阵，碰到 0 就把它的整行整列都设成 0，不就完了？
+          但这样做有个致命问题——<strong>你把别的格子也变成 0 了，后面再扫到这些「假 0」，
+          会被误判成「又发现一个 0」，导致清零范围越滚越大，结果完全错误</strong>。
+        </p>
+        <p>
+          所以标准做法是<strong>分两步走</strong>：先把「哪些行 / 哪些列该清零」都记下来，
+          全部记完之后，再统一执行清零。问题变成：用什么记？
+        </p>
+        <div class="callout callout--warn">
+          <strong>朴素做法：</strong>开两个长度分别为 <code>m</code> 和 <code>n</code> 的布尔数组
+          <code>rows[]</code> / <code>cols[]</code>，记下哪些行、哪些列含 0。
+          这样空间复杂度是 <code>O(m + n)</code>，能过，但不是最优解。
+        </div>
+        <p>
+          <strong>更省空间的想法：</strong>矩阵的第 0 行正好有 <code>n</code> 个格子，
+          第 0 列正好有 <code>m</code> 个格子——数量和 <code>rows[]</code> / <code>cols[]</code>
+          完全对得上！与其新开数组，不如直接<strong>借用矩阵自己的第 0 行当 <code>cols[]</code>，
+          第 0 列当 <code>rows[]</code></strong>：用 <code>matrix[0][j]</code> 记「第 j 列要不要清零」，
+          用 <code>matrix[i][0]</code> 记「第 i 行要不要清零」。
+        </p>
+        <div class="callout">
+          <strong>唯一要小心的坑：</strong>第 0 行 / 第 0 列<strong>自己原本是不是也含 0</strong>，
+          这件事会在「打标记」的过程中被覆盖掉，分不清「这是原来就有的 0」还是「后来打的标记」。
+          解决办法很简单：<strong>先用两个布尔变量 <code>row0Zero</code> / <code>col0Zero</code>
+          单独记下第 0 行 / 第 0 列原本是否含 0</strong>，再放心地拿它们当标记位用，
+          最后再根据这两个变量决定要不要把第 0 行 / 第 0 列也整个清零。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>🎬 第三步：动画演示</h2>
+        <p>整个过程拆成四步：①检查第 0 行/列原本是否含 0 ②内部格子打标记 ③按标记清零内部格子 ④处理第 0 行/列本身。</p>
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在处理的格子</span>
+          <span><i class="sw sw--src"></i> 标记位（虚线框是第 0 行/列）</span>
+          <span><i class="sw sw--bad"></i> 值为 0 的格子</span>
+          <span><i class="sw sw--gold"></i> 最后统一清空的格子</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把矩阵改成 <code>1,1,1;1,0,1;1,1,1</code>（0 不在第一行/列），
+          对比一下 <code>row0Zero</code> / <code>col0Zero</code> 始终是 false 时流程有什么不同。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">void</span> setZeroes(<span class="ty">int</span>[][] matrix) {
+        <span class="ty">int</span> m = matrix.length, n = matrix[<span class="nm">0</span>].length;
+        <span class="ty">boolean</span> row0Zero = <span class="kw">false</span>, col0Zero = <span class="kw">false</span>;
+
+        <span class="cm">// 1) 先单独记录第 0 行 / 第 0 列原本是否含 0（马上要被当标记位覆盖）</span>
+        <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">0</span>; j &lt; n; j++) {
+            <span class="kw">if</span> (matrix[<span class="nm">0</span>][j] == <span class="nm">0</span>) { row0Zero = <span class="kw">true</span>; <span class="kw">break</span>; }
+        }
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; m; i++) {
+            <span class="kw">if</span> (matrix[i][<span class="nm">0</span>] == <span class="nm">0</span>) { col0Zero = <span class="kw">true</span>; <span class="kw">break</span>; }
+        }
+
+        <span class="cm">// 2) 扫内部格子，用第 0 行 / 第 0 列当标记位：matrix[0][j] 记第 j 列，matrix[i][0] 记第 i 行</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt; m; i++) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">1</span>; j &lt; n; j++) {
+                <span class="kw">if</span> (matrix[i][j] == <span class="nm">0</span>) {
+                    matrix[i][<span class="nm">0</span>] = <span class="nm">0</span>;
+                    matrix[<span class="nm">0</span>][j] = <span class="nm">0</span>;
+                }
+            }
+        }
+
+        <span class="cm">// 3) 再扫一遍内部格子，标记位是 0 就把这个格子清零</span>
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt; m; i++) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">1</span>; j &lt; n; j++) {
+                <span class="kw">if</span> (matrix[i][<span class="nm">0</span>] == <span class="nm">0</span> || matrix[<span class="nm">0</span>][j] == <span class="nm">0</span>) {
+                    matrix[i][j] = <span class="nm">0</span>;
+                }
+            }
+        }
+
+        <span class="cm">// 4) 最后处理第 0 行 / 第 0 列本身</span>
+        <span class="kw">if</span> (row0Zero) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">0</span>; j &lt; n; j++) matrix[<span class="nm">0</span>][j] = <span class="nm">0</span>;
+        }
+        <span class="kw">if</span> (col0Zero) {
+            <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; m; i++) matrix[i][<span class="nm">0</span>] = <span class="nm">0</span>;
+        }
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m·n)</code>
+            <p>矩阵被完整扫描了常数遍（检查 + 打标记 + 应用 + 收尾），每个格子访问次数是常数。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>不算输入矩阵本身，只用了 <code>row0Zero</code> / <code>col0Zero</code> 两个布尔变量。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>需要「先标记、后统一处理」却又想省掉额外数组时，
+          想想<strong>输入数据本身有没有空间可以借用</strong>——这里矩阵的第 0 行/列大小正好和
+          需要的标记数组对得上。借用之前，记得先把会被覆盖的原始信息单独存好（
+          <code>row0Zero</code> / <code>col0Zero</code>），这是这类「原地算法」题最容易翻车的地方。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/73-set-matrix-zeroes/page.js"></script>
+  </body>
+</html>

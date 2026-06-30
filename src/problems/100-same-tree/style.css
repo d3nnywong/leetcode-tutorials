@@ -1,0 +1,121 @@
+/* 100. 相同的树 —— 动画舞台专属样式 */
+
+.stree__trees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+.stree__col {
+  flex: 1 1 14rem;
+  min-width: 13rem;
+}
+.stree__label {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+.stree__wrap {
+  overflow-x: auto;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+}
+.stree__svg {
+  width: 100%;
+  min-width: 220px;
+  max-height: 260px;
+  display: block;
+}
+.stree__empty {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+/* 边 */
+.stree-edge {
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+}
+
+/* 节点 */
+.stree-node circle {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    stroke-width var(--duration) var(--ease);
+}
+.stree-node text {
+  fill: var(--color-text);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+.stree-node.is-current circle {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 3;
+}
+.stree-node.is-match circle {
+  fill: var(--ok-bg);
+  stroke: var(--ok);
+}
+.stree-node.is-mismatch circle {
+  fill: var(--bad-bg);
+  stroke: var(--bad);
+  stroke-width: 3;
+}
+
+/* 递归调用栈 */
+.stree__stackwrap {
+  display: grid;
+  gap: var(--space-2);
+}
+.stree__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.stree__frame {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  font-size: var(--text-sm);
+}
+.stree__frame code {
+  background: none;
+  padding: 0;
+}
+.stree__frame.is-top {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  font-weight: 700;
+}
+.stree__cur {
+  font-size: var(--text-sm);
+  color: var(--hi);
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .stree__trees {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stree-node circle {
+    transition: none;
+  }
+}

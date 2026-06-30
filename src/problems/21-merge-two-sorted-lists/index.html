@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>21. 合并两个有序链表 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 21 合并两个有序链表：暴力收集再排序为什么浪费、双指针 + 哨兵节点如何一遍 O(m+n) 拼接，可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/21-merge-two-sorted-lists/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          两条已经排好序的「队伍」，怎么合并成一条更长的有序队伍？
+          看完你会明白：两个指针 + 一个哨兵节点，就能一遍扫描拼好。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你两个<strong>已经从小到大排好序</strong>的链表 <code>list1</code> 和
+          <code>list2</code>，要把它们合并成<strong>一个新的、依然从小到大排序</strong>的链表，
+          并且新链表是用原来两个链表的节点直接「拼」出来的（不新建节点存值，只是改 next 指针）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">list1</span><code>[1, 2, 4]</code></div>
+          <div><span class="example-box__label">list2</span><code>[1, 3, 4]</code></div>
+          <p class="example-box__note">
+            就像两摞已经从小到大排好的扑克牌，每次都从两摞牌顶各看一眼，拿走更小的那张，
+            最后拼出一摞完整有序的牌：<code>[1, 1, 2, 3, 4, 4]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：把两个链表里所有节点的值都倒进一个数组，<code>sort()</code>
+          排个序，再用排好的值重新建一条新链表。能做出来，但既浪费了「两个链表本来就有序」
+          这个条件，又多花了一次排序的功夫。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>收集 + 排序是 <code>O((m+n) log(m+n))</code>。
+          两个链表本身已经各自有序，真正需要的只是把它们「交错合并」起来，根本不需要重新排序。
+        </div>
+      </section>
+
+      <!-- 3. 双指针 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：双指针 + 哨兵节点，一遍扫描拼好</h2>
+        <p>
+          既然两个链表各自有序，那就用两个指针 <code>p1</code>、<code>p2</code> 分别指向
+          <code>list1</code>、<code>list2</code> 当前还没接走的节点，每一步只比较这两个
+          指针指向的值，把<strong>更小</strong>的那个节点接到结果链表末尾，再把对应指针后移一步。
+        </p>
+        <p>
+          为了不用单独判断「第一个节点要接给谁」，通常先建一个不存数据的<strong>哨兵节点
+          dummy</strong>（也叫 dummy head），用一个 <code>tail</code> 指针指向结果链表的最后
+          一个节点，每次新接一个节点就把 <code>tail</code> 跟着移过去。最后哪个链表先走到
+          <code>NULL</code>，就把另一个链表<strong>剩下的整段</strong>直接接上去——
+          因为它本来就是有序的，不用再逐个比较了。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> p1 / p2 当前指针</span>
+          <span><i class="sw sw--ok"></i> 本步选中的较小节点</span>
+          <span><i class="sw sw--gold"></i> 刚接入结果链表的节点</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 list1 改成 <code>1,2,4,8</code>、list2 改成 <code>2,3</code>，
+          看其中一条先走到 NULL 后，剩下的整段是怎么直接接上去的。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">// 链表节点定义（LeetCode 已提供，这里展示结构）</span>
+<span class="kw">class</span> <span class="ty">ListNode</span> {
+    <span class="ty">int</span> val;
+    <span class="ty">ListNode</span> next;
+    <span class="ty">ListNode</span>() {}
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val) { <span class="kw">this</span>.val = val; }
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val, <span class="ty">ListNode</span> next) { <span class="kw">this</span>.val = val; <span class="kw">this</span>.next = next; }
+}
+
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">ListNode</span> mergeTwoLists(<span class="ty">ListNode</span> list1, <span class="ty">ListNode</span> list2) {
+        <span class="ty">ListNode</span> dummy = <span class="kw">new</span> <span class="ty">ListNode</span>(-<span class="nm">1</span>); <span class="cm">// 哨兵节点，避免单独处理头节点</span>
+        <span class="ty">ListNode</span> tail = dummy;             <span class="cm">// tail 始终指向结果链表的最后一个节点</span>
+
+        <span class="kw">while</span> (list1 != <span class="kw">null</span> &amp;&amp; list2 != <span class="kw">null</span>) {
+            <span class="kw">if</span> (list1.val &lt;= list2.val) {
+                tail.next = list1;
+                list1 = list1.next;
+            } <span class="kw">else</span> {
+                tail.next = list2;
+                list2 = list2.next;
+            }
+            tail = tail.next;
+        }
+
+        <span class="cm">// 谁还有剩余，它本身就是有序的，直接整段接上去</span>
+        tail.next = (list1 != <span class="kw">null</span>) ? list1 : list2;
+
+        <span class="kw">return</span> dummy.next;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m + n)</code>
+            <p>m、n 分别是两个链表的长度，每个节点最多被比较、移动一次。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只是把已有节点的 next 指针重新接线，没有额外开辟节点空间（不计返回结果本身）。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>合并两个「已经有序」的序列时，不需要重新排序——用双指针各自
+          扫一遍、每步取较小者即可，这就是归并排序里「合并」步骤的原型。再加上一个
+          <strong>哨兵节点</strong> 简化「头节点要单独处理」的边界情况，是链表题里非常常用的技巧。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/21-merge-two-sorted-lists/page.js"></script>
+  </body>
+</html>

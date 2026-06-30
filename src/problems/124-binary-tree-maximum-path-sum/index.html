@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>124. 二叉树中的最大路径和 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 124 二叉树中的最大路径和：路径为什么不一定经过根节点、后序遍历如何算出每个节点的「单边贡献」、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/124-binary-tree-maximum-path-sum/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          二叉树里的「最长一段路」是多少？关键是想明白：这条路径可以在<strong>任意节点拐弯</strong>，
+          也不一定经过根。看完你会明白怎么用一次后序遍历把它算出来。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          二叉树里的<strong>路径</strong>，就是沿着边走出来的一串节点，每个节点最多走一次。
+          关键的两个「反直觉」点：
+        </p>
+        <ul>
+          <li>路径<strong>不一定</strong>经过根节点——可以完全发生在某个子树内部。</li>
+          <li>路径可以在<strong>某个节点拐弯</strong>：从左子树绕上来，再拐进右子树，
+            像一个倒过来的「人」字形。</li>
+        </ul>
+        <div class="example-box">
+          <div><span class="example-box__label">root</span><code>[-10, 9, 20, null, null, 15, 7]</code></div>
+          <p class="example-box__note">
+            根节点 −10 不在最优路径里！真正的答案是 15 → 20 → 7，在节点 20 处「拐弯」，
+            路径和 = 15 + 20 + 7 = <strong>42</strong>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🔑 第二步：关键洞察——「拐弯」和「单边贡献」要分开看</h2>
+        <p>
+          暴力枚举「所有节点对之间的路径」要 <code>O(n²)</code> 起步，太慢。换个角度想：
+          <strong>把每个节点轮流当作路径的「最高点」</strong>，算一遍它能撑起的最大路径和，
+          再从所有候选里取最大值——这样每个节点只需要被处理一次。
+        </p>
+        <p>
+          对节点 <code>x</code>，它的左子树最多能贡献 <code>leftGain</code>，右子树最多能贡献
+          <code>rightGain</code>（如果某一边算出来是负数，那还不如不要这条边，所以和
+          <code>0</code> 取较大值——这是这道题最容易忽略的一步）。那么：
+        </p>
+        <ul>
+          <li>以 <code>x</code> 为拐弯点的候选答案 = <code>x.val + leftGain + rightGain</code>，
+            随时更新全局最大值；</li>
+          <li>但 <code>x</code> 往上汇报给父节点时，路径只能从一个方向「穿过」它，
+            所以只能带 <code>x.val + max(leftGain, rightGain)</code> 这一边上去。</li>
+        </ul>
+        <div class="callout callout--warn">
+          <strong>一句话：</strong>「能更新答案的拐弯值」和「能往上传的单边值」是两个不同的东西，
+          全程后序遍历（先左右子树，再自己）一遍就能同时算出来，<code>O(n)</code>。
+        </div>
+      </section>
+
+      <!-- 3. 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：后序遍历动画</h2>
+        <p>
+          动画按后序遍历的顺序逐节点展开：递归先扎到底，子树都算完后再回头处理当前节点——
+          算出左右贡献、刷新全局最大值、再把单边贡献汇报给父节点。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前节点</span>
+          <span><i class="sw sw--src"></i> 调用栈上的祖先 / 正在被读取的子节点</span>
+          <span><i class="sw sw--gold"></i> 最终的最优路径</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          节点下方的 <code>gain=…</code> 是该节点算完后往上汇报的值；红色表示是负数
+          （父节点会当它是 0）。试试把数组改成 <code>1,2,3</code>，看根节点自己就是最高点的情况。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="cm">/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val; this.left = left; this.right = right;
+ *     }
+ * }
+ */</span>
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">private</span> <span class="ty">int</span> maxSum = <span class="ty">Integer</span>.MIN_VALUE;
+
+    <span class="kw">public</span> <span class="ty">int</span> maxPathSum(<span class="ty">TreeNode</span> root) {
+        maxGain(root);
+        <span class="kw">return</span> maxSum;
+    }
+
+    <span class="cm">// 返回：从 node 出发、只能往一个方向延伸、能贡献给「父节点」的最大路径和</span>
+    <span class="kw">private</span> <span class="ty">int</span> maxGain(<span class="ty">TreeNode</span> node) {
+        <span class="kw">if</span> (node == <span class="kw">null</span>) <span class="kw">return</span> <span class="nm">0</span>;
+
+        <span class="cm">// 子树贡献为负就不要（相当于不走这条边），所以和 0 取较大值</span>
+        <span class="ty">int</span> leftGain = <span class="ty">Math</span>.max(maxGain(node.left), <span class="nm">0</span>);
+        <span class="ty">int</span> rightGain = <span class="ty">Math</span>.max(maxGain(node.right), <span class="nm">0</span>);
+
+        <span class="cm">// 以 node 为「最高点」、左右都拐弯的路径和，是一个候选答案</span>
+        <span class="ty">int</span> priceNewPath = node.val + leftGain + rightGain;
+        maxSum = <span class="ty">Math</span>.max(maxSum, priceNewPath);
+
+        <span class="cm">// 往上汇报给父节点时，只能带一条边走，所以左右只能选一边</span>
+        <span class="kw">return</span> node.val + <span class="ty">Math</span>.max(leftGain, rightGain);
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>每个节点只在后序遍历中被访问一次。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(h)</code>
+            <p>h 是树高，来自递归调用栈；最坏（链状树）退化到 O(n)。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「树上任意两点间路径」的最值问题，常见思路是
+          <strong>把每个节点轮流当成路径的最高点</strong>，用后序遍历分别算出
+          「能更新答案的拐弯值」和「能往上传的单边值」。这个套路同样适用于树的直径、
+          相机覆盖等一大类「以某节点为支点」的二叉树 DP 问题。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/124-binary-tree-maximum-path-sum/page.js"></script>
+  </body>
+</html>

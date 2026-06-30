@@ -1,0 +1,91 @@
+/* 153. 寻找旋转排序数组中的最小值 —— 动画舞台专属样式 */
+
+.frm__row,
+.frm__ptrrow {
+  display: grid;
+  gap: var(--space-2);
+}
+.frm__ptrrow {
+  margin-top: 1.4rem;
+}
+
+.frm__cell {
+  position: relative;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease),
+    opacity var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.frm__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.frm__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+
+/* 当前搜索区间 [lo, hi] 之外：已被排除，淡出 */
+.frm__cell.is-out {
+  opacity: 0.32;
+}
+/* lo / hi 边界 */
+.frm__cell.is-bound {
+  border-color: var(--src);
+}
+/* 本步判定为「仍是候选，可能就是答案」的 mid */
+.frm__cell.is-keep {
+  background: var(--ok-bg);
+  border-color: var(--ok);
+}
+/* 本步判定为「不可能是最小值，排除」的 mid */
+.frm__cell.is-discard {
+  background: var(--bad-bg);
+  border-color: var(--bad);
+}
+/* 最终确定的最小值 */
+.frm__cell.is-final {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+}
+/* 当前正在比较的 mid：放大强调（颜色由 is-keep / is-discard / is-final 决定） */
+.frm__cell.is-mid {
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+.frm__ptrtag {
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-text-soft);
+  min-height: 1rem;
+}
+.frm__ptrtag.is-active {
+  color: var(--color-accent);
+}
+
+@media (max-width: 560px) {
+  .frm__cell {
+    height: 2.5rem;
+  }
+  .frm__val {
+    font-size: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frm__cell {
+    transition: none;
+  }
+}

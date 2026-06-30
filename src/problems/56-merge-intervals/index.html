@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>56. 合并区间 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 56 合并区间：为什么先排序再扫描就能解决重叠问题、如何用「上一段终点」判断重叠、O(n log n) 解法与可交互动画、Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/56-merge-intervals/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          一堆区间躺在数轴上，互相有重叠该怎么合并？答案出奇地简单：
+          <strong>先排序，再扫一遍</strong>。这题是「排序预处理 + 贪心扫描」最经典的入门例子。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一堆区间 <code>[start, end]</code>，有些区间之间有重叠（比如 <code>[1,3]</code> 和
+          <code>[2,6]</code> 在 2~3 之间是重叠的）。你要把所有<strong>互相重叠</strong>的区间
+          揉成一个大区间，最后返回一批<strong>互不重叠</strong>的区间，并且要把原来所有区间
+          覆盖到的范围都覆盖住。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">输入</span><code>[[1,3],[2,6],[8,10],[15,18]]</code></div>
+          <p class="example-box__note">
+            [1,3] 和 [2,6] 重叠 → 合并成 [1,6]；[8,10] 和 [15,18] 各自独立，不和谁重叠，原样保留。
+            最终输出 <code>[[1,6],[8,10],[15,18]]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：笨办法为什么麻烦</h2>
+        <p>
+          如果区间在输入里是乱序的，你想知道某个区间到底和哪些区间重叠，得拿它去和
+          <strong>所有</strong>别的区间逐一比较，而且合并之后还可能继续和别的区间产生新的重叠——
+          需要反复扫描，逻辑绕来绕去，容易漏判。
+        </p>
+        <div class="callout callout--warn">
+          <strong>关键洞察：</strong>如果先把区间按<strong>起点</strong>从小到大排好序，
+          那么会互相重叠的区间，在排序后一定是<strong>挨在一起</strong>的——不可能出现「中间隔着别的区间」
+          还能重叠的情况。于是问题就从「到处找重叠」简化成了「从左到右扫一遍，看相邻的要不要粘起来」。
+        </div>
+      </section>
+
+      <!-- 3. 排序 + 扫描 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：排序 + 扫描，一遍搞定</h2>
+        <p>
+          排好序后，维护一个结果列表，手里始终攥着「列表里最后一段」。依次看接下来的区间
+          <code>cur</code>：
+        </p>
+        <ul>
+          <li>
+            如果 <code>cur</code> 的起点 <strong>≤</strong> 最后一段的终点，说明重叠（或刚好首尾相接）
+            → 把最后一段的终点更新成两者的较大值，继续往后看。
+          </li>
+          <li>
+            如果 <code>cur</code> 的起点 <strong>&gt;</strong> 最后一段的终点，说明没有重叠
+            → 把 <code>cur</code> 当作新的一段，单独放进结果列表。
+          </li>
+        </ul>
+        <p>因为已经按起点排过序，所以这样从左到右扫一遍，绝不会漏掉任何重叠。</p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前正在处理的区间</span>
+          <span><i class="sw sw--src"></i> 已经处理完 / 结果中已固定的段</span>
+          <span><i class="sw sw--ok"></i> 刚单独开的新一段</span>
+          <span><i class="sw sw--gold"></i> 最终合并结果</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试改成 <code>1,4;4,5;7,9</code>，看 [1,4] 和 [4,5] 刚好首尾相接也会被合并；
+          而 [7,9] 因为起点大于上一段终点，会单独开一段。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span>[][] merge(<span class="ty">int</span>[][] intervals) {
+        <span class="cm">// 按起点从小到大排序，重叠的区间排序后一定挨在一起</span>
+        <span class="ty">Arrays</span>.sort(intervals, (a, b) -&gt; a[<span class="nm">0</span>] - b[<span class="nm">0</span>]);
+
+        <span class="ty">List</span>&lt;<span class="ty">int</span>[]&gt; merged = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">int</span>[] cur : intervals) {
+            <span class="kw">if</span> (merged.isEmpty() || cur[<span class="nm">0</span>] &gt; merged.get(merged.size() - <span class="nm">1</span>)[<span class="nm">1</span>]) {
+                <span class="cm">// 和结果列表最后一段没有重叠，单独开一段新的</span>
+                merged.add(cur);
+            } <span class="kw">else</span> {
+                <span class="cm">// 有重叠，把最后一段的终点延长成两者的较大值</span>
+                <span class="ty">int</span>[] last = merged.get(merged.size() - <span class="nm">1</span>);
+                last[<span class="nm">1</span>] = <span class="ty">Math</span>.max(last[<span class="nm">1</span>], cur[<span class="nm">1</span>]);
+            }
+        }
+        <span class="kw">return</span> merged.toArray(<span class="kw">new</span> <span class="ty">int</span>[merged.size()][]);
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n log n)</code>
+            <p>瓶颈在排序；之后从左到右扫一遍只要 O(n)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(log n) ~ O(n)</code>
+            <p>排序所需的额外空间，加上存放结果的列表（不计入返回值本身的话是 O(log n)）。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>遇到「一堆区间/线段，要判断重叠或合并」的题，第一反应就是
+          <strong>先按起点排序</strong>，把无序的重叠关系变成有序的相邻关系，再用一次线性扫描
+          搞定。这个「排序预处理，把复杂关系简化成相邻比较」的思路，在区间类问题里反复出现。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/56-merge-intervals/page.js"></script>
+  </body>
+</html>

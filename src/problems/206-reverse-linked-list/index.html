@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>206. 反转链表 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 206 反转链表：为什么链表不能像数组一样直接首尾互换、prev/cur 双指针一趟扫描如何把每个结点的 next 掉头、可交互动画与 Java 题解（迭代 + 递归）。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/206-reverse-linked-list/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          链表只能从头往后走，没法像数组那样直接「首尾互换」。
+          看完你会明白：用 prev、cur 两个指针一趟扫过去，把每个结点的 next 箭头逐个掉头，链表就反过来了。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一个单链表的头结点 <code>head</code>，要你把整条链表的方向<strong>反过来</strong>，
+          并返回反转后链表的新头结点。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">head</span><code>[1, 2, 3, 4, 5]</code></div>
+          <p class="example-box__note">
+            原来是 <code>1 → 2 → 3 → 4 → 5 → null</code>，反转后变成
+            <code>5 → 4 → 3 → 2 → 1 → null</code>。新的头结点是原来的最后一个结点。
+          </p>
+        </div>
+        <p>
+          如果是数组，反转很简单：开两个下标从两头往中间交换值就行。但链表不一样——
+          它没有「下标」，每个结点只知道<strong>自己的下一个是谁</strong>（<code>next</code> 指针），
+          不知道<strong>自己的上一个是谁</strong>。要反转，本质上就是要把每个结点的
+          <code>next</code> 指针，从「指向下一个」改成「指向上一个」。
+        </p>
+      </section>
+
+      <!-- 2. 关键洞察 -->
+      <section class="article__section">
+        <h2>🐢 第二步：直接改指针会遇到的坑</h2>
+        <p>
+          想法很直接：把 <code>cur.next</code> 改成指向前一个结点 <code>prev</code> 不就行了？
+          但试着写一下就会发现一个坑——
+        </p>
+        <div class="callout callout--warn">
+          <strong>坑在哪：</strong>一旦执行 <code>cur.next = prev</code>，
+          <code>cur</code> 原来的下一个结点的<strong>地址就丢了</strong>——
+          因为整条链表只能靠 <code>next</code> 指针才能往后走，指针一改，
+          后面的结点就「断联」了，没法继续往下处理。
+        </div>
+        <p>
+          关键洞察：在改指针<strong>之前</strong>，先用一个临时变量 <code>next</code>
+          把 <code>cur.next</code> 偷偷存起来，改完指针之后再用这个 <code>next</code>
+          继续往后走，就不会丢链了。
+        </p>
+      </section>
+
+      <!-- 3. prev/cur 双指针 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：prev、cur 双指针一趟扫描</h2>
+        <p>
+          用两个指针 <code>prev</code>（一开始是 <code>null</code>）和 <code>cur</code>
+          （一开始是 <code>head</code>）从头到尾扫一遍，每到一个结点重复同样的三个动作：
+        </p>
+        <ul>
+          <li><strong>① 暂存：</strong><code>next = cur.next</code>，先记下原来的下一个结点。</li>
+          <li><strong>② 掉头：</strong><code>cur.next = prev</code>，让当前结点指向它原来的前一个。</li>
+          <li><strong>③ 前移：</strong><code>prev = cur</code>，<code>cur = next</code>，两个指针一起往后挪一位。</li>
+        </ul>
+        <p>
+          重复这三步，直到 <code>cur</code> 变成 <code>null</code>（说明已经走完整条链表）。
+          这时 <code>prev</code> 正好停在原来的最后一个结点上 —— 它就是反转后的新头结点，直接返回它。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--gold"></i> prev 指针 / 已反转的箭头</span>
+          <span><i class="sw sw--hi"></i> cur 指针（当前处理的结点）</span>
+          <span><i class="sw sw--src"></i> 已经掉头完成的结点</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把链表改成只有 <code>1</code> 一个结点，或者留空表示空链表 <code>[]</code>，
+          看看边界情况下动画怎么处理。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>下面给出最常用的<strong>迭代写法</strong>，以及思路一致的<strong>递归写法</strong>。</p>
+        <pre class="code-block"><code><span class="cm">// Definition for singly-linked list.</span>
+<span class="kw">class</span> <span class="ty">ListNode</span> {
+    <span class="ty">int</span> val;
+    <span class="ty">ListNode</span> next;
+    <span class="ty">ListNode</span>() {}
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val) { <span class="kw">this</span>.val = val; }
+    <span class="ty">ListNode</span>(<span class="ty">int</span> val, <span class="ty">ListNode</span> next) { <span class="kw">this</span>.val = val; <span class="kw">this</span>.next = next; }
+}
+
+<span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="cm">// 写法一：迭代，O(n) 时间、O(1) 额外空间</span>
+    <span class="kw">public</span> <span class="ty">ListNode</span> reverseList(<span class="ty">ListNode</span> head) {
+        <span class="ty">ListNode</span> prev = <span class="kw">null</span>;
+        <span class="ty">ListNode</span> cur = head;
+
+        <span class="kw">while</span> (cur != <span class="kw">null</span>) {
+            <span class="ty">ListNode</span> next = cur.next; <span class="cm">// ① 先暂存下一个结点</span>
+            cur.next = prev;             <span class="cm">// ② 把当前结点的指针掉头</span>
+            prev = cur;                  <span class="cm">// ③ prev、cur 一起前移</span>
+            cur = next;
+        }
+        <span class="kw">return</span> prev; <span class="cm">// cur 为 null 时，prev 正好停在新头结点上</span>
+    }
+
+    <span class="cm">// 写法二：递归，O(n) 时间、O(n) 递归栈空间</span>
+    <span class="kw">public</span> <span class="ty">ListNode</span> reverseListRecursive(<span class="ty">ListNode</span> head) {
+        <span class="kw">if</span> (head == <span class="kw">null</span> || head.next == <span class="kw">null</span>) {
+            <span class="kw">return</span> head; <span class="cm">// 空链表或只剩一个结点，它自己就是新头结点</span>
+        }
+        <span class="ty">ListNode</span> newHead = reverseListRecursive(head.next); <span class="cm">// 先反转后面的部分</span>
+        head.next.next = head; <span class="cm">// 让后面那个结点反过来指向自己</span>
+        head.next = <span class="kw">null</span>;     <span class="cm">// 自己变成新的尾部，断开原来的 next</span>
+        <span class="kw">return</span> newHead;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>不管迭代还是递归，链表都只需要遍历一遍。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>迭代 O(1) / 递归 O(n)</code>
+            <p>迭代只用了 prev、cur、next 三个指针；递归会用掉跟链表长度等长的调用栈。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>链表上要「反转方向」，记住三步口诀——
+          <strong>先存下一个、再掉头当前、最后一起前移</strong>。
+          用 <code>prev</code> 记住走过的路，用临时变量 <code>next</code> 保住没走的路，
+          就不会出现「指针一改、后面全丢」的坑。这套 prev/cur 双指针思路，
+          后面反转链表的一部分、按组反转、回文链表等题都会反复用到。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/206-reverse-linked-list/page.js"></script>
+  </body>
+</html>

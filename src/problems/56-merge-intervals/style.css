@@ -1,0 +1,114 @@
+/* 56. 合并区间 —— 动画舞台专属样式 */
+
+.mi__status {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.mi__status strong {
+  color: var(--color-text);
+}
+.mi__chartwrap {
+  overflow-x: auto;
+}
+.mi__svg {
+  width: 100%;
+  min-width: 320px;
+  display: block;
+}
+
+/* 小节标题 */
+.mi-section-title {
+  fill: var(--color-text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* 上半区：排序后的原始区间条 */
+.mi-top-bar {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease);
+}
+.mi-top-bar.is-current {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 2.5;
+}
+.mi-top-bar.is-done {
+  fill: var(--src-bg);
+  stroke: var(--src);
+}
+.mi-top-label {
+  fill: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+.mi-orig-label {
+  fill: var(--color-text-soft);
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+/* 下半区：逐步生成的合并结果条 */
+.mi-bot-bar {
+  fill: var(--color-surface-2);
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+  transition: fill var(--duration) var(--ease), stroke var(--duration) var(--ease),
+    x var(--duration) var(--ease), width var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+.mi-bot-bar.is-new {
+  fill: var(--ok-bg);
+  stroke: var(--ok);
+  stroke-width: 2.5;
+}
+.mi-bot-bar.is-grow {
+  fill: var(--hi-bg);
+  stroke: var(--hi);
+  stroke-width: 2.5;
+}
+.mi-bot-bar.is-done {
+  fill: var(--src-bg);
+  stroke: var(--src);
+}
+.mi-bot-bar.is-gold {
+  fill: var(--gold-bg);
+  stroke: var(--gold);
+  stroke-width: 2.5;
+}
+.mi-bot-label {
+  fill: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+  transition: x var(--duration) var(--ease);
+}
+
+/* 数轴 */
+.mi-axis-line {
+  stroke: var(--color-border);
+  stroke-width: 1.5;
+}
+.mi-tick {
+  stroke: var(--color-text-soft);
+  stroke-width: 1;
+}
+.mi-tick-label {
+  fill: var(--color-text-soft);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  text-anchor: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mi-top-bar,
+  .mi-bot-bar,
+  .mi-bot-label {
+    transition: none;
+  }
+}

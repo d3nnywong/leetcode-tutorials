@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>76. 最小覆盖子串 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 76 最小覆盖子串：滑动窗口怎么用字符计数判断「覆盖」、为什么先扩后缩能找到最短窗口、O(m+n) 解法与可交互动画、Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/76-minimum-window-substring/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          滑动窗口里最考验功力的一道困难题。难点不在「扩窗口」，而在想清楚——
+          什么时候才算「覆盖了」，以及覆盖之后为什么要反过来去「收缩」。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你两个字符串 <code>s</code> 和 <code>t</code>，要你在 <code>s</code> 里面找一段
+          <strong>最短的连续子串</strong>，这段子串里要把 <code>t</code> 的每一个字符都「凑齐」——
+          <code>t</code> 里出现几次，子串里就至少要有几次（多了没关系，顺序也不限）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">s</span><code>"ADOBECODEBANC"</code></div>
+          <div><span class="example-box__label">t</span><code>"ABC"</code></div>
+          <p class="example-box__note">
+            子串 <code>"BANC"</code> 里有 A、B、C 各一个，凑齐了 t 的要求，
+            而且是所有满足条件的子串里最短的 → 答案 <code>"BANC"</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：枚举 <code>s</code> 里所有的子串（起点、终点各一层循环），
+          每个子串都拿去检查一遍「是否覆盖了 t」，记录最短的那个。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>子串数量是 <code>O(m²)</code>，每次检查覆盖还要再扫一遍，
+          整体 <code>O(m² · n)</code>。<code>m</code> 能到 10⁵，这样肯定超时。
+          问题在于——我们对「窗口换大换小」这件事，<strong>每次都从头检查</strong>。
+        </div>
+      </section>
+
+      <!-- 3. 滑动窗口 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：先扩窗口找到「能覆盖」，再缩窗口找「最短」</h2>
+        <p>
+          换个思路：维护一个窗口 <code>[left, right]</code>，并且用两张「计数表」记账——
+        </p>
+        <ul>
+          <li><strong>need</strong>：t 里每个字符要出现几次（固定不变）。</li>
+          <li><strong>window</strong>：当前窗口里每个字符出现了几次（随窗口变化）。</li>
+        </ul>
+        <p>
+          再用一个 <code>valid</code> 记录「窗口里已经凑够数量的字符<strong>种类数</strong>」。
+          只要 <code>right</code> 往右扩，窗口只会变得更「富裕」，<code>valid</code> 只增不减；
+          一旦 <code>valid</code> 等于 t 的字符种类数，说明<strong>当前窗口已经覆盖了 t</strong>。
+        </p>
+        <p>
+          这时候窗口里很可能有「多余」的部分（比如两端是不需要的字符），于是反过来
+          <strong>收缩 left</strong>：每往右移一格 left，就检查一次「现在还覆盖吗」，
+          覆盖就继续收缩并刷新最短答案，一旦收缩到不再覆盖就停下，让 right 继续扩。
+          <code>left</code> 和 <code>right</code> 各自只会从头走到尾一次，整体
+          <code>O(m + n)</code>。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--src"></i> 当前窗口 [left, right]</span>
+          <span><i class="sw sw--hi"></i> L / R 指针所在格</span>
+          <span><i class="sw sw--bad"></i> 刚移出窗口的字符</span>
+          <span><i class="sw sw--ok"></i> 已凑够数量的字符</span>
+          <span><i class="sw sw--gold"></i> 最终答案窗口</span>
+        </div>
+        <div class="card viz-card">
+          <div id="viz-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把 s 改成 <code>"a"</code>、t 改成 <code>"aa"</code>，看它怎么扩到底也凑不齐、最终返回空字符串。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">String</span> minWindow(<span class="ty">String</span> s, <span class="ty">String</span> t) {
+        <span class="ty">int</span>[] need = <span class="kw">new</span> <span class="ty">int</span>[<span class="nm">128</span>];
+        <span class="kw">for</span> (<span class="ty">char</span> c : t.toCharArray()) need[c]++; <span class="cm">// t 里每个字符要出现几次</span>
+        <span class="ty">int</span> required = <span class="nm">0</span>; <span class="cm">// t 里有多少种不同字符</span>
+        <span class="kw">for</span> (<span class="ty">int</span> cnt : need) <span class="kw">if</span> (cnt &gt; <span class="nm">0</span>) required++;
+
+        <span class="ty">int</span>[] window = <span class="kw">new</span> <span class="ty">int</span>[<span class="nm">128</span>]; <span class="cm">// 当前窗口里每个字符出现了几次</span>
+        <span class="ty">int</span> valid = <span class="nm">0</span>; <span class="cm">// 窗口里「已凑够数量」的字符种类数</span>
+        <span class="ty">int</span> left = <span class="nm">0</span>, bestLen = <span class="ty">Integer</span>.MAX_VALUE, bestStart = <span class="nm">0</span>;
+
+        <span class="kw">for</span> (<span class="ty">int</span> right = <span class="nm">0</span>; right &lt; s.length(); right++) {
+            <span class="ty">char</span> c = s.charAt(right);
+            <span class="kw">if</span> (need[c] &gt; <span class="nm">0</span>) {
+                window[c]++;
+                <span class="kw">if</span> (window[c] == need[c]) valid++; <span class="cm">// 这种字符刚好凑够了</span>
+            }
+            <span class="cm">// 窗口已覆盖 t：尝试收缩 left，找更短的可行窗口</span>
+            <span class="kw">while</span> (valid == required) {
+                <span class="kw">if</span> (right - left + <span class="nm">1</span> &lt; bestLen) {
+                    bestLen = right - left + <span class="nm">1</span>;
+                    bestStart = left;
+                }
+                <span class="ty">char</span> d = s.charAt(left);
+                <span class="kw">if</span> (need[d] &gt; <span class="nm">0</span>) {
+                    <span class="kw">if</span> (window[d] == need[d]) valid--; <span class="cm">// 移出后这种字符不够了</span>
+                    window[d]--;
+                }
+                left++;
+            }
+        }
+        <span class="kw">return</span> bestLen == <span class="ty">Integer</span>.MAX_VALUE ? <span class="st">""</span> : s.substring(bestStart, bestStart + bestLen);
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(m + n)</code>
+            <p>right 从头扫到尾一次，left 总共也最多移动 m 步；统计 t 是 O(n)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>计数数组大小固定为 128（ASCII 英文字母范围），与输入长度无关。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当题目要求「找一个满足某种覆盖/计数条件的最短（或最长）连续区间」时，
+          先想滑动窗口——用 <code>right</code> 扩张去「凑条件」，条件一旦满足就反过来用
+          <code>left</code> 收缩去「榨干多余」，全程只用一个计数表判断条件成立与否，
+          避免每次都重新扫一遍区间。这正是双指针「单调移动」思想在字符串题上的延伸。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/76-minimum-window-substring/page.js"></script>
+  </body>
+</html>
