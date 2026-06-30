@@ -14,6 +14,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         home: resolve(__dirname, 'index.html'),
+        twoSum1: resolve(__dirname, 'src/problems/1-two-sum/index.html'),
+        container11: resolve(__dirname, 'src/problems/11-container-with-most-water/index.html'),
         wordBreak139: resolve(__dirname, 'src/problems/139-word-break/index.html'),
         lcs1143: resolve(__dirname, 'src/problems/1143-lcs/index.html'),
       },

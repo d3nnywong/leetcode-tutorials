@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>11. 盛最多水的容器 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 11 盛最多水的容器：面积为什么由矮边决定、双指针为什么只移矮的那根、O(n) 解法与可交互动画、Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/11-container-with-most-water/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          这题是「双指针」最漂亮的一课。难点不在写代码，而在想通一件事：
+          为什么每次只把<strong>矮</strong>的那根指针往里挪，就一定不会错过答案。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 + 面积公式 -->
+      <section class="article__section">
+        <h2>🧩 第一步：先把「面积」想清楚</h2>
+        <p>
+          每根竖线是一块挡板，任选两根当容器的左右壁，水能装多高由<strong>矮</strong>的那块决定
+          （高的那块上面会漏）。所以：
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">面积</span><code>= min(左高, 右高) × (右下标 − 左下标)</code></div>
+          <p class="example-box__note">
+            一个是「矮边的高度」，一个是「两根之间的宽度」，两者相乘。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：笨办法与它的浪费</h2>
+        <p>
+          枚举所有两根线的组合算面积取最大，<code>O(n²)</code>。n 能到 10⁵，平方就是 10¹⁰，太慢。
+        </p>
+        <div class="callout callout--warn">
+          <strong>能不能更聪明？</strong>先把两根线放在<strong>最左和最右</strong>——
+          此时宽度最大。接下来只要想：怎么挪，才有机会换来更大的面积。
+        </div>
+      </section>
+
+      <!-- 3. 双指针 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：双指针，只移矮的那根</h2>
+        <p>
+          左右指针从两端开始。当前面积被<strong>矮边</strong>卡死，宽度又已经最大。这时：
+        </p>
+        <ul>
+          <li><strong>移高的那根？</strong>宽度变小，矮边还是那个矮边 → 面积只会更小，没意义。</li>
+          <li><strong>移矮的那根？</strong>宽度也变小，但矮边<em>有可能</em>换成更高的 → 才有机会变大。</li>
+        </ul>
+        <p>所以每一步都把<strong>矮</strong>的指针往里移，扫一遍就够，<code>O(n)</code>。</p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前左右指针 L / R</span>
+          <span><i class="sw sw--gold"></i> 最终最大面积的两条线</span>
+        </div>
+        <div class="card viz-card">
+          <div id="cw-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          蓝色阴影就是当前容器装的水；点「下一步」看矮指针怎么一步步往里挪、面积怎么刷新。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span> maxArea(<span class="ty">int</span>[] height) {
+        <span class="ty">int</span> l = <span class="nm">0</span>, r = height.length - <span class="nm">1</span>, max = <span class="nm">0</span>;
+        <span class="kw">while</span> (l &lt; r) {
+            <span class="ty">int</span> area = <span class="ty">Math</span>.min(height[l], height[r]) * (r - l);
+            max = <span class="ty">Math</span>.max(max, area);
+            <span class="cm">// 移动矮的那根，才有机会换来更高的矮边</span>
+            <span class="kw">if</span> (height[l] &lt; height[r]) {
+                l++;
+            } <span class="kw">else</span> {
+                r--;
+            }
+        }
+        <span class="kw">return</span> max;
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>左右指针总共向中间走 n 步。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(1)</code>
+            <p>只用了几个变量。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>双指针的核心：</strong>每一步都能<strong>确定地排除</strong>一个不可能更优的选择
+          （这里是「移矮指针、丢掉的组合一定不会更大」），于是 O(n²) 的搜索塌缩成一条 O(n) 的路径。
+          很多「首尾向中间逼近」的题都靠这个论证。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/11-container-with-most-water/page.js"></script>
+  </body>
+</html>

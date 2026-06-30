@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>1. 两数之和 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 1 两数之和：暴力双循环为什么慢、哈希表一遍扫描如何把时间降到 O(n)、可交互动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/article.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/components/viz-player/viz-player.css" />
+    <link rel="stylesheet" href="/src/problems/1-two-sum/style.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          整个 LeetCode 的第一题，也是「用空间换时间」最经典的入门例子。
+          看完你会明白：一个哈希表，怎么把笨办法的两层循环压成轻轻一遍。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题 -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a id="statement-src" class="statement-src" data-i18n="stmt.src" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：题目到底要什么</h2>
+        <p>
+          给你一排数字和一个目标值 <code>target</code>，要你找出<strong>两个</strong>数，
+          它们加起来正好等于 <code>target</code>，返回这两个数的<strong>下标</strong>（不是数本身）。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[2, 7, 11, 15]</code></div>
+          <div><span class="example-box__label">target</span><code>9</code></div>
+          <p class="example-box__note">
+            2 + 7 = 9，它们在下标 0 和 1 → 返回 <code>[0, 1]</code>。
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. 暴力 -->
+      <section class="article__section">
+        <h2>🐢 第二步：最直接的笨办法</h2>
+        <p>
+          最容易想到的：拿每个数去和它<strong>后面的每个数</strong>两两相加，看有没有等于
+          <code>target</code> 的。两层循环，能做出来，但每个数都要把后面扫一遍。
+        </p>
+        <div class="callout callout--warn">
+          <strong>慢在哪：</strong>两层循环是 <code>O(n²)</code>。数组一长（题目里能到 10⁴），
+          就要算上亿次。问题的本质是——我们对「另一半在哪」这件事，<strong>每次都重新找</strong>。
+        </div>
+      </section>
+
+      <!-- 3. 哈希表 + 动画 -->
+      <section class="article__section">
+        <h2>⚡ 第三步：用哈希表「边走边记」</h2>
+        <p>
+          换个思路：扫到 <code>nums[i]</code> 时，我们其实只关心一件事——
+          前面有没有出现过 <code>target − nums[i]</code>（也就是「还差的那一半」need）。
+        </p>
+        <p>
+          于是边走边把<strong>见过的「值 → 下标」记进哈希表</strong>。到一个新数就先查表：
+          need 在不在？在就立刻配对成功；不在就把自己记进去。查表是 <code>O(1)</code>，
+          整个数组只扫一遍。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--hi"></i> 当前 nums[i]</span>
+          <span><i class="sw sw--src"></i> 已记入哈希表</span>
+          <span><i class="sw sw--ok"></i> 配对成功的另一半</span>
+        </div>
+        <div class="card viz-card">
+          <div id="ts-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把数组改成 <code>3,2,4</code>、target 改成 <code>6</code>，看它怎么跳过 3、用 2 配对 4。
+        </p>
+      </section>
+
+      <!-- 4. Java -->
+      <section class="article__section">
+        <h2>☕ 第四步：写成 Java 代码</h2>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">int</span>[] twoSum(<span class="ty">int</span>[] nums, <span class="ty">int</span> target) {
+        <span class="cm">// seen: 值 -> 下标，记录「见过的数」</span>
+        <span class="ty">Map</span>&lt;<span class="ty">Integer</span>, <span class="ty">Integer</span>&gt; seen = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">0</span>; i &lt; nums.length; i++) {
+            <span class="ty">int</span> need = target - nums[i]; <span class="cm">// 还差的那一半</span>
+            <span class="kw">if</span> (seen.containsKey(need)) {
+                <span class="kw">return</span> <span class="kw">new</span> <span class="ty">int</span>[]{seen.get(need), i};
+            }
+            seen.put(nums[i], i); <span class="cm">// 没配上，把自己记下来</span>
+        }
+        <span class="kw">return</span> <span class="kw">new</span> <span class="ty">int</span>[]{}; <span class="cm">// 题目保证有解，不会到这</span>
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n)</code>
+            <p>数组只扫一遍，每次查表 / 存表都是 O(1)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>最坏情况哈希表要存下几乎所有元素。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结</h2>
+        <div class="callout">
+          <strong>套路：</strong>当你发现「在数组里找另一个满足某关系的元素」时，
+          先想想能不能<strong>把见过的东西记进哈希表</strong>，把「查找」从 O(n) 变成 O(1)。
+          两数之和是这个套路的起点，后面很多题（如分组、去重、配对）都用它。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/1-two-sum/page.js"></script>
+  </body>
+</html>

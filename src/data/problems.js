@@ -4,6 +4,34 @@
  */
 export const problems = [
   {
+    id: 1,
+    slug: '1-two-sum',
+    title: '两数之和',
+    titleEn: 'Two Sum',
+    difficulty: '简单',
+    tags: ['数组', '哈希表'],
+    summary:
+      '在数组里找出和为 target 的两个数，返回下标。用哈希表「边走边记」，把暴力两层循环压成一遍 O(n)——空间换时间的经典起点。',
+    summaryEn:
+      'Find the two numbers in an array that add up to target and return their indices. A hash map turns the brute-force double loop into a single O(n) pass — the classic "trade space for time" starter.',
+    url: 'src/problems/1-two-sum/index.html',
+    status: 'done',
+  },
+  {
+    id: 11,
+    slug: '11-container-with-most-water',
+    title: '盛最多水的容器',
+    titleEn: 'Container With Most Water',
+    difficulty: '中等',
+    tags: ['贪心', '数组', '双指针'],
+    summary:
+      '一排竖线里选两条装最多的水。面积由矮边决定，双指针每次只移矮的那根，扫一遍 O(n)。双指针「确定性排除」论证的最佳一课。',
+    summaryEn:
+      'Pick two of the vertical lines that hold the most water. Area is capped by the shorter line, so two pointers always move the shorter one inward — one O(n) pass. The cleanest lesson in the two-pointer pruning argument.',
+    url: 'src/problems/11-container-with-most-water/index.html',
+    status: 'done',
+  },
+  {
     id: 139,
     slug: '139-word-break',
     title: '单词拆分',

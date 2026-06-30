@@ -1,0 +1,321 @@
+/*
+ * 题解页通用结构样式（全站新题共用）。
+ * 把「文章排版 / 题面区块 / 思路步骤卡片 / 复杂度 / 动画图例 / 难度标签」集中在这里，
+ * 每道题的页面只引这一个 + 自己的专属舞台样式，避免逐题复制粘贴。
+ *
+ * 同时在 .article 作用域定义一组「动画语义色」变量，供各题动画统一取用：
+ *   --hi  当前高亮      --src 次高亮/来源
+ *   --ok  正确/命中     --bad 错误/不命中
+ */
+
+.article {
+  padding-bottom: var(--space-section);
+
+  --hi: var(--cell-current);
+  --hi-bg: var(--cell-current-bg);
+  --src: var(--cell-source);
+  --src-bg: var(--cell-source-bg);
+  --ok: var(--color-success);
+  --ok-bg: oklch(94% 0.07 145);
+  --bad: oklch(62% 0.2 25);
+  --bad-bg: oklch(94% 0.06 25);
+  --gold: var(--color-warn);
+  --gold-bg: var(--cell-path-bg);
+}
+
+/* —— 标题区 —— */
+.article__header {
+  padding: var(--space-section) 0 var(--space-8);
+}
+.article__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.article__header h1 {
+  font-size: var(--text-hero);
+  margin: 0 0 var(--space-4);
+}
+.article__subtitle {
+  font-family: var(--font-mono);
+  color: var(--color-text-soft);
+  margin: 0 0 var(--space-4);
+}
+.article__lead {
+  font-size: var(--text-lg);
+  color: var(--color-text-soft);
+  max-width: 42rem;
+  margin: 0;
+}
+
+/* —— 小节 —— */
+.article__section {
+  margin-bottom: var(--space-section);
+}
+.article__section h2 {
+  font-size: var(--text-xl);
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid var(--color-border);
+}
+.article__section h3 {
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-2);
+}
+.article__section > p,
+.article__section > ul,
+.article__lead {
+  max-width: 70ch;
+}
+.article__section p {
+  margin: 0 0 var(--space-4);
+}
+.article__section ul {
+  margin: 0 0 var(--space-4);
+  padding-left: 1.3em;
+}
+.article__section li {
+  margin-bottom: var(--space-3);
+}
+.article__nav {
+  margin-top: var(--space-8);
+}
+
+/* —— 难度 / 标签（同首页 home.css） —— */
+.problem-card__id {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.problem-card__badge {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.1em 0.6em;
+  border-radius: 999px;
+  color: #fff;
+}
+.tag {
+  font-size: var(--text-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  padding: 0.1em 0.6em;
+  border-radius: var(--radius-sm);
+}
+
+/* —— 官方原题区块 —— */
+.statement-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid var(--color-border);
+}
+.statement-head h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: var(--text-xl);
+}
+.statement-src {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+.statement-tip {
+  margin-top: 0;
+  font-size: var(--text-sm);
+}
+.statement {
+  padding: var(--space-6) var(--space-8);
+}
+.statement p {
+  margin: 0 0 var(--space-4);
+}
+.statement strong {
+  color: var(--color-text);
+}
+.stmt-examples {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+}
+.stmt-example {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.stmt-example__title {
+  display: inline-block;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+.stmt-kv {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+.stmt-kv > span:first-child {
+  flex-shrink: 0;
+  min-width: 4rem;
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.stmt-constraints ul {
+  margin: var(--space-2) 0 0;
+  padding-left: 1.3em;
+}
+.stmt-constraints li {
+  margin-bottom: var(--space-1);
+}
+
+/* —— 例子框 —— */
+.example-box {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.example-box__label {
+  display: inline-block;
+  width: 3.5rem;
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.example-box__note {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-2);
+  margin: 0;
+}
+
+/* —— 思路步骤卡片（「三件套」式） —— */
+.dp-steps {
+  display: grid;
+  gap: var(--space-4);
+}
+.dp-step {
+  position: relative;
+  padding: var(--space-6) var(--space-6) var(--space-6) calc(var(--space-8) + 1.5rem);
+}
+.dp-step__num {
+  position: absolute;
+  left: var(--space-6);
+  top: var(--space-6);
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 800;
+}
+.dp-step__hint {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+/* —— 复杂度 —— */
+.complexity {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+.complexity > div {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.complexity__label {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-1);
+}
+.complexity code {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-accent);
+  background: none;
+  padding: 0;
+}
+.complexity p {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+
+/* —— 对比两列（子串 vs 子序列 这类） —— */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.compare__col {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+}
+.compare__col h3 {
+  color: var(--color-accent);
+}
+
+/* —— 动画图例 —— */
+.viz-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.viz-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.sw {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.sw--hi {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+}
+.sw--src {
+  border-color: var(--src);
+  background: var(--src-bg);
+}
+.sw--ok {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+.sw--bad {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+}
+.sw--gold {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+}
+
+@media (max-width: 640px) {
+  .complexity,
+  .compare {
+    grid-template-columns: 1fr;
+  }
+}

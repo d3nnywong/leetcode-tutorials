@@ -1,0 +1,86 @@
+/* 1. 两数之和 —— 动画舞台专属样式 */
+
+.ts__target {
+  font-size: var(--text-base);
+  color: var(--color-text-soft);
+}
+.ts__nums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ts__cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.ts__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.ts__idx {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.65rem;
+  color: var(--color-text-soft);
+}
+.ts__cell.is-stored {
+  background: var(--src-bg);
+  border-color: var(--src);
+}
+.ts__cell.is-current {
+  border-color: var(--hi);
+  background: var(--hi-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.ts__cell.is-match {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.ts__maplabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+.ts__map {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 2rem;
+  align-items: center;
+}
+.ts__chip {
+  font-size: 0.95rem;
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+.ts__chip.is-hit {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+  font-weight: 700;
+}
+.ts__empty {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 560px) {
+  .ts__cell {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}

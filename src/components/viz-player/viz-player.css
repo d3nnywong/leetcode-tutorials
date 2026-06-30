@@ -1,0 +1,103 @@
+/* VizPlayer 通用样式：输入区 / 控件 / 消息 / 结果。各题的「舞台」样式写在各自的 style.css。 */
+
+.viz {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* 输入区 */
+.viz__inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+.viz__inputs label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+.viz__in {
+  font: inherit;
+  font-family: var(--font-mono);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  width: 11rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.viz__in:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.viz__hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+
+/* 舞台容器（具体内容由各题填充） */
+.viz__stage {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+
+/* 步骤消息 */
+.viz__msg {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+  min-height: 3.4rem;
+  line-height: 1.6;
+}
+.viz__err {
+  color: var(--bad, oklch(62% 0.2 25));
+  font-weight: 600;
+}
+
+/* 控件 */
+.viz__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.viz__progress {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 结果横幅 */
+.viz__result {
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+  line-height: 1.6;
+  border: 1px solid;
+}
+.viz__result--success {
+  background: var(--ok-bg, oklch(94% 0.07 145));
+  border-color: var(--ok, oklch(60% 0.15 145));
+}
+.viz__result--fail {
+  background: var(--bad-bg, oklch(94% 0.06 25));
+  border-color: var(--bad, oklch(62% 0.2 25));
+}
+.viz__result--info {
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+}
+.viz__result code {
+  background: var(--color-surface);
+}
+
+@media (max-width: 560px) {
+  .viz__in {
+    width: 100%;
+  }
+}
