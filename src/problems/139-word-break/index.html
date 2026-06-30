@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>139. 单词拆分 · 零基础图解</title>
+    <meta
+      name="description"
+      content="从零基础讲透 LeetCode 139 单词拆分：把问题看成「切词」、暴力回溯的指针扫描动画、动态规划三件套、可交互的一维 DP 填表动画与 Java 题解。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='monospace' fill='white' text-anchor='middle' font-weight='bold'%3ELC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/components/app-shell/app-shell.css" />
+    <link rel="stylesheet" href="/src/components/toc/toc.css" />
+    <link rel="stylesheet" href="/src/components/notes/notes.css" />
+    <link rel="stylesheet" href="/src/components/code-copy/code-copy.css" />
+    <link rel="stylesheet" href="/src/problems/139-word-break/wordbreak.css" />
+  </head>
+  <body>
+    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="打开/关闭菜单">☰</button>
+
+    <div class="app">
+      <aside id="app-sidebar" class="sidebar"></aside>
+
+      <main class="app__main">
+        <div class="app__inner app__inner--wide doc-grid">
+          <article class="article">
+      <!-- 标题区（标题/难度/标签由 wordBreak.js 按语言渲染） -->
+      <header class="article__header">
+        <div id="article-meta" class="article__meta"></div>
+        <h1 id="article-title"></h1>
+        <p id="article-subtitle" class="article__subtitle"></p>
+        <p class="article__lead">
+          这是「字符串 + 动态规划」里最经典的入门题之一。我们先把题目翻译成大白话，
+          再用最笨的办法亲手试一遍，最后看它怎么被动态规划「驯服」。
+        </p>
+      </header>
+
+      <!-- 0. 官方原题（中/英可切换） -->
+      <section class="article__section">
+        <div class="statement-head">
+          <h2 data-i18n="stmt.heading"></h2>
+          <a
+            id="statement-src"
+            class="statement-src"
+            data-i18n="stmt.src"
+            target="_blank"
+            rel="noopener"
+          ></a>
+        </div>
+        <div class="callout statement-tip" data-i18n-html="stmt.tip"></div>
+        <div id="statement" class="statement card"></div>
+      </section>
+
+      <!-- 1. 把题目讲成人话 -->
+      <section class="article__section">
+        <h2>🧩 第一步：这题到底在问什么</h2>
+        <p>
+          抛开术语，它问的是一件很具体的事：能不能把字符串 <code>s</code>
+          <strong>切成若干段</strong>，让<strong>每一段都正好是词典里的一个词</strong>？
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">s</span><code>leetcode</code></div>
+          <div><span class="example-box__label">词典</span><code>["leet", "code"]</code></div>
+          <p class="example-box__note">
+            能切成 <code>leet</code> + <code>code</code>，两段都在词典里 → 返回 <strong>true</strong>。
+          </p>
+        </div>
+        <div class="callout">
+          两个容易忽略的规则：词典里的词<strong>不必全用</strong>，而且<strong>可以重复用</strong>。
+          比如 <code>applepenapple</code> 用 <code>apple</code>、<code>pen</code>、<code>apple</code>
+          就能拼出来。
+        </div>
+      </section>
+
+      <!-- 2. 暴力：指针扫描 -->
+      <section class="article__section">
+        <h2>🐢 第二步：先用最笨的办法——从左往右试着切</h2>
+        <p>
+          最自然的想法：从开头出发，试着切下一个「在词典里的词」，切成功就从断点往后接着切；
+          要是走到某处发现怎么都切不动，就<strong>退回去</strong>换一种切法。这其实就是一次
+          <strong>回溯搜索</strong>。
+        </p>
+        <p>下面这个动画你可以亲手点，看指针怎么一段段往前「啃」，遇到死路又怎么退回来：</p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--try-hit"></i> 命中词典的尝试</span>
+          <span><i class="sw sw--try-miss"></i> 不在词典的尝试</span>
+          <span><i class="sw sw--committed"></i> 已切好的段</span>
+        </div>
+        <div class="card viz-card">
+          <div id="scan-mount"></div>
+        </div>
+
+        <div class="callout callout--warn">
+          <strong>关键转折：</strong>暴力法会把<strong>同一个位置</strong>反复试很多遍——
+          从前面不同的切法走过来，都会再问一次「从这里能不能走通」。
+          动态规划的核心就是：<strong>每个位置只问一次，把答案记下来反复用</strong>。
+        </div>
+      </section>
+
+      <!-- 3. DP 三件套 -->
+      <section class="article__section">
+        <h2>🧠 第三步：动态规划三件套</h2>
+        <p>把「从某个位置能不能走通」这件事，正过来定义成一张一维的表：</p>
+
+        <div class="dp-steps">
+          <article class="dp-step card">
+            <span class="dp-step__num">1</span>
+            <h3>状态：dp[i] 表示什么？</h3>
+            <p>
+              <code>dp[i]</code> = 字符串 <code>s</code> 的<strong>前 i 个字符</strong>
+              能不能被切成若干个词典里的词（<code>true</code> / <code>false</code>）。
+            </p>
+            <p class="dp-step__hint">
+              最终答案就是 <code>dp[n]</code>（n 是 s 的长度）——整串能不能拆。
+            </p>
+          </article>
+
+          <article class="dp-step card">
+            <span class="dp-step__num">2</span>
+            <h3>转移：dp[i] 怎么由更小的问题推出来？</h3>
+            <p>
+              要判断「前 i 个字符」能不能拆，就枚举<strong>最后一个词的起点</strong>
+              <code>j</code>（<code>0 ≤ j &lt; i</code>）：
+            </p>
+            <ul>
+              <li>
+                如果 <code>dp[j]</code> 为真（前 j 个字符已经能拆），
+                <strong>并且</strong>子串 <code>s[j..i)</code> 正好是词典里的词，
+                那么前 i 个字符也能拆：<br />
+                <code>dp[i] = true</code>（找到一个这样的 j 就够了）。
+              </li>
+            </ul>
+          </article>
+
+          <article class="dp-step card">
+            <span class="dp-step__num">3</span>
+            <h3>边界：最小的情况是什么？</h3>
+            <p>
+              <code>dp[0]</code> 代表「空串」。空串不需要任何词就「拆」好了，
+              所以 <code>dp[0] = true</code>。它是整张表的地基——
+              第一个真正的词正是接在它后面的。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- 4. 一维 DP 动画 -->
+      <section class="article__section">
+        <h2>🎬 第四步：看 dp 数组一格一格点亮</h2>
+        <p>
+          下面这张一维表你可以亲自点。<code>dp</code> 的格子落在字符之间的「缝」上：
+          算 <code>dp[i]</code> 时，会回头看每个切点 <code>j</code> 的 <code>dp[j]</code>，
+          再检查中间那段子串 <code>s[j..i)</code> 在不在词典里。
+        </p>
+
+        <div class="viz-legend">
+          <span><i class="sw sw--current"></i> 正在算的 dp[i]</span>
+          <span><i class="sw sw--source"></i> 回看的 dp[j]</span>
+          <span><i class="sw sw--true"></i> 已确定可拆 (T)</span>
+        </div>
+        <div class="card viz-card">
+          <div id="dp-mount"></div>
+        </div>
+        <p class="dp-step__hint">
+          试试把词典改成 <code>leet,code,le,etcode</code>，或者把 s 改成
+          <code>catsandog</code>、词典改成 <code>cats,dog,sand,and,cat</code>，
+          看它怎么判定「拼不出来」。
+        </p>
+      </section>
+
+      <!-- 5. Java 代码 -->
+      <section class="article__section">
+        <h2>☕ 第五步：写成 Java 代码</h2>
+        <p>把三件套翻译成代码，几乎就是一一对应：</p>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
+    <span class="kw">public</span> <span class="ty">boolean</span> wordBreak(<span class="ty">String</span> s, <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; wordDict) {
+        <span class="cm">// 放进 HashSet，查一个词在不在词典里就是 O(1)</span>
+        <span class="ty">Set</span>&lt;<span class="ty">String</span>&gt; dict = <span class="kw">new</span> <span class="ty">HashSet</span>&lt;&gt;(wordDict);
+        <span class="ty">int</span> n = s.length();
+
+        <span class="cm">// dp[i]: s 的前 i 个字符能否被拆分</span>
+        <span class="ty">boolean</span>[] dp = <span class="kw">new</span> <span class="ty">boolean</span>[n + <span class="nm">1</span>];
+        dp[<span class="nm">0</span>] = <span class="kw">true</span>; <span class="cm">// 边界：空串天然「拆」好了</span>
+
+        <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nm">1</span>; i &lt;= n; i++) {
+            <span class="kw">for</span> (<span class="ty">int</span> j = <span class="nm">0</span>; j &lt; i; j++) {
+                <span class="cm">// 前 j 个字符能拆，且 s[j..i) 是词典里的词</span>
+                <span class="kw">if</span> (dp[j] &amp;&amp; dict.contains(s.substring(j, i))) {
+                    dp[i] = <span class="kw">true</span>;
+                    <span class="kw">break</span>; <span class="cm">// 找到一种切法就够了</span>
+                }
+            }
+        }
+        <span class="kw">return</span> dp[n];
+    }
+}</code></pre>
+        <div class="complexity">
+          <div>
+            <span class="complexity__label">时间复杂度</span>
+            <code>O(n²)</code>
+            <p>两层循环枚举 i、j；每次还要取子串并查哈希，约 O(n² · L)。</p>
+          </div>
+          <div>
+            <span class="complexity__label">空间复杂度</span>
+            <code>O(n)</code>
+            <p>一个长度 n+1 的 dp 数组，外加把词典装进哈希集合。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. 小结 -->
+      <section class="article__section">
+        <h2>🚀 小结：从「试切」到「记账」</h2>
+        <p>
+          单词拆分的精髓，是把「能不能切」这个会反复发生的问题，用一张 <code>dp</code> 表
+          <strong>记账</strong>：每个前缀只判一次，后面的判断直接查表。
+        </p>
+        <div class="callout">
+          <strong>套路迁移：</strong>很多「能否 / 有几种方法把序列切成合法段」的题
+          （比如解码方法、分割回文串的判定）都能套这个一维 DP 的框架：
+          <code>dp[i]</code> 由「枚举最后一段的起点 j」+「dp[j] 且 s[j..i) 合法」推出。
+          先想清楚<strong>状态 → 转移 → 边界</strong>，再写代码。
+        </div>
+      </section>
+
+          <nav class="article__nav">
+            <a id="back-link" class="btn" data-i18n="back.list"></a>
+          </nav>
+          </article>
+
+          <nav class="toc" id="toc" aria-label="本页目录"></nav>
+        </div>
+      </main>
+    </div>
+
+    <div id="sidebar-scrim" class="sidebar-scrim"></div>
+
+    <script type="module" src="/src/problems/139-word-break/wordBreak.js"></script>
+  </body>
+</html>

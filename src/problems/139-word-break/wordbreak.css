@@ -1,0 +1,586 @@
+/* 139 单词拆分 题解页专属样式
+ * 复用了 1143 页（lcs.css）与首页（home.css）里同款的「文章结构 / 标题标签」样式，
+ * 让每个题解页自包含、不依赖未引入的文件；下半部分是本页两个动画的专属样式。 */
+
+/* ===== 文章结构（同 lcs.css） ===== */
+.article {
+  padding-bottom: var(--space-section);
+}
+.article__header {
+  padding: var(--space-section) 0 var(--space-8);
+}
+.article__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.article__header h1 {
+  font-size: var(--text-hero);
+  margin: 0 0 var(--space-4);
+}
+.article__subtitle {
+  font-family: var(--font-mono);
+  color: var(--color-text-soft);
+  margin: 0 0 var(--space-4);
+}
+.article__lead {
+  font-size: var(--text-lg);
+  color: var(--color-text-soft);
+  max-width: 42rem;
+  margin: 0;
+}
+.article__section {
+  margin-bottom: var(--space-section);
+}
+.article__section h2 {
+  font-size: var(--text-xl);
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid var(--color-border);
+}
+.article__section h3 {
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-2);
+}
+.article__section > p,
+.article__section > ul,
+.article__lead {
+  max-width: 70ch;
+}
+.article__section p {
+  margin: 0 0 var(--space-4);
+}
+.article__section ul {
+  margin: 0 0 var(--space-4);
+  padding-left: 1.3em;
+}
+.article__section li {
+  margin-bottom: var(--space-3);
+}
+.article__nav {
+  margin-top: var(--space-8);
+}
+
+/* ===== 标题区的标签（同 home.css） ===== */
+.problem-card__id {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.problem-card__badge {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.1em 0.6em;
+  border-radius: 999px;
+  color: #fff;
+}
+.tag {
+  font-size: var(--text-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  padding: 0.1em 0.6em;
+  border-radius: var(--radius-sm);
+}
+
+/* ===== 官方原题区块（同 lcs.css） ===== */
+.statement-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid var(--color-border);
+}
+.statement-head h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: var(--text-xl);
+}
+.statement-src {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+.statement-tip {
+  margin-top: 0;
+  font-size: var(--text-sm);
+}
+.statement {
+  padding: var(--space-6) var(--space-8);
+}
+.statement p {
+  margin: 0 0 var(--space-4);
+}
+.statement strong {
+  color: var(--color-text);
+}
+.stmt-examples {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+}
+.stmt-example {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.stmt-example__title {
+  display: inline-block;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+.stmt-kv {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+.stmt-kv > span:first-child {
+  flex-shrink: 0;
+  min-width: 4rem;
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.stmt-constraints ul {
+  margin: var(--space-2) 0 0;
+  padding-left: 1.3em;
+}
+.stmt-constraints li {
+  margin-bottom: var(--space-1);
+}
+
+/* ===== 例子框 / DP 三件套 / 复杂度（同 lcs.css） ===== */
+.example-box {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.example-box__label {
+  display: inline-block;
+  width: 3rem;
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.example-box__note {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-2);
+  margin: 0;
+}
+.dp-steps {
+  display: grid;
+  gap: var(--space-4);
+}
+.dp-step {
+  position: relative;
+  padding: var(--space-6) var(--space-6) var(--space-6) calc(var(--space-8) + 1.5rem);
+}
+.dp-step__num {
+  position: absolute;
+  left: var(--space-6);
+  top: var(--space-6);
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 800;
+}
+.dp-step__hint {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+.complexity {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+.complexity > div {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+}
+.complexity__label {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-1);
+}
+.complexity code {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-accent);
+  background: none;
+  padding: 0;
+}
+.complexity p {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+
+/* ===== 动画图例 ===== */
+.viz-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.viz-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.sw {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.sw--try-hit {
+  border-color: var(--color-success);
+  background: var(--wb-hit-bg);
+}
+.sw--try-miss {
+  border-color: var(--wb-miss);
+  background: var(--wb-miss-bg);
+}
+.sw--committed {
+  border-color: var(--cell-source);
+  background: var(--cell-source-bg);
+}
+.sw--current {
+  border-color: var(--cell-current);
+  background: var(--cell-current-bg);
+}
+.sw--source {
+  border-color: var(--cell-source);
+  background: var(--cell-source-bg);
+}
+.sw--true {
+  border-color: var(--color-success);
+  background: var(--wb-hit-bg);
+}
+.viz-card {
+  padding: var(--space-6);
+}
+
+/* 本页动画用到的语义色（红色 miss 在全局 tokens 里没有，这里补） */
+.article {
+  --wb-hit-bg: oklch(94% 0.07 145);
+  --wb-miss: oklch(62% 0.2 25);
+  --wb-miss-bg: oklch(94% 0.06 25);
+}
+
+/* ===== 共用：输入区 / 控件 / 结果（两个动画一致） ===== */
+.ps__inputs,
+.dpa__inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+.ps__inputs label,
+.dpa__inputs label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+.ps__in,
+.dpa__in {
+  font: inherit;
+  font-family: var(--font-mono);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  width: 11rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.ps__in:focus-visible,
+.dpa__in:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.ps__hint,
+.dpa__hint {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+.ps__msg,
+.dpa__msg {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+  min-height: 3.4rem;
+  line-height: 1.6;
+  margin-top: var(--space-4);
+}
+.ps__controls,
+.dpa__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.ps__progress,
+.dpa__progress {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-variant-numeric: tabular-nums;
+}
+.ps__result,
+.dpa__result {
+  margin-top: var(--space-4);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-6);
+  line-height: 1.6;
+  border: 1px solid;
+}
+.ps__result--success,
+.dpa__result--success {
+  background: var(--wb-hit-bg);
+  border-color: var(--color-success);
+}
+.ps__result--fail,
+.dpa__result--fail {
+  background: var(--wb-miss-bg);
+  border-color: var(--wb-miss);
+}
+.ps__result code,
+.dpa__result code {
+  background: var(--color-surface);
+}
+
+/* ===== 指针扫描动画 ===== */
+.ps__stage {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+.ps__chars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+.ps__char {
+  position: relative;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.ps__char.is-committed {
+  background: var(--cell-source-bg);
+  color: var(--color-text);
+}
+.ps__char.is-seg-start {
+  border-left: 2px dashed var(--cell-source);
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
+}
+.ps__char.is-trying {
+  transform: translateY(-3px);
+}
+.ps__char.is-hit {
+  border-color: var(--color-success);
+  background: var(--wb-hit-bg);
+}
+.ps__char.is-miss {
+  border-color: var(--wb-miss);
+  background: var(--wb-miss-bg);
+}
+.ps__ptr {
+  position: absolute;
+  bottom: -1.15rem;
+  font-size: 0.7rem;
+  color: var(--color-accent);
+  font-style: normal;
+  opacity: 0;
+}
+.ps__char.is-pointer .ps__ptr {
+  opacity: 1;
+}
+.ps__dict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+}
+.ps__dict-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin-right: var(--space-1);
+}
+.ps__word {
+  font-size: 0.95rem;
+}
+
+/* ===== 一维 DP 数组动画 ===== */
+.dpa__board {
+  display: grid;
+  gap: var(--space-1);
+  overflow-x: auto;
+  padding: var(--space-2);
+}
+.dpa__row {
+  display: flex;
+  gap: 0;
+  min-width: max-content;
+}
+.dpa__char,
+.dpa__gap,
+.dpa__cell {
+  width: 2.8rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+.dpa__gap {
+  width: 1.4rem;
+}
+.dpa__char {
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration) var(--ease);
+}
+.dpa__char.is-sub {
+  background: var(--cell-current-bg);
+}
+.dpa__cell {
+  position: relative;
+  height: 2.8rem;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  transition: background var(--duration) var(--ease),
+    border-color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.dpa__cell b {
+  position: absolute;
+  top: -1.05rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+.dpa__val {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.dpa__cell.is-unknown {
+  border-style: dashed;
+  color: var(--color-text-soft);
+}
+.dpa__cell.is-true {
+  background: var(--wb-hit-bg);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+.dpa__cell.is-false {
+  background: var(--wb-miss-bg);
+  border-color: var(--wb-miss);
+  color: var(--wb-miss);
+}
+.dpa__cell.is-source {
+  border-color: var(--cell-source);
+  box-shadow: 0 0 0 2px var(--cell-source-bg);
+}
+.dpa__cell.is-current {
+  border-color: var(--cell-current);
+  background: var(--cell-current-bg);
+  transform: scale(1.12);
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.dpa__cell.is-justset {
+  animation: dpa-pop var(--duration) var(--ease);
+}
+@keyframes dpa-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1.12);
+  }
+}
+
+/* 顶部 dp 标签需要一点上边距，别贴住上一块 */
+.dpa__row--cells {
+  margin-top: 1.1rem;
+}
+
+@media (max-width: 640px) {
+  .complexity {
+    grid-template-columns: 1fr;
+  }
+  .ps__char {
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 0.95rem;
+  }
+  .dpa__char,
+  .dpa__cell {
+    width: 2.3rem;
+  }
+  .dpa__gap {
+    width: 1.15rem;
+  }
+  .ps__in,
+  .dpa__in {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps__char,
+  .dpa__cell,
+  .dpa__char {
+    transition: none;
+  }
+  .dpa__cell.is-justset {
+    animation: none;
+  }
+  .ps__char.is-trying {
+    transform: none;
+  }
+}
