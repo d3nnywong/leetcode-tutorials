@@ -8,7 +8,15 @@
  * 语言：中 / EN 切换，题目标题与界面文案随之切换（深入讲解正文保持中文）。
  */
 import { problems } from '../../data/problems.js'
-import { getLang, setLang, onLang, applyStatic, CATEGORIES, categoryName } from '../../lib/i18n.js'
+import {
+  getLang,
+  setLang,
+  onLang,
+  applyStatic,
+  CATEGORIES,
+  categoryName,
+  categoryDesc,
+} from '../../lib/i18n.js'
 
 export function mountAppShell({ activeSlug = null } = {}) {
   const sidebar = document.querySelector('#app-sidebar')
@@ -99,7 +107,10 @@ export function mountAppShell({ activeSlug = null } = {}) {
         const items = byCat.get(c.zh)
         const open = searching || c.zh === activeCat
         return `<li class="sidebar__group${open ? ' is-open' : ''}">
-          <button type="button" class="sidebar__cat" aria-expanded="${open}">
+          <button type="button" class="sidebar__cat" aria-expanded="${open}" title="${categoryDesc(
+            c.zh,
+            lang,
+          )}">
             <span class="sidebar__caret" aria-hidden="true"></span>
             <span class="sidebar__cat-name">${categoryName(c.zh, lang)}</span>
             <span class="sidebar__cat-count">${items.length}</span>

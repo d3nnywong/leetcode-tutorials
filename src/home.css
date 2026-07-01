@@ -61,6 +61,14 @@
   font-size: var(--text-sm);
   color: var(--color-text-soft);
 }
+.cat-desc {
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-4);
+  max-width: 70ch;
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+  line-height: 1.6;
+}
 
 .problem-list {
   list-style: none;

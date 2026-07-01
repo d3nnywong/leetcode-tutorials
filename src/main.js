@@ -2,7 +2,7 @@
 import { problems, difficultyColor } from './data/problems.js'
 import { mountAppShell } from './components/app-shell/appShell.js'
 import { mountNotes } from './components/notes/notes.js'
-import { getLang, onLang, difficulty, tag, CATEGORIES, categoryName } from './lib/i18n.js'
+import { getLang, onLang, difficulty, tag, CATEGORIES, categoryName, categoryDesc } from './lib/i18n.js'
 
 mountAppShell({ activeSlug: null })
 mountNotes({ key: 'home', title: { zh: '学习总笔记', en: 'My Notes' } })
@@ -58,6 +58,7 @@ function renderCards() {
           <span class="cat-heading__name">${categoryName(c.zh, lang)}</span>
           <span class="cat-count">${list.length}</span>
         </h3>
+        <p class="cat-desc">${categoryDesc(c.zh, lang)}</p>
         <ul class="problem-list">${cards}</ul>
       </section>`
     })

@@ -178,27 +178,122 @@ export function tag(zh, lang = getLang()) {
 
 /* ---------- 专题分类（首页 / 侧边栏分组，顺序即展示顺序）---------- */
 export const CATEGORIES = [
-  { zh: '数组与哈希', en: 'Arrays & Hashing' },
-  { zh: '双指针', en: 'Two Pointers' },
-  { zh: '滑动窗口', en: 'Sliding Window' },
-  { zh: '栈', en: 'Stack' },
-  { zh: '二分查找', en: 'Binary Search' },
-  { zh: '链表', en: 'Linked List' },
-  { zh: '树', en: 'Trees' },
-  { zh: '字典树', en: 'Tries' },
-  { zh: '堆', en: 'Heap / Priority Queue' },
-  { zh: '回溯', en: 'Backtracking' },
-  { zh: '图', en: 'Graphs' },
-  { zh: '高级图论', en: 'Advanced Graphs' },
-  { zh: '一维 DP', en: '1-D DP' },
-  { zh: '二维 DP', en: '2-D DP' },
-  { zh: '贪心', en: 'Greedy' },
-  { zh: '区间', en: 'Intervals' },
-  { zh: '数学与几何', en: 'Math & Geometry' },
-  { zh: '位运算', en: 'Bit Manipulation' },
+  {
+    zh: '数组与哈希',
+    en: 'Arrays & Hashing',
+    descZh: '最基础的一类——数据排成一行（数组），或用「查号簿」式的哈希表做到瞬间查找。',
+    descEn: 'The most basic group — data in a row (arrays), or instant lookup via a phone-book-like hash table.',
+  },
+  {
+    zh: '双指针',
+    en: 'Two Pointers',
+    descZh: '用两个位置标记从两端或同向移动，往往一趟扫描就能解决问题。',
+    descEn: 'Two position markers move from both ends or in tandem, often solving it in a single pass.',
+  },
+  {
+    zh: '滑动窗口',
+    en: 'Sliding Window',
+    descZh: '维护一个可伸缩的「窗口」在字符串/数组上滑动，求满足条件的最优子段。',
+    descEn: 'Slide a stretchable "window" across a string/array to find the best qualifying subsegment.',
+  },
+  {
+    zh: '栈',
+    en: 'Stack',
+    descZh: '像一摞盘子，只能从顶上放和取（后进先出），适合处理「就近配对 / 撤销」。',
+    descEn: 'Like a stack of plates — add and remove only at the top (LIFO); great for nearest-match or undo.',
+  },
+  {
+    zh: '二分查找',
+    en: 'Binary Search',
+    descZh: '在有序数据里每次砍掉一半范围地猜，像猜数字游戏，极快。',
+    descEn: 'In sorted data, halve the search range with each guess — like the number-guessing game, very fast.',
+  },
+  {
+    zh: '链表',
+    en: 'Linked List',
+    descZh: '一串珠子，每颗攥着下一颗的位置；练的是指针的穿针引线。',
+    descEn: "A string of beads, each holding the next one's location; it's all about pointer wiring.",
+  },
+  {
+    zh: '树',
+    en: 'Trees',
+    descZh: '像家谱，一个节点下面挂着子节点；大量问题靠「递归地处理左右子树」。',
+    descEn: 'Like a family tree, each node hanging children; many problems recurse over the left and right subtrees.',
+  },
+  {
+    zh: '字典树',
+    en: 'Tries',
+    descZh: '把很多单词按字母一层层挂成一棵树，公共前缀共用一条路，查前缀飞快。',
+    descEn: 'Hang many words letter by letter into a tree; shared prefixes share a path, making prefix lookup fast.',
+  },
+  {
+    zh: '堆',
+    en: 'Heap / Priority Queue',
+    descZh: '一个能随时快速取出最大或最小值的「桶」，完全不用把所有数排序。',
+    descEn: 'A "bucket" that instantly hands you the largest or smallest value without sorting everything.',
+  },
+  {
+    zh: '回溯',
+    en: 'Backtracking',
+    descZh: '像走迷宫，一条路走到黑，不行就退回上个岔口换一条，穷举所有可能。',
+    descEn: 'Like a maze — go until stuck, back up to the last fork, try another branch; enumerate every option.',
+  },
+  {
+    zh: '图',
+    en: 'Graphs',
+    descZh: '一堆点和连着它们的线（像地图上的城市与公路），用 DFS/BFS 遍历。',
+    descEn: 'Dots and the lines connecting them (like cities and roads on a map), traversed with DFS/BFS.',
+  },
+  {
+    zh: '高级图论',
+    en: 'Advanced Graphs',
+    descZh: '图的进阶玩法，比如按依赖关系排出先后顺序（拓扑排序）。',
+    descEn: 'Advanced graph techniques, such as ordering things by their dependencies (topological sort).',
+  },
+  {
+    zh: '一维 DP',
+    en: '1-D DP',
+    descZh: '动态规划：把大问题拆成小问题，答案记在一排格子里、每个只算一次。',
+    descEn: 'Dynamic programming: break a big problem into small ones and cache each answer in a row of cells.',
+  },
+  {
+    zh: '二维 DP',
+    en: '2-D DP',
+    descZh: '动态规划的进阶，答案记在一张二维表里（常见于两个序列或网格）。',
+    descEn: 'DP on a 2-D table — common when comparing two sequences or walking a grid.',
+  },
+  {
+    zh: '贪心',
+    en: 'Greedy',
+    descZh: '每一步都只挑「眼前最划算」的选择、绝不回头，却正好能得到最优解。',
+    descEn: 'At each step pick the locally best option and never look back — yet still reach the optimum.',
+  },
+  {
+    zh: '区间',
+    en: 'Intervals',
+    descZh: '处理一段段「开始-结束」的区间（如会议时段），常靠先排序再扫描。',
+    descEn: 'Handle "start–end" ranges (like meeting slots), usually by sorting first and then sweeping.',
+  },
+  {
+    zh: '数学与几何',
+    en: 'Math & Geometry',
+    descZh: '靠数字规律，或在网格/矩阵上按几何方式操作，少套路、多观察。',
+    descEn: 'Number patterns, or geometric moves on a grid/matrix — more observation than templates.',
+  },
+  {
+    zh: '位运算',
+    en: 'Bit Manipulation',
+    descZh: '数字在计算机里都是 0/1 组成的，直接逐位操作，又快又省。',
+    descEn: 'Numbers are made of 0s and 1s inside a computer; operate bit by bit — fast and lean.',
+  },
 ]
 
 export function categoryName(zh, lang = getLang()) {
   const c = CATEGORIES.find((x) => x.zh === zh)
   return c ? (lang === 'en' ? c.en : c.zh) : zh
+}
+
+export function categoryDesc(zh, lang = getLang()) {
+  const c = CATEGORIES.find((x) => x.zh === zh)
+  return c ? (lang === 'en' ? c.descEn : c.descZh) : ''
 }
