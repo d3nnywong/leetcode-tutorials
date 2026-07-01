@@ -36,8 +36,10 @@
         <h1 id="article-title"></h1>
         <p id="article-subtitle" class="article__subtitle"></p>
         <p class="article__lead">
-          一张无向图，什么时候才算是一棵「树」？这题是并查集（Union-Find）最经典的应用之一：
-          看完你会明白，判断「成不成树」其实只需要两个条件——边数刚刚好、并且不能有环。
+          一堆点，加上一些连接它们的线——这就是「图」。这道题问的是：这张图连起来后，
+          什么时候才正好是一棵「树」？我们会顺手认识一个很好用的工具——并查集（Union-Find），
+          专门用来快速判断「这几个点是不是已经连成一伙了」。看完你会明白，判断「成不成树」
+          其实只需要两个条件——边数刚刚好、并且不能有环。
         </p>
       </header>
 
@@ -55,9 +57,16 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
-          给你 <code>n</code> 个节点（编号 <code>0</code> 到 <code>n - 1</code>）和一些
-          <strong>无向</strong>边 <code>edges</code>。问：把这些边连起来，能不能正好拼成
-          <strong>一棵树</strong>？
+          先把几个词说人话。<strong>图</strong>就是一堆「点」加上连着这些点的「线」——
+          比如地图上的城市是点，城市之间的公路是线。图论里，点就叫<strong>节点</strong>，
+          线就叫<strong>边</strong>。
+        </p>
+        <p>
+          这道题给你 <code>n</code> 个节点（编号 <code>0</code> 到 <code>n - 1</code>）和一些
+          边 <code>edges</code>，而且这些边是<strong>无向</strong>的——意思是一条边
+          <code>[a, b]</code> 表示 a、b 之间有一条<strong>双向都能走</strong>的路，
+          不像单行道那样只能往一个方向走，也不像箭头图那样有「谁指向谁」的区别。
+          问题问的是：把这些边连起来，能不能正好拼成<strong>一棵树</strong>？
         </p>
         <div class="example-box">
           <div><span class="example-box__label">n</span><code>5</code></div>
@@ -67,10 +76,19 @@
             → 是一棵合法的树，返回 <code>true</code>。
           </p>
         </div>
-        <p>
-          回忆一下「树」的定义：<strong>连通</strong>（所有节点之间都能走到），并且<strong>无环</strong>
-          （任意两个节点之间只有唯一一条路径）。这道题就是要写代码去验证这两件事。
-        </p>
+        <p>回忆一下「树」要满足的两个条件：</p>
+        <ul>
+          <li>
+            <strong>连通</strong>：任意两个节点之间，顺着边都能走到彼此，不能有节点被孤零零地晾在外面。
+          </li>
+          <li>
+            <strong>无环</strong>：不能存在一条「绕回去」的路——比如从节点 0 出发，
+            经过 1、2，最后又有一条边把 2 和 0 连起来，绕成一个三角形，首尾相连，
+            这就是一个<strong>环</strong>。是树的话，任意两个节点之间只能有唯一一条路径，
+            不允许有环。
+          </li>
+        </ul>
+        <p>这道题就是要写代码去验证这两件事。</p>
       </section>
 
       <!-- 2. 关键洞察 -->
@@ -100,22 +118,27 @@
       <section class="article__section">
         <h2>⚡ 第三步：用并查集一边合并一边判环</h2>
         <p>
-          并查集维护「每个节点属于哪个连通分量」，每个分量有一个代表元素（根）。两个核心操作：
+          要判断「有没有环」，我们需要一个能快速回答「这两个节点是不是已经连在一起了」的小工具——
+          这就是<strong>并查集（Union-Find）</strong>。它的思路很朴素：把所有节点分成一伙一伙的，
+          同一伙里的节点顺着边都能互相走到（这一伙术语上叫一个<strong>连通分量</strong>），
+          每一伙推举一个「代表」（术语上叫这一伙的<strong>根</strong>）。以后只要比一比
+          两个节点各自的代表是不是同一个，就能马上知道它们在不在同一伙里，不用每次都重新顺着边去走一遍。
         </p>
+        <p>并查集只有两个核心操作：</p>
         <ul>
-          <li><strong>find(x)</strong>：顺着 <code>parent</code> 指针一路往上找，找到 x 所在分量的根。</li>
-          <li><strong>union(a, b)</strong>：把 a、b 两个分量合并成一个（让一个根指向另一个根）。</li>
+          <li><strong>find(x)</strong>：顺着 <code>parent</code> 指针一路往上找，找到 x 这一伙的代表（根）。</li>
+          <li><strong>union(a, b)</strong>：把 a、b 所在的两伙合并成一伙（让一个代表指向另一个代表）。</li>
         </ul>
         <p>
-          逐条处理边 <code>[a, b]</code>：先 <code>find(a)</code>、<code>find(b)</code>。
-          如果两个根<strong>相同</strong>，说明 a、b 早就在同一个分量里了——这条边纯属多余，
-          连上去就会绕出一个环，直接判 <code>false</code>；如果根<strong>不同</strong>，
-          就把两个分量合并，继续看下一条边。
+          逐条处理边 <code>[a, b]</code>：先用 <code>find(a)</code>、<code>find(b)</code> 查出两边各自的代表。
+          如果两个代表<strong>相同</strong>，说明 a、b 早就在同一伙里了——这条边纯属多余，
+          连上去就会绕出一个环，直接判 <code>false</code>；如果代表<strong>不同</strong>，
+          说明两边原本是不相干的两伙人，就把它们合并成一伙，继续看下一条边。
         </p>
         <p>
           边数已经在第一步确认是 <code>n − 1</code> 条了，只要这 <code>n − 1</code> 条边
-          一条都没触发「同根」，就说明全程没有环，而且每条边都成功合并了两个分量——
-          n 个节点最少合并 n − 1 次才能并成 1 个分量，次数刚好够，图必然全部连通成一整块。
+          一条都没触发「同一伙」，就说明全程没有环，而且每条边都成功把两伙合并成了一伙——
+          n 个节点最少要合并 n − 1 次才能全部并成 1 伙，次数刚好够，图必然全部连通成一整块。
         </p>
 
         <div class="viz-legend">

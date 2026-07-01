@@ -55,9 +55,11 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
-          给你一串股价 <code>prices</code>，<code>prices[i]</code> 是第 <code>i</code> 天的价格。
-          你只能<strong>买一次、卖一次</strong>，而且必须<strong>先买后卖</strong>（卖出那天得在买入那天之后）。
-          求能赚到的最大利润；如果怎么买卖都亏，返回 <code>0</code>。
+          给你一串股价 <code>prices</code>，<code>prices[i]</code> 表示第 <code>i</code> 天这只股票的价格。
+          规则很简单：你手里最多只能<strong>买一次、卖一次</strong>，而且必须<strong>先买后卖</strong>
+          ——这好理解，你得先把股票买到手，才有得卖，所以卖出那天肯定在买入那天之后。
+          任务是求出你能赚到的<strong>最大利润</strong>；如果不管怎么选，买卖都是亏本的，
+          就返回 <code>0</code>（相当于「干脆不做这笔交易」，不买不卖也不算错）。
         </p>
         <div class="example-box">
           <div><span class="example-box__label">prices</span><code>[7, 1, 5, 3, 6, 4]</code></div>
@@ -71,14 +73,17 @@
       <section class="article__section">
         <h2>🐢 第二步：最直接的笨办法</h2>
         <p>
-          最容易想到的：枚举每一对「买入日 <code>i</code> 、卖出日 <code>j</code>」（<code>j &gt; i</code>），
-          算出 <code>prices[j] − prices[i]</code>，取所有结果里的最大值。两层循环，能做出来，
-          但买入日和卖出日各扫一遍，组合数是 <code>O(n²)</code>。
+          最容易想到的办法：把每一对「买入日 <code>i</code>、卖出日 <code>j</code>」（<code>j &gt; i</code>，卖必须在买之后）
+          都拿出来试一遍——这叫<strong>枚举</strong>，说白了就是「不放过任何一种可能，一个个都试」。
+          对每一对算出 <code>prices[j] − prices[i]</code>，从所有结果里挑出最大的那个。
+          买入日、卖出日各转一圈，写成代码就是两层嵌套的循环，两边一乘，组合数就是 <code>O(n²)</code>。
         </p>
         <div class="callout callout--warn">
-          <strong>慢在哪：</strong>题目里 <code>n</code> 能到 10⁵，平方就是 10¹⁰，远超能接受的计算量。
-          问题的本质是——枚举每个卖出日 <code>j</code> 时，我们<strong>没必要</strong>把前面所有买入日都重新比一遍，
-          只要知道「<code>j</code> 之前最低的价格是多少」就够了。
+          <strong>慢在哪：</strong>题目里 <code>n</code>（股价的天数）能到 10⁵，平方就是 10¹⁰，
+          这是电脑在合理时间内根本算不完的规模。真正浪费在哪呢——枚举每个卖出日 <code>j</code> 时，
+          我们其实<strong>没必要</strong>把它前面所有买入日的价格都重新比一遍，
+          只要记得「<code>j</code> 之前出现过的最低价格是多少」就够了：因为不管买在哪一天，
+          只要不是那个最低价的那天买入，算出来的利润都不会更高。
         </div>
       </section>
 
@@ -86,19 +91,30 @@
       <section class="article__section">
         <h2>⚡ 第三步：一遍扫描，边走边记「历史最低价」</h2>
         <p>
-          换个思路：从左往右扫一遍，边走边记<strong>目前为止见过的最低价</strong> <code>minPrice</code>
-          ——它就是「到当前这一天为止」最划算的买入点。
+          换个思路：只从左往右扫一遍，边走边记住<strong>目前为止见过的最低价</strong> <code>minPrice</code>
+          ——它就是「如果今天要卖出，这些天里最划算的买入点」。这样走到新的一天时，
+          我们都不用回头再看一遍前面所有的价格，因为最有用的那个信息（历史最低价）已经随身带着了。
         </p>
         <p>
-          走到第 <code>i</code> 天时：
+          走到第 <code>i</code> 天时，只有两种可能：
         </p>
         <ul>
-          <li>如果今天价格 <strong>比 <code>minPrice</code> 还低</strong>，说明它才是更好的买入点，更新 <code>minPrice</code>。</li>
-          <li>否则，今天可以当卖出日，算一下「今天价格 − <code>minPrice</code>」这笔利润，
+          <li>如果今天的价格 <strong>比 <code>minPrice</code> 还低</strong>，说明今天才是更好的买入点，于是更新
+            <code>minPrice</code>。（这一天不用算利润——如果今天的价格就是目前最低的，
+            拿它当买入价再减它自己当卖出价，利润是 0，不可能比之前算过的记录更好。）</li>
+          <li>否则，说明今天的价格不低于历史最低价，那今天就可以当一个候选的卖出日：
+            算一下「今天价格 − <code>minPrice</code>」这笔利润，
             如果比历史最大利润 <code>maxProfit</code> 还大，就刷新答案。</li>
         </ul>
         <p>
-          全程只扫一遍、不回头，相当于把「枚举所有买卖组合」压缩成「每天只跟历史最低价比一次」，<code>O(n)</code>。
+          拿题目给的例子 <code>[7, 1, 5, 3, 6, 4]</code> 亲手走一遍：第 0 天价格 7，<code>minPrice</code> 先设成 7；
+          第 1 天价格 1 比 7 还低，<code>minPrice</code> 更新成 1；第 2 天价格 5，5 − 1 = 4，把 <code>maxProfit</code> 刷新成 4；
+          第 3 天价格 3，3 − 1 = 2，不够大，<code>maxProfit</code> 保持 4；第 4 天价格 6，6 − 1 = 5，刷新 <code>maxProfit</code> 为 5；
+          第 5 天价格 4，4 − 1 = 3，不够大。扫完一遍，答案就是 5——正好对应「第 1 天买、第 4 天卖」。
+        </p>
+        <p>
+          全程只扫一遍、不回头，相当于把「枚举所有买卖组合」压缩成「每天只跟历史最低价比一次」，
+          复杂度从 <code>O(n²)</code> 降到 <code>O(n)</code>。
         </p>
 
         <div class="viz-legend">
@@ -153,9 +169,10 @@
       <section class="article__section">
         <h2>🚀 小结</h2>
         <div class="callout">
-          <strong>套路：</strong>当答案依赖「某个位置之前的最优值」时（这里是「之前的最低价」），
+          <strong>套路：</strong>当答案依赖「某个位置之前的最优值」时（这里是「之前出现过的最低价」，
+          这类值也叫<strong>前缀最值</strong>——从开头到当前位置为止，见过的最大或最小的那个数），
           不需要每次都重新枚举，<strong>边扫边维护这个最优值</strong>，就能把 O(n²) 的枚举压成 O(n) 的一遍扫描。
-          这是「前缀最值」类问题的通用解法，后面遇到「求区间内某种最大差值」的题都可以往这个方向想。
+          后面遇到「求区间/序列内某种最大差值」的题，都可以往这个方向想一想。
         </div>
       </section>
 

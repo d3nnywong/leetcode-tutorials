@@ -74,17 +74,24 @@
         <p>
           最容易想到的：先把所有数乘起来得到总乘积 <code>total</code>，
           然后 <code>answer[i] = total / nums[i]</code> 就完了——可惜题目明确<strong>禁止用除法</strong>，
-          而且如果数组里有 <code>0</code>，这个除法直接就崩了（除以 0，或者总乘积本来就是 0，
-          没法反推出原来的某一项）。
+          而且如果数组里有 <code>0</code>，这个除法直接就崩了。
+          举个例子：<code>nums = [1, 0, 3]</code>，<code>total = 1×0×3 = 0</code>。
+          对 <code>i = 1</code>（也就是那个 0 自己）来说，我们想要的答案其实是 1×3 = 3，
+          可是 <code>total / nums[1]</code> 是 <code>0 ÷ 0</code>，根本没法算；
+          对其他位置来说，<code>total</code> 本身就是 0，随便除出来也全是 0，答案就错了。
         </p>
         <p>
-          那就老老实实来：对每个 <code>i</code>，把数组里<strong>除它以外</strong>的所有数再扫一遍乘起来。
-          两层循环，<code>O(n²)</code>，n 能到 10⁵ 就会超时。
+          那就老老实实来：对每个 <code>i</code>，把数组里<strong>除它以外</strong>的所有数再扫一遍乘起来
+          （也就是每个位置都单独跑一次「从头乘到尾，但跳过自己」）。
+          这样里外两层循环，行话叫 <code>O(n²)</code>（数组每多一个数，要做的运算量就大约翻着法儿地增长），
+          n 能到 10⁵ 就会跑到超时。
         </p>
         <div class="callout callout--warn">
-          <strong>关键观察：</strong><code>answer[i]</code> 其实就是「<strong>i 左边的乘积</strong>」
-          乘上「<strong>i 右边的乘积</strong>」。如果能把「每个位置左边的乘积」和
-          「每个位置右边的乘积」都预先算好，那对每个 <code>i</code> 就只剩一次乘法了。
+          <strong>关键观察：</strong>把数组想象成一排站好的人，你就是下标 <code>i</code> 那一个。
+          「除了你自己之外，其他所有人乘起来是多少」，其实就是「<strong>你左边所有人的乘积</strong>」
+          乘上「<strong>你右边所有人的乘积</strong>」——因为这两拨人合起来，正好就是「除了你之外的所有人」。
+          如果能把「每个位置左边的乘积」和「每个位置右边的乘积」都预先算好、记下来，
+          那对每个 <code>i</code> 就只剩下把两个记好的数乘一下，不用再重新扫一遍数组了。
         </div>
       </section>
 
@@ -92,18 +99,37 @@
       <section class="article__section">
         <h2>⚡ 第三步：前缀积 × 后缀积，三遍扫描搞定</h2>
         <p>
-          定义两个辅助数组：
+          顺着上面这个「左边乘积 × 右边乘积」的想法，我们准备两个帮忙用的数组，
+          专门记「每个位置左边／右边分别乘到多少了」：
         </p>
         <ul>
-          <li><code>left[i]</code> = <code>nums[0..i-1]</code> 的乘积（i 左边所有数乘起来；
-            <code>left[0] = 1</code>，因为左边没有数，乘积约定为 1）。</li>
-          <li><code>right[i]</code> = <code>nums[i+1..n-1]</code> 的乘积（i 右边所有数乘起来；
-            最后一位 <code>right[n-1] = 1</code>，同理）。</li>
+          <li><code>left[i]</code>：下标 0 到 i-1 这些位置乘起来的结果（也就是 <strong>i 左边所有数</strong>的乘积，
+            不包含 <code>nums[i]</code> 自己）。规定 <code>left[0] = 1</code>——
+            因为 0 号位置左边什么数都没有，「什么都没有的乘积」按数学习惯记成 1
+            （就像什么都不买、账单是 0 元一样，乘法里「空」记成 1 才不会把后面的乘法结果搞乱）。</li>
+          <li><code>right[i]</code>：下标 i+1 到最后这些位置乘起来的结果（也就是 <strong>i 右边所有数</strong>的乘积）。
+            同理，最后一位右边没有数，<code>right[n-1] = 1</code>。</li>
         </ul>
         <p>
-          <code>left</code> 从左往右边走边乘一遍就能算完，<code>right</code> 从右往左边走边乘一遍也能算完，
-          各自都是 <code>O(n)</code>。最后 <code>answer[i] = left[i] × right[i]</code>，
-          再扫一遍 <code>O(n)</code>。全程没有除法，三遍线性扫描，总共还是 <code>O(n)</code>。
+          <code>left</code> 怎么一遍就算完：从左往右走，<code>left[i] = left[i-1] × nums[i-1]</code>——
+          「i 左边的乘积」就是「i-1 左边的乘积」再多乘上 <code>nums[i-1]</code>
+          （因为往右挪一格，i-1 号这个数也被纳入「左边」了）。<code>right</code> 同理，
+          只是方向反过来，从右往左走：<code>right[i] = right[i+1] × nums[i+1]</code>。
+          两个数组各自只需要扫一遍（专业说法叫「线性扫描」，就是老老实实从头走到尾或从尾走到头），
+          各自都是 <code>O(n)</code>。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">nums</span><code>[1, 2, 3, 4]</code></div>
+          <p class="example-box__note">
+            left = <code>[1, 1, 2, 6]</code>（left[1]=1×1=1，left[2]=1×2=2，left[3]=2×3=6）<br />
+            right = <code>[24, 12, 4, 1]</code>（right[2]=1×4=4，right[1]=4×3=12，right[0]=12×2=24）<br />
+            逐位相乘 answer[i] = left[i] × right[i] → <code>[24, 12, 8, 6]</code>，
+            和第一步手算的结果完全一致。
+          </p>
+        </div>
+        <p>
+          最后 <code>answer[i] = left[i] × right[i]</code>，再扫一遍 <code>O(n)</code>。
+          全程没有出现除法，三遍线性扫描，加起来总共还是 <code>O(n)</code>。
         </p>
 
         <div class="viz-legend">
@@ -126,10 +152,14 @@
         <h2>☕ 第四步：写成 Java 代码（顺手把空间也省掉）</h2>
         <p>
           动画里用了 <code>left</code>、<code>right</code> 两个数组方便讲清楚原理，
-          实际写代码时可以更省内存：先把「前缀积」直接写进 <code>answer</code> 数组里（相当于省掉了
-          <code>left</code>），再从右往左用<strong>一个变量</strong>滚动维护「后缀积」，边乘边写回
-          <code>answer</code>（相当于省掉了 <code>right</code>）。这样除了输出数组，只多用了一个变量，
-          额外空间降到 <code>O(1)</code>。
+          但真正写代码时其实不用真的开两个数组，还能再省一点内存：
+          第一遍从左往右，直接把「前缀积」（也就是 left）写进 <code>answer</code> 数组里，
+          让 <code>answer</code> 先临时兼职当 <code>left</code> 用；
+          第二遍从右往左，不再需要一整个 <code>right</code> 数组，只用<strong>一个变量</strong>
+          （代码里叫它 <code>suffix</code>）就够了——它一边往左走，一边把「目前为止乘到的后缀积」
+          随身带着更新，每走一步就用它去乘一下 <code>answer[i]</code>，再把自己也乘上
+          <code>nums[i]</code> 准备下一步用。这样一个变量就顶替了整个 <code>right</code> 数组的作用。
+          算下来除了输出数组，只多用了这一个变量，额外空间降到 <code>O(1)</code>。
         </p>
         <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
     <span class="kw">public</span> <span class="ty">int</span>[] productExceptSelf(<span class="ty">int</span>[] nums) {

@@ -55,14 +55,20 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
-          给你一个 <code>m</code> 行 <code>n</code> 列的矩阵，要你按
-          <strong>顺时针螺旋</strong>的顺序把所有元素「读出来」，拼成一维数组返回。
+          先说清楚「矩阵」是什么：它就是一张有 <code>m</code> 行、<code>n</code> 列的表格
+          （跟 Excel 表格差不多），每个格子里放一个数字。题目要你按
+          <strong>顺时针螺旋</strong>的顺序——也就是先往右走、再往下走、再往左走、再往上走，
+          跟时钟指针转动的方向一样——把矩阵里所有数字依次「读出来」，
+          再按读到的先后顺序拼成一条<strong>一维数组</strong>（说白了就是一串排成一行的数字，
+          不再分行分列）返回。
         </p>
         <div class="example-box">
           <div><span class="example-box__label">matrix</span><code>[[1,2,3],[4,5,6],[7,8,9]]</code></div>
           <p class="example-box__note">
-            从左上角 1 开始：先往右走到 3，再往下走到 9，再往左走到 7，再往上走到 4，
-            最后只剩中间的 5 → <code>[1,2,3,6,9,8,7,4,5]</code>。
+            这是一个 3 行 3 列的矩阵。从左上角的 1 出发：先往右走到 3（第一行读完），
+            再往下走到 9（最右一列读完），再往左走到 7（最下一行读完），
+            再往上走到 4（这时最左列的 7 已经读过了，只需要再走到 4），
+            最后只剩中间的 5 还没被读过 → 结果是 <code>[1,2,3,6,9,8,7,4,5]</code>。
           </p>
         </div>
       </section>
@@ -71,31 +77,47 @@
       <section class="article__section">
         <h2>🔑 第二步：怎么不写歪、不重复、不漏格</h2>
         <p>
-          直接「模拟走路」容易写错：什么时候该转弯？转到第几圈算遍历完？
-          更稳的办法是用<strong>四个边界</strong>把「还没访问的区域」框起来：
-          <code>top</code>（上边界行）、<code>bottom</code>（下边界行）、
-          <code>left</code>（左边界列）、<code>right</code>（右边界列）。
+          最直接的想法是「模拟走路」：设一个当前方向（右/下/左/上），沿着这个方向一直走，
+          撞到矩阵边缘、或者撞到已经走过的格子，就右转换下一个方向接着走。
+          这个思路没错，但真动手写就容易卡壳：怎么判断「已经走过」？是不是要
+          额外开一个数组专门记录「哪些格子走过了」？循环到底什么时候该停？
         </p>
         <p>
-          每一圈固定走 4 步：
+          更省心的办法是换个角度：不追踪「哪些格子走过了」，而是追踪
+          <strong>还没读过的区域</strong>还剩多大。想象矩阵外面围着一个矩形框，
+          框里就是「还没读过」的部分；每读完一条边，就把框往里收一格，框越缩越小，
+          直到缩没了，矩阵就读完了。我们用四个数字来描述这个框：
+          <code>top</code>（框的上边在第几行）、<code>bottom</code>（框的下边在第几行）、
+          <code>left</code>（框的左边在第几列）、<code>right</code>（框的右边在第几列）。
+        </p>
+        <p>
+          走一圈固定做 4 件事，正好对应「右 → 下 → 左 → 上」：
         </p>
         <ul>
-          <li>沿 <code>top</code> 行从 <code>left</code> 走到 <code>right</code> → 这一行用完了，<code>top++</code></li>
-          <li>沿 <code>right</code> 列从 <code>top</code> 走到 <code>bottom</code> → 这一列用完了，<code>right--</code></li>
-          <li>如果 <code>top &lt;= bottom</code>，沿 <code>bottom</code> 行从 <code>right</code> 走到 <code>left</code> → <code>bottom--</code></li>
-          <li>如果 <code>left &lt;= right</code>，沿 <code>left</code> 列从 <code>bottom</code> 走到 <code>top</code> → <code>left++</code></li>
+          <li>沿 <code>top</code> 行从 <code>left</code> 走到 <code>right</code>（往右走）→ 这一行读完了，框的上边往下收一格：<code>top++</code></li>
+          <li>沿 <code>right</code> 列从 <code>top</code> 走到 <code>bottom</code>（往下走）→ 这一列读完了，框的右边往左收一格：<code>right--</code></li>
+          <li>如果 <code>top &lt;= bottom</code>（框里还有行剩下），沿 <code>bottom</code> 行从 <code>right</code> 走到 <code>left</code>（往左走）→ <code>bottom--</code></li>
+          <li>如果 <code>left &lt;= right</code>（框里还有列剩下），沿 <code>left</code> 列从 <code>bottom</code> 走到 <code>top</code>（往上走）→ <code>left++</code></li>
         </ul>
         <div class="callout">
-          <strong>为什么要判断 <code>top&lt;=bottom</code> / <code>left&lt;=right</code>：</strong>
-          矩阵不是正方形、或者走到最后只剩一行/一列时，前两步可能已经把这一圈走完了，
-          不加这两个判断会把同一行/同一列重复走一遍。四个边界一旦「框」收缩到不存在
-          （<code>top&gt;bottom</code> 或 <code>left&gt;right</code>），就说明全部访问完了。
+          <strong>为什么第 3、4 步要多判断一次：</strong>
+          拿只有 1 行的矩阵 <code>[[1,2,3]]</code> 举例——走完第 1 步（往右读完 1、2、3）后，
+          <code>top</code> 从 0 变成 1，可 <code>bottom</code> 还是 0，这说明「框」已经缩没了
+          （<code>top &gt; bottom</code>，框里已经没有行了），压根没有下面的行可走。
+          如果不加判断，第 3 步会把这一行倒着再读一遍，1、2、3 就重复出现了。
+          所以每走完「右、下」两步，都要先确认「框里是不是还剩东西」，才能继续走
+          「左、上」两步；等四个边界收缩到 <code>top&gt;bottom</code> 或
+          <code>left&gt;right</code>，就说明所有格子都读完了，循环结束。
         </div>
       </section>
 
       <!-- 3. 动画 -->
       <section class="article__section">
         <h2>🎬 第三步：动画演示</h2>
+        <p>
+          光看文字可能还是有点抽象，下面动画把「四个边界围成的框」画了出来：
+          留意看那个框是怎么一圈圈往里缩的，缩到消失时正好读完最后一个格子。
+        </p>
         <div class="viz-legend">
           <span><i class="sw sw--hi"></i> 当前访问的格子</span>
           <span><i class="sw sw--src"></i> 已经访问过</span>
@@ -113,6 +135,10 @@
       <!-- 4. Java -->
       <section class="article__section">
         <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>
+          下面这份代码，就是把第二步的思路照着写下来：四个边界变量 + 一个
+          <code>while</code> 循环，循环体里固定做四件事，正好对应四条边。
+        </p>
         <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
     <span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; spiralOrder(<span class="ty">int</span>[][] matrix) {
         <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; res = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();

@@ -57,7 +57,20 @@
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
           给你一个正整数 <code>n</code>，要你数一数它写成<strong>二进制</strong>之后，
-          一共有几个 <code>1</code>。这个「1 的个数」有个专门的名字，叫<strong>汉明重量</strong>。
+          一共有几个 <code>1</code>。
+        </p>
+        <p>
+          先说说什么是「二进制」：我们平时数数用的是「十进制」，逢十进一，每一位是 0~9 里的一个数字。
+          而计算机里的每一个数字，骨子里都是用<strong>只有 0 和 1 两种符号</strong>拼出来的，
+          逢二进一，这就叫<strong>二进制</strong>。二进制里的每一位（一个 0 或一个 1）叫做一个
+          <strong>位（bit）</strong>。比如十进制的 <code>11</code>，换算成二进制就是
+          <code>1011</code>——从右往左，每一位分别代表 <code>1、2、4、8……</code>
+          这样按 2 的次方往上翻倍的「位权」，<code>1×8 + 0×4 + 1×2 + 1×1 = 11</code>，正好对上。
+        </p>
+        <p>
+          这道题要的就是：数一数 <code>n</code> 的二进制表示里，一共出现了几个 <code>1</code>。
+          这个「1 的个数」在计算机里有个专门的名字，叫<strong>汉明重量</strong>——
+          名字听着唬人，其实就是「1 的个数」，不用死记。
         </p>
         <div class="example-box">
           <div><span class="example-box__label">n</span><code>11</code></div>
@@ -72,9 +85,28 @@
       <section class="article__section">
         <h2>🐢 第二步：最直接的笨办法</h2>
         <p>
-          最容易想到的：把 <code>n</code> 的 32 个二进制位<strong>挨个检查一遍</strong>——
-          每次看最低位是不是 <code>1</code>（<code>n &amp; 1</code>），是就计数加一，
-          然后把整个数右移一位（<code>n &gt;&gt;&gt; 1</code>），继续看下一位，一共要做 32 次。
+          最容易想到的：既然 <code>n</code> 是由 32 个「0 或 1」拼成的
+          （Java 里 <code>int</code> 固定占 32 位），那就把这 32 位<strong>挨个检查一遍</strong>，
+          数数里面有几个 1。
+        </p>
+        <p>
+          怎么才能「只看一眼最低位是不是 1」？这就要用到<strong>位运算</strong>——
+          顾名思义，不把数字当成一个整体来算，而是拆开来<strong>一位一位地按 0/1 处理</strong>。
+          这里用到的第一个位运算叫<strong>按位与 <code>&amp;</code></strong>：
+          它把两个数按位对齐、逐位比较，<strong>两边都是 1 才得 1，只要有一边是 0 就得 0</strong>。
+          于是 <code>n &amp; 1</code> 就是拿 <code>n</code> 去跟只有最低位是 1 的
+          <code>...0001</code> 按位与——除了最低位，别的位统统被压成 0，最低位则原样保留，
+          结果正好就是「n 的最低位到底是 0 还是 1」。
+        </p>
+        <p>
+          看完最低位，要挪去看下一位，这就要用第二个位运算——<strong>右移 <code>&gt;&gt;&gt;</code></strong>：
+          把整个数所有的位<strong>整体往右挪一位</strong>，就像把一排小灯泡整体往右推一格，
+          左边补一个 0，右边挤出去的那一位直接丢掉。挪一次之后，原来「第二低」的那一位
+          就变成了新的最低位，下一轮 <code>n &amp; 1</code> 就能看到它。
+        </p>
+        <p>
+          这样「看一眼最低位、整体右移一位」重复 32 次（32 位 <code>int</code> 的每一位都看一遍），
+          就能把 1 的个数数完。
         </p>
         <div class="callout callout--warn">
           <strong>慢在哪：</strong>不管 <code>n</code> 里实际有几个 1，笨办法永远要把 32 位
@@ -87,16 +119,33 @@
       <section class="article__section">
         <h2>⚡ 第三步：n &amp; (n - 1) 一步清掉一个 1</h2>
         <p>
-          关键观察：把 <code>n</code> 减去 <code>1</code>，会发生什么？
-          <code>n</code> <strong>最低位的那个 1</strong> 会变成 <code>0</code>，
-          而它<strong>右边所有的 0</strong> 会全部借位变成 <code>1</code>
-          （其余更高位完全不变）。
+          关键观察：把 <code>n</code> 减去 <code>1</code>，会发生什么？我们拿一个具体例子看看：
+          <code>n = 12</code>，二进制是 <code>1100</code>。减 1 是什么感觉？
+          就像十进制里 <code>100 - 1</code> 要一路往前借位、变成 <code>099</code> 一样，
+          二进制减 1 也要借位：<code>1100</code> 最低两位都是 0，借不出 1，
+          于是一路往左找，找到第一个 1（也就是最低位的那个 1），把它变成 <code>0</code>，
+          它<strong>右边原本那一串 0</strong> 则全部借位翻转成 <code>1</code>。
+          算下来 <code>n - 1 = 1011</code>（十进制的 11）。
         </p>
         <p>
-          这时候再做 <code>n &amp; (n - 1)</code>：最低位的 1 和它右边的那串 0，
-          跟 <code>n - 1</code> 里翻转后的位逐一相与，<strong>结果正好把那个最低位的 1
-          精确地清成 0</strong>，其他位原样保留。也就是说，每做一次
-          <code>n &amp; (n - 1)</code>，就能干净利落地消掉<strong>一个</strong> 1。
+          规律就是：<strong><code>n - 1</code> 会把 n 最低位的那个 1 变成 0，
+          同时把它右边那一串 0 全部翻转成 1</strong>，左边更高的位完全不受影响。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">n</span><code>1100</code>（十进制 12）</div>
+          <div><span class="example-box__label">n - 1</span><code>1011</code>（十进制 11）</div>
+          <div><span class="example-box__label">n &amp; (n - 1)</span><code>1000</code>（十进制 8）</div>
+        </div>
+        <p>
+          这时候再做 <code>n &amp; (n - 1)</code>，也就是把 <code>n</code> 和 <code>n - 1</code>
+          按位对齐、逐位相与，会发生三件事：<code>n</code> 原本最低位的那个 1，
+          在 <code>n - 1</code> 里已经变成了 0，两边一比，只要有一边是 0 结果就是 0，
+          于是这个 1 就被<strong>精确地清成了 0</strong>；它右边那一串位，
+          <code>n</code> 本来就是 0、<code>n - 1</code> 借位后变成了 1，两边一比还是 0，
+          原样不变；再往左那些完全没被减法波及的位，<code>n</code> 和 <code>n - 1</code>
+          长得一模一样，跟自己按位与当然也是原样保留。三段拼起来，效果就是——
+          <strong>只清掉了 n 最低位的那一个 1，其余所有位分毫不动</strong>。
+          也就是说，每做一次 <code>n &amp; (n - 1)</code>，就能干净利落地消掉<strong>一个</strong> 1。
         </p>
         <p>
           于是只要不断重复「<code>n = n &amp; (n - 1)</code>，计数器加一」，直到
@@ -131,6 +180,11 @@
         <span class="kw">return</span> count;
     }
 }</code></pre>
+        <p>
+          代码里的 <code>n &amp;= (n - 1)</code> 是 <code>n = n &amp; (n - 1)</code> 的简写
+          （跟 <code>+=</code> 是 <code>=</code> 和 <code>+</code> 的简写是一个道理）：
+          算出 <code>n &amp; (n - 1)</code> 的结果，再存回 <code>n</code> 自己。
+        </p>
         <p>
           对照一下笨办法：笨办法是 <code>while (n != 0) { count += n &amp; 1; n &gt;&gt;&gt;= 1; }</code>，
           每一步都在「挪一位、看一眼」；这里的 <code>n &amp;= (n - 1)</code> 则是「一步直接消掉一个 1」，

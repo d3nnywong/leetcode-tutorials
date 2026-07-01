@@ -74,7 +74,10 @@
           最容易想到的：枚举每一个起点 <code>i</code>，再枚举每一个终点 <code>j</code>（
           <code>j ≥ i</code>），把 <code>nums[i..j]</code> 的和都求出来，记录最大值。
           光是枚举起点终点就是 <code>O(n²)</code> 对组合，再算每段的和又要 <code>O(n)</code>，
-          总共 <code>O(n³)</code>（用前缀和优化求和能降到 <code>O(n²)</code>）。
+          总共 <code>O(n³)</code>（如果提前把「从开头累加到每个位置的和」都算好存起来——这招叫
+          <strong>前缀和</strong>，任意一段 <code>nums[i..j]</code> 的和就变成两个存好的数相减，
+          不用每次重新加——能把总耗时压到 <code>O(n²)</code>，但终究还是要两层循环去枚举
+          起点和终点，跑不出「平方级」）。
         </p>
         <div class="callout callout--warn">
           <strong>慢在哪：</strong>数组长度能到 10⁵，<code>O(n²)</code> 就是上百亿次运算，
@@ -87,17 +90,33 @@
       <section class="article__section">
         <h2>⚡ 第三步：边走边记——Kadane 算法</h2>
         <p>
-          换个思路：维护一个变量 <code>cur</code>，表示「以当前元素<strong>结尾</strong>」的最大子数组和。
-          走到 <code>nums[i]</code> 时只需要回答一个问题——<strong>要不要把前面那段接上来？</strong>
+          换个思路：既然每次都从头重新算很浪费，那能不能把「算过的东西」存进一个变量里，
+          往前走一步就顺手更新它，而不是每次都推倒重来？我们用一个变量 <code>cur</code>
+          来记录「以当前元素<strong>结尾</strong>的那一段，最大能加到多少」。
+          走到 <code>nums[i]</code> 时，只需要回答一个问题——<strong>要不要把前面那段接上来？</strong>
         </p>
         <p>
           如果 <code>cur</code> 已经是负数，说明前面那段对后面只有拖累，不如<strong>丢掉它、从
           <code>nums[i]</code> 自己重新开始</strong>；如果 <code>cur</code> 还是非负的，就把
           <code>nums[i]</code> 接到后面继续累加。每走一步，都用当前的 <code>cur</code>
-          去刷新全局看到过的最大值 <code>best</code>。这就是经典的
-          <strong>Kadane 算法</strong>（本质是一维动态规划：<code>dp[i] = max(nums[i], dp[i-1] + nums[i])</code>，
-          这里把 <code>dp</code> 数组压缩成了一个变量 <code>cur</code>）。
+          去刷新<strong>目前为止见过的最大值</strong> <code>best</code>。
         </p>
+        <p>
+          这背后的思路，其实就是<strong>动态规划</strong>（英文 Dynamic Programming，简称 DP）：
+          把一个大问题拆成一串更小的子问题，每个子问题的答案<strong>只算一次、顺手记下来</strong>，
+          之后要用就直接拿，不用从头重算。这里的「子问题」就是「以 <code>nums[i]</code> 结尾的
+          最大子数组和是多少」，写成公式是：
+        </p>
+        <div class="example-box">
+          <code>dp[i] = max(nums[i], dp[i-1] + nums[i])</code>
+          <p class="example-box__note">
+            意思是：以 <code>nums[i]</code> 结尾的最大和，要么<strong>自己单独另起一段</strong>
+            （前面全部扔掉），要么<strong>接在「以 nums[i-1] 结尾的最大和」dp[i-1] 后面</strong>——
+            两者取更大的那个。因为算 <code>dp[i]</code> 只用得到前一步的 <code>dp[i-1]</code>，
+            根本不需要留着整张表，于是就把 <code>dp</code> 数组压缩成了一个变量 <code>cur</code>，
+            一路往前滚动更新——这就是经典的 <strong>Kadane 算法</strong>。
+          </p>
+        </div>
 
         <div class="viz-legend">
           <span><i class="sw sw--hi"></i> 当前累加段 cur 的范围</span>
@@ -147,7 +166,7 @@
         <h2>🚀 小结</h2>
         <div class="callout">
           <strong>套路：</strong>当题目要在数组里找「连续一段」的最优值时，先想想能不能维护一个
-          「以当前元素结尾」的状态，边走边用它去更新全局答案——这样就能把朴素枚举的
+          「以当前元素结尾」的状态，边走边用它去更新目前见过的最优答案——这样就能把朴素枚举的
           <code>O(n²)</code>/<code>O(n³)</code> 压成一遍 <code>O(n)</code> 扫描。
           Kadane 算法是这个套路最经典的入门例子，后面遇到「最大/最小连续和」「环形数组最大和」
           这类题，都可以照着这个思路去想。

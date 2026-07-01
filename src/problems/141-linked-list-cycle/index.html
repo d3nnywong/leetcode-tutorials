@@ -55,10 +55,19 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
-          给你一条单链表的头节点 <code>head</code>，链表里的每个节点只知道
-          <code>next</code> 指向谁。判断这条链表顺着 <code>next</code> 走下去，
-          会不会走进一个<strong>环</strong>——也就是某个节点的 <code>next</code>
-          绕回了前面已经走过的节点，导致永远走不到尽头（<code>null</code>）。
+          先搞懂题目里的「链表」是什么。数组里的元素是紧挨着排整齐的，想找第 5 个，
+          直接按下标跳过去就行；<strong>链表</strong>不一样，它更像一串散落各处的珠子：
+          每颗珠子叫一个<strong>节点</strong>，除了自己的值，还攥着一张纸条，写着
+          「下一颗珠子在哪」——这张纸条就是 <code>next</code>。想找第 5 颗珠子，
+          你必须先摸到第 1 颗，顺着纸条摸到第 2 颗，再摸到第 3 颗……一步都不能跳过去。
+          <code>head</code> 就是第一颗珠子；正常情况下，最后一颗珠子的 <code>next</code>
+          会指向 <code>null</code>，意思是「后面没有了，链表到此结束」。
+        </p>
+        <p>
+          这道题问的是：给你链表的第一颗珠子 <code>head</code>，顺着每颗珠子的
+          <code>next</code> 纸条一直摸下去，会不会摸进一个<strong>环</strong>——
+          也就是某颗珠子的 <code>next</code> 绕回了前面已经摸过的珠子，导致这串珠子
+          怎么摸都摸不到头（永远碰不到 <code>null</code>）？
         </p>
         <div class="example-box">
           <div><span class="example-box__label">head</span><code>[3, 2, 0, -4]</code></div>
@@ -77,8 +86,15 @@
       <section class="article__section">
         <h2>🐢 第二步：最直接的笨办法——用哈希表记「走过的节点」</h2>
         <p>
-          既然不知道有没有环，那就一边走一边把<strong>访问过的节点</strong>（注意是节点本身，不是值）
-          存进一个哈希表（<code>HashSet</code>）。每走到一个新节点，先查它在不在表里：
+          既然不知道有没有环，那就一边走一边把<strong>访问过的节点</strong>记下来，
+          将来要是又走到同一颗珠子，就说明绕回来了。用什么记？可以用<strong>哈希表</strong>
+          （<code>HashSet</code>）——你可以把它想象成一本「秒查」的花名册：丢一个东西进去，
+          以后问它「这个东西在不在里面」，它几乎不用一个个翻找，直接就能告诉你答案。
+        </p>
+        <p>
+          注意存的是<strong>节点本身</strong>，不是节点里的值——因为链表里完全可能有两颗
+          不同的珠子刚好写着同一个数字（比如都是 0），只有「节点」才是独一无二的，值不是。
+          每走到一个新节点，先查它在不在表里：
         </p>
         <ul>
           <li>在表里 → 说明这个节点被第二次访问到了，链表有环。</li>
@@ -96,21 +112,29 @@
       <section class="article__section">
         <h2>⚡ 第三步：快慢指针（Floyd 判圈），O(1) 空间</h2>
         <p>
-          换个思路：不记录任何节点，只用<strong>两个指针</strong>。
-          慢指针 <code>slow</code> 每次走 1 步，快指针 <code>fast</code> 每次走 2 步，
-          两人从 <code>head</code> 一起出发。
+          换个思路：不记录任何节点，只用<strong>两个指针</strong>去追。这里的「指针」
+          你可以简单理解成两根手指——它们不存任何东西，只是分别指着链表里的某颗珠子，
+          记录「我现在走到哪儿了」。让慢指针 <code>slow</code> 每次挪 1 颗珠子，
+          快指针 <code>fast</code> 每次挪 2 颗珠子，两根手指都从 <code>head</code>
+          一起出发。
+        </p>
+        <p>
+          这个办法有个正式的名字，叫 <strong>Floyd 判圈算法</strong>（以提出者的名字命名），
+          你完全可以把它想成龟兔赛跑：兔子（<code>fast</code>）的速度是乌龟（<code>slow</code>）
+          的两倍，两人从同一个起点出发。
         </p>
         <ul>
           <li>
-            <strong>如果没有环：</strong>链表迟早会走到尽头，<code>fast</code> 跑得快，
-            会先于 <code>slow</code> 撞上 <code>null</code>，于是循环结束，返回
-            <code>false</code>。
+            <strong>如果没有环（赛道是条直线）：</strong>兔子跑得快，链表迟早会走到尽头，
+            <code>fast</code> 会先于 <code>slow</code> 撞上 <code>null</code>，
+            于是循环结束，返回 <code>false</code>。
           </li>
           <li>
-            <strong>如果有环：</strong>一旦两人都进了环，就像在环形跑道上赛跑——
-            <code>fast</code> 每一轮都比 <code>slow</code> 多跑 1 步，差距不断缩小，
-            <strong>迟早会从后面追上 <code>slow</code></strong>，也就是
-            <code>slow === fast</code>（同一个节点）。这一定会发生，最多再绕一圈。
+            <strong>如果有环（赛道是个圈）：</strong>一旦两根手指都进了环，就变成在环形跑道上
+            赛跑——<code>fast</code> 每一轮都比 <code>slow</code> 多跑 1 步，差距不断缩小，
+            <strong>迟早会从背后追上 <code>slow</code></strong>，也就是
+            <code>slow === fast</code>（两根手指指到了同一颗珠子）。这一定会发生，
+            最多再绕环形跑道一圈。
           </li>
         </ul>
         <p>

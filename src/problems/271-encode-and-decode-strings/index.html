@@ -36,7 +36,8 @@
         <h1 id="article-title"></h1>
         <p id="article-subtitle" class="article__subtitle"></p>
         <p class="article__lead">
-          这是一道经典的「设计」题：把一组字符串打包成一条字符串发出去，再原样拆回来。
+          这是一道经典的「设计」题——不是让你算出一个具体的数字答案，
+          而是让你亲手写出两段配套的处理逻辑：把一组字符串打包成一条字符串发出去，再原样拆回来。
           难点不在打包，而在<strong>拆包时怎么知道每一段在哪结束</strong>——
           哪怕字符串里混着逗号、井号，甚至本身就是空串。
         </p>
@@ -56,8 +57,10 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
-          你要实现两个函数：<code>encode(strs)</code> 把一个字符串数组打包成
-          <strong>一整条字符串</strong>；<code>decode(s)</code> 再把这条字符串原样拆回
+          你要实现两个函数（函数就是一段可以被调用执行的代码，塞给它输入，它处理完还你结果）：
+          <code>encode(strs)</code> 把一个<strong>字符串数组</strong>（也就是一串排好顺序的字符串，
+          好比把好多张写了字的纸条按顺序摆成一排）打包成<strong>一整条字符串</strong>；
+          <code>decode(s)</code> 再把这条字符串原样拆回
           <strong>和原数组一模一样</strong> 的字符串数组（包括顺序、包括空串）。
         </p>
         <div class="example-box">
@@ -73,13 +76,15 @@
       <section class="article__section">
         <h2>🐢 第二步：直觉做法为什么会翻车</h2>
         <p>
-          最容易想到的：用逗号把字符串拼起来，比如 <code>"am#1,co,de,,ab"</code>，解码时按逗号
-          <code>split</code> 回去。看起来简单，但马上就会出事。
+          最容易想到的：在每个字符串之间插入一个逗号当「<strong>分隔符</strong>」（顾名思义，
+          就是用来分开各段内容的记号），拼成一整条，比如 <code>"am#1,co,de,,ab"</code>；
+          解码时再按逗号把它切开（编程里管这个操作叫 <code>split</code>，就是遇到逗号就剁一刀，
+          剁出好几小段）。看起来简单，但马上就会出事。
         </p>
         <div class="callout callout--warn">
           <strong>分隔符会被「内容」冒充：</strong>
           原数组里第二个字符串是 <code>"co,de"</code>，它自己就含逗号。拼接后变成
-          <code>...,co,de,...</code>，解码时一 <code>split</code>，"co,de" 被拦腰切成了
+          <code>...,co,de,...</code>，解码时一按逗号 <code>split</code>，"co,de" 被拦腰切成了
           "co" 和 "de" 两段——结果就错了。换成 <code>#</code> 当分隔符也一样会被
           <code>"am#1"</code> 坑。<strong>只要分隔符可能出现在字符串内容里，纯「找分隔符」的思路就靠不住。</strong>
         </div>
@@ -94,11 +99,28 @@
           编码成 <code>"2#ab"</code>，把所有片段首尾拼起来就是整条编码串。
         </p>
         <p>
-          解码时从左往右扫：先一直读数字，直到遇到第一个 <code>#</code>，这串数字就是「接下来要读几个字符」；
+          解码时从左往右扫（也就是像读书一样，一个字符一个字符地往后看）：先一直读数字，
+          直到遇到第一个 <code>#</code>，这串数字就是「接下来要读几个字符」；
           然后<strong>不多不少</strong>地往后取那么多个字符，作为一个还原出的字符串，再接着处理下一段。
           因为长度是提前写死的，所以不管这些字符里藏着逗号、<code>#</code>，甚至长度是 0（空串），
           都不会读错一个字符——我们是「按长度跳」，而不是「找分隔符」。
         </p>
+        <div class="example-box">
+          <div>
+            <span class="example-box__label">encode</span>
+            <code>["am#1", "co,de", "", "ab"]</code> → <code>"4#am#15#co,de0#2#ab"</code>
+          </div>
+          <p class="example-box__note">
+            "am#1" 长度 4，写成 <code>4#am#1</code>；"co,de" 长度 5，写成 <code>5#co,de</code>；
+            空串长度 0，写成 <code>0#</code>；"ab" 长度 2，写成 <code>2#ab</code>——四段首尾拼起来
+            就是上面这条编码串。<br />
+            解码时：先读到 <code>4</code> 遇到 <code>#</code>，就精确取接下来 4 个字符
+            <code>"am#1"</code>（哪怕里面藏着 <code>#</code> 也不怕，因为长度已经提前告诉你了）；
+            接着往后移到下一段开头，读到 <code>5</code>，取接下来 5 个字符 <code>"co,de"</code>；
+            再读到 <code>0</code>，取 0 个字符，也就是空串；最后读到 <code>2</code>，取 <code>"ab"</code>。
+            四段一个不差地还原出来，顺序也没变。
+          </p>
+        </div>
 
         <div class="viz-legend">
           <span><i class="sw sw--hi"></i> 当前正在读写的片段</span>
@@ -166,8 +188,10 @@
           <strong>套路：</strong>但凡要把「不定长、可能含任意字符」的内容拼接后再无歧义地拆开，
           别指望靠挑一个「看起来不常用」的分隔符——内容里永远可能藏着它。
           稳妥的办法是<strong>自描述长度</strong>：先告诉对方接下来这一段有多长，
-          对方按长度精确截取，根本不需要「找」分隔符。这个套路在序列化、网络协议（如 HTTP 的
-          <code>Content-Length</code>）里随处可见。
+          对方按长度精确截取，根本不需要「找」分隔符。这个套路在<strong>序列化</strong>
+          （把一份数据变成一条能保存或能在网络上传输的字符串，之后还能原样变回来）、
+          <strong>网络协议</strong>（比如两台电脑之间约定好怎么收发数据的规则，如 HTTP 里用
+          <code>Content-Length</code> 告诉对方这次要传多少字节）里随处可见。
         </div>
       </section>
 

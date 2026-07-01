@@ -55,15 +55,24 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
-          给你一个 <code>m</code> 行 <code>n</code> 列的矩阵，只要某个格子的值是
-          <strong>0</strong>，就要把它<strong>所在的整行和整列</strong>都变成 0。
-          而且要求<strong>原地</strong>修改——不能新开一个一模一样大小的矩阵来存结果。
+          题目给你一个 <code>matrix</code>：一个 <code>m</code> 行 <code>n</code> 列的<strong>矩阵</strong>
+          ——说白了就是一张像 Excel 表格一样的方格表，有若干行、若干列，每个格子里放一个数字。
+          行号从上往下数、列号从左往右数，<strong>都从 0 开始编号</strong>：第 0 行就是最上面那行，
+          第 0 列就是最左边那列。后面不管是讲解还是代码里写的 <code>matrix[i][j]</code>，
+          意思都是「第 <code>i</code> 行、第 <code>j</code> 列的那个格子」。
+        </p>
+        <p>
+          题目要求：只要某个格子的值是<strong>0</strong>，就要把它<strong>所在的整行和整列</strong>
+          都变成 0。而且要求<strong>原地</strong>修改——「原地」的意思是，你不能另外找一张同样大小的
+          新表格打草稿、算好了再整个搬过去；手里只有这一张表格，答案必须直接写在它自己身上
+          （最多允许借用几个变量临时记点东西，就像倒水时借用一个小杯子，而不是再买一整个新水桶）。
         </p>
         <div class="example-box">
           <div><span class="example-box__label">matrix</span><code>[[1,1,1],[1,0,1],[1,1,1]]</code></div>
           <p class="example-box__note">
-            中间的 <code>matrix[1][1] = 0</code>，所以第 1 行和第 1 列全部变成 0
-            → <code>[[1,0,1],[0,0,0],[1,0,1]]</code>。
+            这是一个 3 行 3 列的表格，每个方括号里的一组数字就是一行。正中间那格
+            <code>matrix[1][1] = 0</code>（第 1 行第 1 列），所以第 1 行、第 1 列都要整个变成 0，
+            结果是 <code>[[1,0,1],[0,0,0],[1,0,1]]</code>：中间那一整行变 0，中间那一整列也变 0。
           </p>
         </div>
       </section>
@@ -72,31 +81,54 @@
       <section class="article__section">
         <h2>🔑 第二步：为什么不能扫到 0 就立刻清零</h2>
         <p>
-          第一反应可能是：扫一遍矩阵，碰到 0 就把它的整行整列都设成 0，不就完了？
-          但这样做有个致命问题——<strong>你把别的格子也变成 0 了，后面再扫到这些「假 0」，
-          会被误判成「又发现一个 0」，导致清零范围越滚越大，结果完全错误</strong>。
+          第一反应可能是：一边扫矩阵，一边碰到 0 就立刻把它的整行整列都设成 0，扫完不就好了？
+          我们拿一个小例子实际走一遍，看看问题出在哪。
+        </p>
+        <div class="example-box">
+          <div><span class="example-box__label">matrix</span><code>[[1,0,1],[1,1,1],[1,1,1]]</code></div>
+          <p class="example-box__note">
+            这里只有 <code>matrix[0][1] = 0</code> 一个 0。正确答案应该是：第 0 行整行变 0、
+            第 1 列整列变 0，其余格子都不受影响 → <code>[[0,0,0],[1,0,1],[1,0,1]]</code>。
+          </p>
+        </div>
+        <p>
+          如果扫到 <code>(0,1)</code> 时立刻把第 0 行、第 1 列清零，矩阵会先变成
+          <code>[[0,0,0],[1,0,1],[1,0,1]]</code>——到这一步其实还是对的。问题出在<strong>接着往后扫</strong>：
+          扫到 <code>(0,2)</code> 这一格时，它现在的值是 0（是刚才被我们清出来的），
+          但程序没法区分「这是刚才清出来的 0」还是「这本来就是一个 0」，
+          于是会把它当成<strong>新发现的一个 0</strong>，接着又把第 2 列也整个清零——
+          可第 2 列本来根本不该受影响！<strong>越往后扫，被误判的 0 越多，清零范围就跟滚雪球一样越滚越大，
+          最终结果完全错误</strong>。
         </p>
         <p>
-          所以标准做法是<strong>分两步走</strong>：先把「哪些行 / 哪些列该清零」都记下来，
-          全部记完之后，再统一执行清零。问题变成：用什么记？
+          所以标准做法是<strong>分两步走</strong>：第一步只「记账」——先把「哪些行 / 哪些列该清零」
+          记下来，绝对不能一边记一边动手清零；第二步等全部记完了，再统一执行清零。
+          这样就不会把「刚清出来的假 0」和「原本真正的 0」搞混了。剩下的问题是：<strong>记在哪里</strong>？
         </p>
         <div class="callout callout--warn">
-          <strong>朴素做法：</strong>开两个长度分别为 <code>m</code> 和 <code>n</code> 的布尔数组
-          <code>rows[]</code> / <code>cols[]</code>，记下哪些行、哪些列含 0。
+          <strong>朴素做法：</strong>开两个数组 <code>rows[]</code>（长度 <code>m</code>）和
+          <code>cols[]</code>（长度 <code>n</code>），每个格子只存「是 / 否」这一种信息——
+          这种只有两个取值的类型叫<strong>布尔（boolean）</strong>，就像一个开关，
+          要么开、要么关，没有第三种状态。<code>rows[i] = true</code> 就表示「第 i 行含 0，要清零」，
+          <code>cols[j]</code> 同理。先扫一遍矩阵把这两个数组填好，再扫一遍照着它们清零。
           这样空间复杂度是 <code>O(m + n)</code>，能过，但不是最优解。
         </div>
         <p>
           <strong>更省空间的想法：</strong>矩阵的第 0 行正好有 <code>n</code> 个格子，
           第 0 列正好有 <code>m</code> 个格子——数量和 <code>rows[]</code> / <code>cols[]</code>
-          完全对得上！与其新开数组，不如直接<strong>借用矩阵自己的第 0 行当 <code>cols[]</code>，
-          第 0 列当 <code>rows[]</code></strong>：用 <code>matrix[0][j]</code> 记「第 j 列要不要清零」，
-          用 <code>matrix[i][0]</code> 记「第 i 行要不要清零」。
+          完全对得上！与其额外开两个新数组，不如直接<strong>借用矩阵自己的第 0 行来当
+          <code>cols[]</code> 用，第 0 列来当 <code>rows[]</code> 用</strong>：拿 <code>matrix[0][j]</code>
+          这个格子本身当<strong>标记位</strong>，记「第 j 列要不要清零」；拿 <code>matrix[i][0]</code>
+          记「第 i 行要不要清零」。（所谓「标记位」，就是借用一个本来存别的东西的格子，
+          临时拿它的值当一盏信号灯，用来告诉后面的代码「这里该怎么处理」，用完就不再当原来的用途了。）
         </p>
         <div class="callout">
           <strong>唯一要小心的坑：</strong>第 0 行 / 第 0 列<strong>自己原本是不是也含 0</strong>，
-          这件事会在「打标记」的过程中被覆盖掉，分不清「这是原来就有的 0」还是「后来打的标记」。
+          这件事会在「打标记」的过程中被覆盖掉——比如第 0 行本来就有一个 0，
+          后来又拿它当标记位反复改写，就再也分不清「这是原来就有的 0」还是「后来打的标记」了。
           解决办法很简单：<strong>先用两个布尔变量 <code>row0Zero</code> / <code>col0Zero</code>
-          单独记下第 0 行 / 第 0 列原本是否含 0</strong>，再放心地拿它们当标记位用，
+          （同样是只有 true/false 两种取值的开关变量）单独记下第 0 行 / 第 0 列原本是否含 0</strong>，
+          把这个「原始真相」存起来之后，再放心地拿第 0 行 / 第 0 列当标记位随便改，
           最后再根据这两个变量决定要不要把第 0 行 / 第 0 列也整个清零。
         </div>
       </section>

@@ -36,8 +36,11 @@
         <h1 id="article-title"></h1>
         <p id="article-subtitle" class="article__subtitle"></p>
         <p class="article__lead">
-          滑动窗口里最考验功力的一道困难题。难点不在「扩窗口」，而在想清楚——
-          什么时候才算「覆盖了」，以及覆盖之后为什么要反过来去「收缩」。
+          这道题要用到「滑动窗口」这个技巧——说白了就是在一段文字上框出一个
+          <strong>可以左右移动、可以变胖变瘦</strong>的「窗口」，通过移动窗口的左右边界，
+          在一大段文字里找出满足条件的一小段。它是这类技巧里最考验功力的一道困难题：
+          难点不在「把窗口撑大」，而在想清楚——
+          什么时候才算「凑齐了」（也就是「覆盖了」），以及凑齐之后为什么还要反过来把窗口「收紧」。
         </p>
       </header>
 
@@ -58,6 +61,8 @@
           给你两个字符串 <code>s</code> 和 <code>t</code>，要你在 <code>s</code> 里面找一段
           <strong>最短的连续子串</strong>，这段子串里要把 <code>t</code> 的每一个字符都「凑齐」——
           <code>t</code> 里出现几次，子串里就至少要有几次（多了没关系，顺序也不限）。
+          这里说的「连续子串」，是指在 <code>s</code> 里挨在一起的一段，中间不能跳字符
+          （跟那种可以东挑一个西挑一个的「子序列」不是一回事）。
         </p>
         <div class="example-box">
           <div><span class="example-box__label">s</span><code>"ADOBECODEBANC"</code></div>
@@ -87,23 +92,37 @@
       <section class="article__section">
         <h2>⚡ 第三步：先扩窗口找到「能覆盖」，再缩窗口找「最短」</h2>
         <p>
-          换个思路：维护一个窗口 <code>[left, right]</code>，并且用两张「计数表」记账——
+          换个思路：不要每次都把整段区间重新扫一遍，而是维护一个左右都能移动的窗口
+          <code>[left, right]</code>——<code>left</code> 和 <code>right</code> 就是两个记录
+          「窗口左边界」「窗口右边界」在字符串里位置的下标，说白了就是两个会变大的数字，
+          不是什么特殊装置。再配上两张「计数表」记账——计数表其实就是一个数组，
+          下标是字符本身，值是这个字符出现了几次，像一张「谁出现了几次」的清单：
         </p>
         <ul>
-          <li><strong>need</strong>：t 里每个字符要出现几次（固定不变）。</li>
-          <li><strong>window</strong>：当前窗口里每个字符出现了几次（随窗口变化）。</li>
+          <li><strong>need</strong>：t 里每个字符要出现几次（一次算好，全程不变，像一张「购物清单」）。</li>
+          <li><strong>window</strong>：当前窗口里每个字符出现了几次（随窗口变化，是实时的「盘点」）。</li>
         </ul>
         <p>
           再用一个 <code>valid</code> 记录「窗口里已经凑够数量的字符<strong>种类数</strong>」。
           只要 <code>right</code> 往右扩，窗口只会变得更「富裕」，<code>valid</code> 只增不减；
           一旦 <code>valid</code> 等于 t 的字符种类数，说明<strong>当前窗口已经覆盖了 t</strong>。
         </p>
+        <p class="dp-step__hint">
+          拿例子来说：<code>s = "ADOBECODEBANC"</code>，<code>t = "ABC"</code>。need 记着
+          A、B、C 各要 1 个，一共 3 种字符要凑齐。right 一路往右走，每收进一个字符就在
+          window 里给它计数加一；当 A、B、C 都攒够 1 个的那一刻，valid 就变成 3
+          （等于 t 的字符种类数），说明当前窗口已经把 t 完完整整「装下」了。
+        </p>
         <p>
           这时候窗口里很可能有「多余」的部分（比如两端是不需要的字符），于是反过来
           <strong>收缩 left</strong>：每往右移一格 left，就检查一次「现在还覆盖吗」，
           覆盖就继续收缩并刷新最短答案，一旦收缩到不再覆盖就停下，让 right 继续扩。
-          <code>left</code> 和 <code>right</code> 各自只会从头走到尾一次，整体
-          <code>O(m + n)</code>。
+        </p>
+        <p>
+          这种「left 和 right 两个下标全程只往前走、谁也不回头」的技巧，就叫
+          <strong>双指针</strong>（这里的「指针」不是什么复杂概念，就是两个用来标记位置的下标）。
+          正因为两个下标全程加起来最多移动 m 步，不会像暴力法那样对同一段内容反复重新扫，
+          整体时间才能压到 <code>O(m + n)</code>。
         </p>
 
         <div class="viz-legend">

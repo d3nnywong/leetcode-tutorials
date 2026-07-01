@@ -72,26 +72,35 @@
       <section class="article__section">
         <h2>🐢 第二步：最直接的笨办法，以及它慢在哪</h2>
         <p>
-          最容易想到的：把 <code>s</code> 的<strong>每一段</strong>子串都枚举出来（两层循环定起止
-          下标），再逐个检查是不是回文（再花一层循环对比首尾字符）。三层循环，时间复杂度
-          <code>O(n³)</code>，字符串长度到 1000 就要算到十亿次量级，明显跑不动。
+          最容易想到的：用两层循环——外层挑一个<strong>起点下标</strong>，内层挑一个
+          <strong>终点下标</strong>（「下标」就是字符在字符串里的位置编号，从 0 开始数），
+          把 <code>s</code> 的<strong>每一段</strong>子串都<strong>枚举</strong>出来（枚举，就是
+          一个不漏、一个不重地把所有可能情况都列一遍）；再对每一段子串用第三层循环，从两头往
+          中间逐个字符比对，检查它是不是回文。三层循环叠在一起，计算量大致跟
+          <code>n × n × n</code> 成正比，这就是所谓的<strong>时间复杂度 <code>O(n³)</code></strong>——
+          字符串长度到 1000，就要算到十亿次量级，明显跑不动。
         </p>
         <div class="callout callout--warn">
           <strong>慢在哪：</strong>我们对「是不是回文」这件事，每一段子串都<strong>从头检查一遍</strong>，
           完全没有利用「短回文能不能拼出长回文」之间的关系。
         </div>
         <p>
-          换个角度想：一个回文串一定是<strong>关于某个中心对称</strong>的——奇数长度（如
-          <code>"aba"</code>）的中心是<strong>一个字符</strong>；偶数长度（如 <code>"bb"</code>）的中心是
-          <strong>两个字符之间的缝</strong>。一个长度为 n 的字符串，一共只有
-          <code>2n − 1</code> 个这样的中心。
+          换个角度想：一个回文串一定是<strong>关于某个中心对称</strong>的——就像照镜子一样，
+          从中心往左看和往右看，字符是一一对应、完全相同的。奇数长度（如
+          <code>"aba"</code>）的中心是<strong>一个字符</strong>（这个字符自己就站在「镜子」的位置上）；
+          偶数长度（如 <code>"bb"</code>）没有正中间的字符，中心就落在<strong>两个字符之间的缝</strong>里。
+          一个长度为 n 的字符串，逐个字符数是 n 个中心，字符之间的缝还有 n − 1 个，
+          加起来一共只有 <code>2n − 1</code> 个这样的中心。
         </p>
         <p>
-          于是思路反过来：<strong>不去检查子串，而是从每个中心出发往外扩</strong>。
-          用左右两个指针 <code>L</code>、<code>R</code> 从中心位置出发，只要
-          <code>s[L] === s[R]</code> 就同时向外挪一格，一旦不相等（或者撞到字符串边界）就停下——
-          这个中心能扩出的最长回文就确定了。把 <code>2n − 1</code> 个中心都试一遍，记录全程扩出过的
-          最长结果，就是答案。
+          于是思路反过来：<strong>不去检查子串，而是从每个中心出发往外扩</strong>——就像往平静的
+          水面丢一颗石子，波纹一圈圈往外扩散。具体做法：设两个「指针」<code>L</code>、
+          <code>R</code>（指针在这里没什么神秘的，就是两个会不断挪动的位置标记，一左一右），
+          从中心位置出发。只要 <code>L</code>、<code>R</code> 这两个位置上的字符相同，就把
+          <code>L</code> 往左挪一格、<code>R</code> 往右挪一格，继续往外比对；一旦碰到不相同的字符，
+          或者已经挪到字符串的最前面/最后面、没地方可挪了，就停下来——这时候，这个中心能扩出的
+          最长回文就确定了。把 <code>2n − 1</code> 个中心都这样试一遍，记录全程扩出过的最长结果，
+          就是答案。
         </p>
       </section>
 
@@ -116,6 +125,13 @@
       <!-- 4. Java -->
       <section class="article__section">
         <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>
+          把上面的思路翻译成代码。核心是一个 <code>expand</code> 函数：给它一对起始位置
+          <code>left</code>、<code>right</code>，它就沿着这两个位置向两边扩展，直到扩不动为止，
+          返回这次扩出来的回文长度。主函数只需要对每个中心分别调用它一次——奇数中心传
+          <code>(i, i)</code>（左右指针从同一个字符出发），偶数中心传 <code>(i, i + 1)</code>
+          （左右指针从相邻两个字符出发）——记录长度最大的那一次结果就行。
+        </p>
         <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
     <span class="kw">public</span> <span class="ty">String</span> longestPalindrome(<span class="ty">String</span> s) {
         <span class="kw">if</span> (s == <span class="kw">null</span> || s.length() &lt; <span class="nm">1</span>) <span class="kw">return</span> <span class="st">""</span>;
@@ -162,8 +178,10 @@
           <strong>套路：</strong>遇到「回文」相关的题，先想到它的<strong>对称性</strong>——
           一个回文串总能由更短的回文从中心往外扩得到。中心扩展法把「枚举所有子串再逐个验证」的
           <code>O(n³)</code> 降到了 <code>O(n²)</code>，且只用常数额外空间，是这类问题里最朴素也最常用的入门解法。
-          （如果还想更快，这道题还有 <code>O(n²)</code> 空间的区间 DP 解法，以及更复杂的 <code>O(n)</code>
-          Manacher 算法，可以作为进阶了解。）
+          （如果还想更快，这道题还有一种基于<strong>动态规划</strong>（DP，简单说就是把大问题拆成一个个
+          小问题，把每个小问题的答案记在一张表里，避免重复计算）的区间 DP 解法，只需要 <code>O(n²)</code>
+          空间；还有更复杂、专门为回文问题设计的 <code>O(n)</code> Manacher 算法。这两种都可以留到进阶
+          阶段再深入了解——现在这套中心扩展法，已经足够通过本题，也足够帮你建立起对「回文」问题的直觉。）
         </div>
       </section>
 

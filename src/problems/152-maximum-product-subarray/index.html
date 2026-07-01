@@ -76,13 +76,24 @@
           的乘积都求出来，记录最大值。两层循环再加求积，<code>O(n²)</code> 起步，n 能到 2×10⁴ 时已经很吃力。
         </p>
         <p>
-          如果照搬「最大子数组和」的 Kadane 算法——只维护一个「以当前元素结尾的最大乘积」
-          <code>cur</code>，行不行？<strong>不行</strong>。因为乘法和加法有一个本质区别：
+          这题还有一道「孪生题」——LeetCode 53「最大子数组和」（求连续一段<strong>加起来</strong>最大，
+          不是乘起来）。那道题有个很有名的省时技巧，叫 <strong>Kadane 算法</strong>：从左到右扫一遍，
+          每走一步只记住一个数字——「以<strong>当前这个位置结尾</strong>的连续一段，加起来最大是多少」，
+          记作 <code>cur</code>。如果 <code>cur</code> 已经变成负数（说明前面这段在拖后腿），
+          就把前面全部丢掉，从当前这个数<strong>重新开始</strong>；否则就把当前数接到
+          <code>cur</code> 后面继续累加。这样只需要从左到右扫一遍，比两层循环快得多。
+        </p>
+        <p>
+          能不能把这一招原样搬到「乘积」上——也只维护一个「以当前元素结尾的最大乘积」
+          <code>cur</code>？<strong>不行</strong>。因为乘法和加法有一个本质区别：
         </p>
         <div class="callout callout--warn">
-          <strong>负负得正：</strong>如果 <code>cur</code> 当前是一个很大的<strong>负数</strong>（也就是「目前最小」），
-          一旦下一个数也是负数，<code>cur × 负数</code> 会瞬间变成一个很大的<strong>正数</strong>，
-          很可能就是新的最大值！只记录「最大」会把这种「负负得正」的翻身机会直接漏掉。
+          <strong>负负得正：</strong>加法里，一个数越负，后面再加什么，也顶多是「没那么负」，
+          不会突然「翻身」变成很大的正数。但乘法不一样。举个例子：假设 <code>cur</code>
+          现在是 <code>-6</code>（一个很负的数，也就是「目前乘出来最小」的那条线索）。
+          下一个数又是一个负数，比如 <code>-2</code>：<code>-6 × (-2) = 12</code>，
+          瞬间从「最小」变成了一个不小的<strong>正数</strong>！如果我们只顾着记录「最大」、
+          把这种很负的 <code>cur</code> 早早扔掉不要，就会白白错过这次「负负得正」翻身的机会。
         </div>
       </section>
 
@@ -103,6 +114,11 @@
           <li><strong>接上前一步的最大乘积：</strong> <code>maxEnd[i-1] × x</code>。</li>
           <li><strong>接上前一步的最小乘积：</strong> <code>minEnd[i-1] × x</code>（x 是负数时，这条往往才是真正的大赢家）。</li>
         </ul>
+        <p>
+          把这三个候选写成公式，就是下面的「递推式」——「递推」的意思很朴素：
+          这一步的答案，是从<strong>上一步已经算好的答案</strong>推出来的，一步接一步往前推，
+          就能把整个数组算完，不用回头重算：
+        </p>
         <div class="example-box">
           <div><span class="example-box__label">递推式</span>
             <code>maxEnd[i] = max(x, maxEnd[i-1]×x, minEnd[i-1]×x)</code>
@@ -113,6 +129,24 @@
           <p class="example-box__note">
             每一步都用新的 <code>maxEnd[i]</code> 去刷新全局答案 <code>best</code>。
             数组只扫一遍，<code>O(n)</code> 时间、<code>O(1)</code> 额外空间。
+          </p>
+        </div>
+        <div class="example-box">
+          <div><span class="example-box__label">手算一遍</span><code>nums = [-2, 3, -4]</code></div>
+          <p class="example-box__note">
+            <strong>i=0，x=-2：</strong>还没有「前一步」，直接自己开头。
+            <code>maxEnd=-2</code>，<code>minEnd=-2</code>，<code>best=-2</code>。<br />
+            <strong>i=1，x=3：</strong>三个候选——自己重开是 3；接最大 <code>maxEnd(-2)×3=-6</code>；
+            接最小 <code>minEnd(-2)×3=-6</code>。三者取大的 3 当 <code>maxEnd</code>，
+            取小的 -6 当 <code>minEnd</code>。<code>best</code> 更新成 3。<br />
+            <strong>i=2，x=-4：</strong>三个候选——自己重开是 -4；接最大 <code>maxEnd(3)×(-4)=-12</code>；
+            接最小 <code>minEnd(-6)×(-4)=24</code>。这一步「接最小」直接翻身成了全场最大！
+            <code>maxEnd=24</code>，<code>minEnd=-12</code>，<code>best</code> 更新成 24。
+          </p>
+          <p class="example-box__note">
+            最终答案 <strong>24</strong>，正是 <code>-2 × 3 × -4</code> 整段乘起来。
+            如果只记录「最大乘积」这一条线索，i=1 时那条 <code>minEnd=-6</code> 的伏笔会被当成没用的东西扔掉，
+            i=2 就再也翻不出 24 这个答案了——这正是本题非同时维护「最大 + 最小」不可的原因。
           </p>
         </div>
 
@@ -178,7 +212,9 @@
           <strong>套路：</strong>遇到「连续子数组的最优值」类问题，先想 Kadane 那一套——维护
           「以当前元素结尾」的状态，边走边刷新全局答案。但只要运算不是单调的（比如这里的乘法，
           负数会反转大小关系），就要多留一手：<strong>同时维护「最优」和「最劣」</strong>，
-          因为今天的最劣，可能就是明天翻身的最优。这个「双线索 DP」的思路在很多带符号反转的题里都会用到。
+          因为今天的最劣，可能就是明天翻身的最优。这种「一步接一步用上一步的结果往前推」的解题方式，
+          就是<strong>动态规划</strong>（简称 DP）；本题「同时维护最大 + 最小」的双线索版本，
+          在很多带符号反转的题里都会用到。
         </div>
       </section>
 

@@ -53,10 +53,21 @@
 
       <!-- 1. 人话 -->
       <section class="article__section">
-        <h2>🧩 第一步：题目到底要什么</h2>
+        <h2>🧩 第一步：先搞懂「链表」是什么，题目要什么</h2>
         <p>
-          给你一个单链表的头结点 <code>head</code>，要你把整条链表的方向<strong>反过来</strong>，
-          并返回反转后链表的新头结点。
+          你大概见过数组：一排数字挨个排在一起，还编了号（下标），想找第 5 个，
+          直接跳到下标 5 就行。<strong>链表（linked list）</strong>不是这样——
+          它更像一串手拉手站队的珠子：每颗珠子我们叫它一个<strong>结点（node）</strong>，
+          每个结点只装两样东西：自己的<strong>值</strong>，和一个指向<strong>下一颗珠子在哪</strong>的
+          箭头（这个箭头在代码里就叫 <code>next</code>，专业说法是「指针」，你可以就理解成
+          「手里攥着下一个人的手」）。链表里的结点在内存里可能东一个西一个，完全靠这根
+          <code>next</code> 箭头才能一个接一个串成一条线——想找第 5 个，只能从第一个开始顺着箭头数过去，
+          没法像数组那样直接「跳」过去。
+        </p>
+        <p>
+          题目给你链表的<strong>头结点</strong> <code>head</code>（也就是这串珠子的第一颗），
+          要你把整条链表的方向<strong>反过来</strong>，并返回反转后链表的新头结点
+          （也就是原来的最后一颗珠子）。
         </p>
         <div class="example-box">
           <div><span class="example-box__label">head</span><code>[1, 2, 3, 4, 5]</code></div>
@@ -66,10 +77,11 @@
           </p>
         </div>
         <p>
-          如果是数组，反转很简单：开两个下标从两头往中间交换值就行。但链表不一样——
-          它没有「下标」，每个结点只知道<strong>自己的下一个是谁</strong>（<code>next</code> 指针），
-          不知道<strong>自己的上一个是谁</strong>。要反转，本质上就是要把每个结点的
-          <code>next</code> 指针，从「指向下一个」改成「指向上一个」。
+          如果是数组，反转很简单：开两个下标从两头往中间交换值就行，因为数组能直接用下标
+          「跳」到任意位置。但链表做不到这一点——它没有下标，每个结点只攥着
+          <strong>自己的下一个是谁</strong>，完全不知道<strong>自己的上一个是谁</strong>。
+          要反转，本质上就是要把每个结点的 <code>next</code> 箭头，从「指向下一个」
+          改成「指向上一个」。
         </p>
       </section>
 
@@ -77,19 +89,20 @@
       <section class="article__section">
         <h2>🐢 第二步：直接改指针会遇到的坑</h2>
         <p>
-          想法很直接：把 <code>cur.next</code> 改成指向前一个结点 <code>prev</code> 不就行了？
-          但试着写一下就会发现一个坑——
+          想法很直接：拿两个变量占位——<code>cur</code>（current，当前正处理的结点）和
+          <code>prev</code>（previous，它前面那个结点，一开始还没有，就是空的）。
+          把 <code>cur.next</code> 改成指向 <code>prev</code> 不就行了？但试着写一下就会发现一个坑——
         </p>
         <div class="callout callout--warn">
           <strong>坑在哪：</strong>一旦执行 <code>cur.next = prev</code>，
-          <code>cur</code> 原来的下一个结点的<strong>地址就丢了</strong>——
-          因为整条链表只能靠 <code>next</code> 指针才能往后走，指针一改，
-          后面的结点就「断联」了，没法继续往下处理。
+          <code>cur</code> 原来牵着的下一颗珠子是谁，这条线索就<strong>找不回来了</strong>——
+          因为整条链表全靠 <code>next</code> 这根箭头才能往后走，箭头一改方向，
+          后面那一大串结点就跟当前处理到的这一段「断联」了，没法继续往下走。
         </div>
         <p>
           关键洞察：在改指针<strong>之前</strong>，先用一个临时变量 <code>next</code>
-          把 <code>cur.next</code> 偷偷存起来，改完指针之后再用这个 <code>next</code>
-          继续往后走，就不会丢链了。
+          把 <code>cur.next</code>（也就是「下一颗珠子在哪」这条线索）偷偷存一份，
+          改完指针之后再用这个存好的 <code>next</code> 继续往后走，就不会丢链了。
         </p>
       </section>
 
@@ -127,7 +140,17 @@
       <!-- 4. Java -->
       <section class="article__section">
         <h2>☕ 第四步：写成 Java 代码</h2>
-        <p>下面给出最常用的<strong>迭代写法</strong>，以及思路一致的<strong>递归写法</strong>。</p>
+        <p>
+          下面先给出最常用的<strong>迭代写法</strong>——就是上面 prev/cur 那一套循环，直接照抄三步口诀。
+        </p>
+        <p>
+          另外再给一种<strong>递归写法</strong>：<strong>递归</strong>说的是一个函数在解决问题时，
+          先把问题变得更小一点，转手「调用自己」去解决这个更小的问题，等这个更小问题的答案回来了，
+          再拿这个答案拼出当前问题的答案——就像剥洋葱一层层剥到最里面，再一层层把结果套回去，
+          也像俄罗斯套娃，一个套一个。对反转链表来说：递归写法假设「从 <code>head.next</code>
+          往后的那一段已经被反转好了」（这一步交给递归自己去处理），我们只需要操心
+          <strong>自己这一个结点</strong>要怎么接到反转好的那一段后面。
+        </p>
         <pre class="code-block"><code><span class="cm">// Definition for singly-linked list.</span>
 <span class="kw">class</span> <span class="ty">ListNode</span> {
     <span class="ty">int</span> val;
@@ -172,7 +195,12 @@
           <div>
             <span class="complexity__label">空间复杂度</span>
             <code>迭代 O(1) / 递归 O(n)</code>
-            <p>迭代只用了 prev、cur、next 三个指针；递归会用掉跟链表长度等长的调用栈。</p>
+            <p>
+              迭代只用了 prev、cur、next 三个指针，空间几乎不涨；递归每往下调用自己一层，
+              就要在<strong>调用栈</strong>里多摞一层——调用栈你可以想象成一摞盘子，
+              函数每调用自己一次就往上摞一个新盘子，这次调用结束了才能从最上面拿走（后放的先拿走）。
+              链表多长，就要摞多高，所以是 O(n)。
+            </p>
           </div>
         </div>
       </section>

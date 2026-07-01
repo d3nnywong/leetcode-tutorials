@@ -55,8 +55,14 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底在说什么</h2>
         <p>
-          一个本来<strong>升序排列</strong>的数组，被从中间「掰断」，前后两段调了个个儿，
-          这就叫「旋转」。比如 <code>[0,1,2,4,5,6,7]</code> 从下标 4 处旋转，就变成了
+          先说清楚两个小词。<strong>下标</strong>指的是数字在数组里排第几位，从 0 开始数——
+          比如 <code>[10,20,30]</code> 里，20 的下标是 1。<strong>升序排列</strong>就是从左到右
+          一个比一个大，像 <code>[0,1,2,4,5,6,7]</code> 这样规规矩矩。
+        </p>
+        <p>
+          现在把一个本来升序排列的数组，从中间「掰断」，前后两段调了个个儿——
+          这就叫「旋转」。比如上面那个 <code>[0,1,2,4,5,6,7]</code> 从下标 4 处旋转
+          （也就是把从下标 4 开始的后半段整体挪到最前面），就变成了
           <code>[4,5,6,7,0,1,2]</code>。现在给你这个旋转后的数组和一个 <code>target</code>，
           要你找到它的下标；找不到就返回 <code>-1</code>。
         </p>
@@ -74,14 +80,34 @@
       <section class="article__section">
         <h2>🐢 第二步：为什么不能直接二分</h2>
         <p>
-          最笨的办法是从头到尾线性扫描，<code>O(n)</code>，能过但不满足题目要求。
-          普通二分查找又要求数组<strong>整体有序</strong>，而旋转数组整体看是「乱」的——
-          直接套用 <code>nums[mid]</code> 和 <code>target</code> 比大小，没法判断该往哪边走。
+          最笨的办法是把数组从头到尾挨个看一遍，看有没有哪个正好等于 target，
+          最坏情况要看完全部 n 个数，这就是 <code>O(n)</code>——能做出来，
+          但题目明确要求 <code>O(log n)</code>，这条路走不通。
+        </p>
+        <p>
+          <code>O(log n)</code> 是什么概念？如果数组本来就<strong>整体有序</strong>
+          （从左到右一路升序），有一种经典办法叫<strong>「二分查找」</strong>：
+          先看数组正中间那个数 <code>nums[mid]</code>——如果它比 target 大，
+          target 就只可能藏在左边那一半；如果它比 target 小，target 就只可能藏在右边那一半。
+          每比一次，能找的范围就直接砍掉一半。这就像猜数字游戏：主持人心里想好 1～100
+          里的一个数，你每猜一次，他就告诉你「猜大了」还是「猜小了」，你按提示不断把范围对半砍，
+          最多猜 7 次左右就能锁定答案——这比从 1 数到 100 快多了，这也是「log」的含义：
+          砍一次范围缩一半，要砍 <code>log₂n</code> 次左右才能缩到只剩一个数。
+          这里的 <code>lo</code>、<code>hi</code> 就是当前还没被排除掉的搜索范围的
+          <strong>左边界</strong>和<strong>右边界</strong>（low / high 的缩写），
+          <code>mid</code> 是这段范围正中间的下标。
+        </p>
+        <p>
+          但普通二分查找有个前提：数组必须<strong>整体有序</strong>。而旋转数组整体看是「乱」的——
+          比如 <code>[4,5,6,7,0,1,2]</code>，直接拿中间的 <code>nums[mid]</code> 和 target
+          比大小，完全判断不出该往左走还是往右走：target 可能藏在左边那截「高位数」里，
+          也可能藏在右边那截「低位数」里。
         </p>
         <div class="callout callout--warn">
           <strong>关键洞察：</strong>虽然整个数组不是有序的，但用 <code>mid</code> 把它切成两半后，
           <strong>至少有一半仍然是严格升序的</strong>。只要先看出哪一半有序，
-          再判断 <code>target</code> 是否落在这段有序区间里，就总能把搜索范围砍掉一半。
+          再判断 <code>target</code> 是否落在这段有序区间里，就总能把搜索范围砍掉一半——
+          这正是二分查找「每次砍一半」的精神，只是多了一步「先认出哪边规矩」。
         </div>
       </section>
 
@@ -102,6 +128,30 @@
             <strong>否则右半 <code>[mid, hi]</code> 有序</strong>：
             看 <code>target</code> 是否落在 <code>(nums[mid], nums[hi]]</code> 里——
             是就去右半找（<code>lo = mid + 1</code>），不是就去左半找（<code>hi = mid - 1</code>）。
+          </li>
+        </ul>
+        <div class="callout">
+          判断「左半是不是有序」时用的是 <code>nums[lo] &lt;= nums[mid]</code>
+          （带等号），这是特意留的：当区间缩到只剩一个数时 <code>lo</code> 会等于
+          <code>mid</code>，这时候左边等于右边，也该算作「有序」，不然会漏判这种情况。
+        </div>
+        <p>
+          拿 <code>[4,5,6,7,0,1,2]</code>、target = 0 走一遍，感受一下每一步是怎么砍半的：
+        </p>
+        <ul>
+          <li>
+            <code>lo=0, hi=6</code>，<code>mid=3</code>，<code>nums[mid]=7</code>。
+            <code>nums[lo]=4 &lt;= nums[mid]=7</code>，左半 <code>[4,5,6,7]</code> 有序。
+            target=0 不在 <code>[4,7)</code> 里 → 去右半，<code>lo=mid+1=4</code>。
+          </li>
+          <li>
+            <code>lo=4, hi=6</code>，<code>mid=5</code>，<code>nums[mid]=1</code>。
+            <code>nums[lo]=0 &lt;= nums[mid]=1</code>，左半 <code>[0,1]</code> 有序。
+            target=0 落在 <code>[0,1)</code> 里 → 去左半，<code>hi=mid-1=4</code>。
+          </li>
+          <li>
+            <code>lo=4, hi=4</code>，<code>mid=4</code>，<code>nums[mid]=0</code>
+            正好等于 target → 命中，返回下标 <code>4</code>。
           </li>
         </ul>
         <p>
@@ -157,7 +207,10 @@
           <div>
             <span class="complexity__label">时间复杂度</span>
             <code>O(log n)</code>
-            <p>每一步都能排除一半区间，和普通二分查找一样的收敛速度。</p>
+            <p>
+              每一步都能排除一半区间，和普通二分查找一样的收敛速度——
+              比如 nums 长度有一百万，最多也就二十步左右能锁定 target，比逐个扫描快得多。
+            </p>
           </div>
           <div>
             <span class="complexity__label">空间复杂度</span>

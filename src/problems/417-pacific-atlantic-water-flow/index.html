@@ -57,10 +57,15 @@
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
           给你一个 <code>m × n</code> 的高度矩阵 <code>heights</code>，代表一座岛。
+          「矩阵」听着吓人，其实就是一张<strong>网格表</strong>：一共 <code>m</code> 行、
+          <code>n</code> 列，每个小格子里填一个数字，代表这块地方的<strong>海拔高度</strong>。
+          我们用 <code>(r, c)</code> 表示「第 r 行、第 c 列」的那个格子（行号列号都从 0 开始数）。
+        </p>
+        <p>
           岛的<strong>左边界和上边界</strong>挨着<strong>太平洋</strong>，
           <strong>右边界和下边界</strong>挨着<strong>大西洋</strong>。
           雨水可以从一个格子流向<strong>上下左右</strong>相邻、且高度
-          <strong>小于或等于</strong>自己的格子（水往低处流，一样高也能流）。
+          <strong>小于或等于</strong>自己的格子（水往低处流，一样高也能流；不能斜着流，也不能往高处流）。
           紧挨着海洋的格子，水可以直接流进海洋。
         </p>
         <p>
@@ -70,8 +75,8 @@
         <div class="example-box">
           <div><span class="example-box__label">heights</span><code>[[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]</code></div>
           <p class="example-box__note">
-            比如格子 <code>(0,4)</code> 高度是 5，本身就贴着太平洋（第 0 行）和大西洋（最后一列），
-            两边都能直接流到 → 它是答案之一。
+            比如格子 <code>(0,4)</code>（第 0 行、第 4 列）高度是 5，本身就贴着太平洋（第 0 行）
+            和大西洋（最后一列），两边都能直接流到 → 它是答案之一。
           </p>
         </div>
       </section>
@@ -80,9 +85,17 @@
       <section class="article__section">
         <h2>🐢 第二步：直接模拟为什么慢</h2>
         <p>
-          最直接的想法：对<strong>每一个格子</strong>，都从它出发做一次 DFS/BFS，
-          顺着「能流向更低或相等的邻居」往外扩散，看看扩散的范围能不能同时摸到
+          最直接的想法：对<strong>每一个格子</strong>，都从它自己出发，往外「扩散」一遍，
+          顺着「能流向更低或相等的邻居」不断往外摸，看看摸到的范围能不能同时碰到
           第 0 行/第 0 列（太平洋）和最后一行/最后一列（大西洋）。
+        </p>
+        <p>
+          这种「从一个点出发，把能到达的格子都摸一遍」的动作，专业上叫<strong>搜索</strong>，
+          常见有两种摸法：<strong>DFS（深度优先搜索）</strong>——像走迷宫一样，
+          咬定一个方向<strong>一条路走到黑</strong>，走不通了再退回来换方向；
+          <strong>BFS（广度优先搜索）</strong>——像水波纹一样，从起点开始
+          <strong>一圈一圈地往外扩散</strong>，先摸完最近的一圈，再摸下一圈。
+          两种摸法最终能摸到的格子范围是一样的，只是走的顺序不同。
         </p>
         <div class="callout callout--warn">
           <strong>慢在哪：</strong>网格有 <code>m × n</code> 个格子，每个格子都要做一次最坏
@@ -101,9 +114,13 @@
           那反过来从低处「爬」到高（或相等）处，正好就是「正着能流过来」的所有格子。
         </p>
         <p>
-          于是：把<strong>第 0 行和第 0 列</strong>（挨着太平洋的格子）都作为起点，做一次
-          <strong>多源 BFS</strong>，只要邻居高度 <code>≥</code> 当前格子就标记并入队——
-          摸到的所有格子，就是「能流到太平洋」的格子。
+          于是：把<strong>第 0 行和第 0 列</strong>（挨着太平洋的格子）<strong>一起</strong>当成
+          起点——这就是所谓的<strong>「多源」</strong>，意思是同时有好多个出发点，而不是只有一个。
+          做一次 BFS：先把所有起点放进一个<strong>待处理名单</strong>（专业叫「队列」，
+          规则跟排队买票一样，先放进去的先被拿出来处理），每次从名单里取一个格子出来，
+          看它上下左右的邻居——只要邻居高度 <code>≥</code> 当前格子（意味着水能从邻居那
+          「倒流」到这个更低或相等的格子），就把邻居标记为「能到达」并塞进名单等着处理。
+          名单空了，说明能摸到的格子都摸完了——这些就是「能流到太平洋」的格子。
           再把<strong>最后一行和最后一列</strong>（挨着大西洋的格子）作为起点，
           照样做一次，得到「能流到大西洋」的格子。
           最后两边<strong>都摸到</strong>的格子，就是答案。
@@ -127,6 +144,14 @@
       <!-- 4. Java -->
       <section class="article__section">
         <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>
+          上面讲思路时说的是「BFS + 队列」，但代码里为了简洁，换成了效果完全等价的
+          <strong>递归</strong>写法：一个方法在执行到一半时，又调用了<strong>自己</strong>
+          去处理下一个格子，像俄罗斯套娃一样一层套一层——处理到「摸不到新格子」自然就停下，
+          再一层层把结果传回去。下面代码里的 <code>dfs</code> 方法就是这样：
+          它标记完当前格子，就对每个符合条件的邻居调用一次自己，直到把这一片能摸到的格子都标完为止。
+          最终标出来的范围，和「一圈圈往外摸」的 BFS 是完全一样的，只是走的顺序不同。
+        </p>
         <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
     <span class="kw">private</span> <span class="ty">int</span>[][] heights;
     <span class="kw">private</span> <span class="ty">int</span> rows, cols;

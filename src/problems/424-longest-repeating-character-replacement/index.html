@@ -88,10 +88,20 @@
           数组长度能到 10⁵，这样肯定超时。
         </div>
         <p>
-          关键洞察：判断一个窗口合不合法只需要一个公式——
-          <code>窗口长度 − maxCount ≤ k</code>。
-          于是想法变成：用一个<strong>滑动窗口</strong> <code>[left, right]</code>，
-          一边向右扩张一边维护这个公式，不合法就收缩左边界，<strong>全程只扫一遍</strong>。
+          关键洞察：判断一段子串合不合法，其实只需要一个公式——
+          <code>子串长度 − maxCount ≤ k</code>（子串里除了「最多的那个字母」，
+          剩下的字符数不超过 k 个魔法次数，就能全部替换成那个最多的字母）。
+        </p>
+        <p>
+          既然只靠这一个公式就能判断，那就没必要把每个子串都从头切出来重新数一遍。
+          换个思路：与其一段段地重新枚举，不如在字符串上顶一个<strong>可以伸缩的框</strong>，
+          我们把这个框叫<strong>窗口</strong>，记作 <code>[left, right]</code>——
+          用两个像手指一样的标记卡住窗口的左右两端，习惯上把它们叫<strong>指针</strong>
+          <code>left</code> 和 <code>right</code>。窗口一边靠 <code>right</code> 向右扩张，
+          一边实时维护上面那个合法性公式；一旦公式不成立（超出了 k 次魔法能修的范围），
+          就把 <code>left</code> 往右收紧一格，直到窗口重新合法为止。
+          这样 <code>left</code>、<code>right</code> 全程只往右走、不回头，
+          <strong>整个字符串只需要从左到右扫一遍</strong>，这就是<strong>滑动窗口</strong>这个技巧的由来。
         </p>
       </section>
 
@@ -99,9 +109,18 @@
       <section class="article__section">
         <h2>⚡ 第三步：滑动窗口 + 「maxCount 只增不减」</h2>
         <p>
-          维护一个窗口 <code>[left, right]</code> 和一个 26 个字母的计数数组 <code>count</code>。
-          <code>right</code> 每右移一格，就把新字符计入 <code>count</code>，并顺手更新
-          <code>maxCount = max(maxCount, count[新字符])</code>。
+          维护一个窗口 <code>[left, right]</code>，再开一个专门用来「数数」的
+          <code>count</code>——它是一个有 26 个格子的<strong>数组</strong>，
+          每个格子对应一个大写字母（A、B、C……一直到 Z），格子里存的数字就是
+          「这个字母目前在窗口里出现了几次」。数组说白了就是一排编号连续的小格子，
+          知道字母对应哪一号格子，就能直接跳过去取数、存数，几乎不用一个个字符去数，
+          比逐个扫描快得多。
+        </p>
+        <p>
+          <code>right</code> 每右移一格，新字符就纳入了窗口，于是把它在 <code>count</code>
+          里对应的格子加一，并顺手更新
+          <code>maxCount = max(maxCount, count[新字符])</code>——
+          也就是「这个字母加一次之后，是不是刷新了窗口里出现次数最多字母的记录」。
         </p>
         <p>
           只要 <code>(right − left + 1) − maxCount &gt; k</code>，说明这个窗口光靠 k 次替换凑不出

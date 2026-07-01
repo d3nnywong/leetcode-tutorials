@@ -56,9 +56,17 @@
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
           给你一个字符串 <code>s</code>，要你找出其中<strong>最长</strong>的一段
-          <strong>连续</strong>子串（子串，不是子序列），这段里面<strong>不能有重复字符</strong>。
+          <strong>连续</strong>子串（不是子序列），这段里面<strong>不能有重复字符</strong>。
           只要返回这段的<strong>长度</strong>就行。
         </p>
+        <div class="callout">
+          先弄清一个容易搞混的词：<strong>子串</strong>必须是原字符串里<strong>连着的一段</strong>，
+          就像用剪刀在一整条字符串上「咔嚓」剪出一段，中间不能跳字符；
+          而<strong>子序列</strong>可以跳着挑字符，只要顺序不变、不要求连续
+          （比如 <code>"ace"</code> 是 <code>"abcde"</code> 的子序列，因为把 b、d 跳过去就行，
+          但它不是子串，因为原串里 a、c、e 并不连在一起）。
+          这道题只关心<strong>连续</strong>的那种，也就是子串。
+        </div>
         <div class="example-box">
           <div><span class="example-box__label">s</span><code>"abcabcbb"</code></div>
           <p class="example-box__note">
@@ -87,18 +95,28 @@
       <section class="article__section">
         <h2>⚡ 第三步：用滑动窗口「只进不退」地扫一遍</h2>
         <p>
-          换个角度看：与其每次都重新选起点，不如维护一个<strong>窗口</strong>
-          <code>[left, right]</code>，永远保持窗口里没有重复字符。
-          <code>right</code> 一格一格往右走，把新字符纳入窗口；
+          换个角度看：与其每次都重新选起点，不如在字符串上顶一个可以伸缩的框，
+          这个框就叫<strong>窗口</strong>——框住的那一段，就是我们当前正在检查的候选子串。
+          用两个像手指一样的标记卡住窗口的左右两端，习惯上把它们叫
+          <strong>指针</strong> <code>left</code> 和 <code>right</code>（<code>[left, right]</code>
+          就是窗口目前框住的范围），并且始终保持一条规则：<strong>窗口里不能有重复字符</strong>。
+          <code>right</code> 这根指针一格一格往右走，把新字符纳入窗口；
         </p>
         <p>
-          同时用一个哈希表记录<strong>每个字符最后一次出现的下标</strong>。
-          扫到 <code>s[right]</code> 时，如果这个字符在哈希表里，<strong>并且</strong>
-          那次出现还落在当前窗口 <code>[left, right]</code> 内，说明窗口里有重复了——
-          直接把 <code>left</code> 跳到那次出现的<strong>下一格</strong>，窗口立刻恢复无重复；
-          否则窗口照常扩大。每一步 <code>right − left + 1</code> 就是「以 right 结尾的最长无重复子串长度」，
-          扫完一遍取这些长度的最大值就是答案。<code>left</code> 全程只往右移、不会后退，
-          所以整个数组只需要扫<strong>一遍</strong>。
+          同时开一张<strong>哈希表</strong>，用来记录<strong>每个字符最后一次出现的下标</strong>。
+          哈希表可以理解成一本自带索引的字典：给它一个字符当「key」，它能立刻告诉你这个字符
+          上次出现在哪个位置，几乎不用一个个字符去比对着找——这个查找动作快到可以看成
+          <code>O(1)</code>（一步到位）。
+        </p>
+        <p>
+          扫到 <code>s[right]</code> 时，如果这个字符在哈希表里<strong>并且</strong>
+          那次出现还落在当前窗口 <code>[left, right]</code> 内，说明窗口里马上要出现重复了——
+          于是直接把 <code>left</code> 这根指针跳到那次出现的<strong>下一格</strong>，
+          相当于把窗口的左边界一下子收紧到刚好避开那个重复字符，窗口立刻恢复无重复；
+          否则窗口照常往右扩大一格。每走一步，<code>right − left + 1</code>
+          就是「以 right 结尾、且不含重复字符的最长子串长度」，
+          扫完一遍取这些长度里的最大值，就是最终答案。<code>left</code>
+          全程只往右移、绝不会往回退，所以整个字符串只需要扫<strong>一遍</strong>。
         </p>
 
         <div class="viz-legend">

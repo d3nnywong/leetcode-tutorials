@@ -36,8 +36,9 @@
         <h1 id="article-title"></h1>
         <p id="article-subtitle" class="article__subtitle"></p>
         <p class="article__lead">
-          位运算和一维动态规划的结合题。看完你会发现：算一个数二进制里有几个 1，
-          根本不用从头数——它的答案就藏在「比它小一半」的那个数里。
+          这题把「二进制」和「动态规划」放在一起考。别慌——二进制只是计算机数数的方式，
+          动态规划则是一种「用算过的结果直接推出新答案、绝不重复劳动」的思路，下面都会从头讲。
+          看完你会发现：算一个数二进制里有几个 1，根本不用从头数——它的答案就藏在「比它小一半」的那个数里。
         </p>
       </header>
 
@@ -55,8 +56,16 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
-          给你一个整数 <code>n</code>，要你算出 <strong>0 到 n 这每一个数</strong>，
-          它们的二进制表示里各有几个 <code>1</code>，把这些个数按顺序放进一个数组 <code>ans</code> 里返回。
+          先说清楚什么是「二进制」：我们平时数数用的是<strong>十进制</strong>，逢十进一，
+          用 0～9 这十个数字；计算机里的数字则记成<strong>二进制</strong>，只有 <code>0</code>
+          和 <code>1</code> 两个数字，逢二进一。比如十进制的 <code>5</code>，写成二进制就是
+          <code>101</code>（也就是 4 + 0 + 1）；十进制的 <code>3</code> 写成二进制是
+          <code>11</code>（也就是 2 + 1）。任何一个整数，都能唯一地写成这样一串 0 和 1。
+        </p>
+        <p>
+          这道题要你做的是：给你一个整数 <code>n</code>，把 <strong>0 到 n 这每一个数</strong>都
+          写成二进制，数一数它里面有几个 <code>1</code>，把这些「1 的个数」按顺序放进一个数组
+          <code>ans</code> 里返回。
         </p>
         <div class="example-box">
           <div><span class="example-box__label">n</span><code>5</code></div>
@@ -72,19 +81,37 @@
       <section class="article__section">
         <h2>🐢 第二步：先想最笨的办法，再找规律</h2>
         <p>
-          最直接的想法：对 0 到 n 的每一个数，都用 <code>x &amp; (x - 1)</code> 之类的技巧逐位去数它有几个 1。
-          这样能做出来，但每个数都要单独「数一遍」，n 个数、每个数最多数 <code>log n</code> 位，
-          总共 <code>O(n log n)</code>。
+          最直接的想法：对 0 到 n 里的每一个数，都老老实实地把它变成二进制，然后一位一位地去数有几个 1
+          （比如反复看这个数除以 2 的余数）。这样能做出来，但每个数都要单独「数一遍」，
+          n 个数、每个数最多有 <code>log n</code> 位（也就是二进制的位数，n 越大位数越多，但涨得很慢），
+          总共要花 <code>O(n log n)</code> 的力气 —— 这里的 <code>O(...)</code> 只是「大致要算多少步」的一种写法，
+          括号里的式子越大代表越慢。
         </p>
         <div class="callout callout--warn">
-          <strong>问题出在哪：</strong>我们把每个数都当成全新的、互不相干的问题来算，
-          完全没有利用「前面已经算过的数」。其实数字之间是有联系的——
-          <code>i</code> 右移一位（去掉最后一个二进制位）就是 <code>i &gt;&gt; 1</code>，
-          而这个数 <strong>一定比 i 小</strong>，也就是说<strong>它的答案早就算好了</strong>。
-        </p>
+          <p>
+            <strong>问题出在哪：</strong>我们把每个数都当成全新的、互不相干的问题来算，
+            完全没有利用「前面已经算过的数」。其实数字之间是有联系的，
+            这就要请出两个「位运算」——也就是直接对二进制的每一位动手的运算：
+          </p>
+          <ul>
+            <li>
+              <code>i &gt;&gt; 1</code>（读作「右移一位」）：把 i 的二进制<strong>去掉最后一位</strong>，
+              相当于把整个数「除以 2 再抹掉小数」。比如 <code>6</code> 是二进制 <code>110</code>，
+              右移一位变成 <code>11</code>，也就是 <code>3</code>。
+            </li>
+            <li>
+              <code>i &amp; 1</code>（读作「按位与」，这里用来取最后一位）：只看 i 的二进制
+              <strong>最后一位</strong>是 0 还是 1。比如 <code>6</code>（<code>110</code>）的最后一位是 0，
+              <code>7</code>（<code>111</code>）的最后一位是 1。
+            </li>
+          </ul>
+          <p>
+            关键洞察来了：<code>i &gt;&gt; 1</code> 这个数<strong>一定比 i 小</strong>，
+            也就是说<strong>它的答案早就算好了</strong>——我们完全不用把 i 当成一个全新的数从头数！
+          </p>
         </div>
         <p>
-          于是关键洞察是：把 <code>i</code> 的二进制「砍掉最后一位」，剩下的部分就是 <code>i &gt;&gt; 1</code>；
+          于是：把 <code>i</code> 的二进制「砍掉最后一位」，剩下的部分就是 <code>i &gt;&gt; 1</code>；
           被砍掉的那一位，要么是 0 要么是 1，正好等于 <code>i &amp; 1</code>。
           所以 <code>i</code> 里 1 的个数 = <code>i &gt;&gt; 1</code> 里 1 的个数，再加上被砍掉那一位是不是 1。
         </p>
@@ -93,6 +120,11 @@
       <!-- 3. DP 三件套 + 动画 -->
       <section class="article__section">
         <h2>🧠 第三步：动态规划三件套</h2>
+        <p>
+          这里要用到「动态规划」（英文常缩写成 DP）：说白了就是把一个大问题拆成一串从小到大的小问题，
+          把每个小问题的答案存进一张表里；后面要用到某个小问题的答案时，直接查表拿现成的，
+          绝不重新计算一遍。我们按「状态 → 转移 → 边界」这三步，把这张表搭出来：
+        </p>
         <div class="dp-steps">
           <article class="dp-step card">
             <span class="dp-step__num">1</span>
@@ -172,10 +204,11 @@
       <section class="article__section">
         <h2>🚀 小结</h2>
         <div class="callout">
-          <strong>套路：</strong>比特位计数是「用已经算好的更小子问题」型一维 DP 的代表题——
-          一个数的二进制信息，可以通过去掉最低位拆成「更小的数」加「这一位是不是 1」。
-          这种「右移即子问题」的思路在位运算相关的 DP 里很常见，
-          记住 <code>i &gt;&gt; 1</code> 永远比 <code>i</code> 小，就能想到用它当作递推的来源。
+          <strong>套路：</strong>比特位计数是「用已经算好的更小问题拼出当前答案」这类一维动态规划的代表题——
+          一个数的二进制信息，可以拆成「去掉最后一位剩下的更小的数」加「这一位是不是 1」两部分。
+          以后遇到跟二进制、位运算相关的动态规划题，都可以想想：能不能通过右移一位，
+          把当前问题变成一个更小、已经算过的同类问题？记住 <code>i &gt;&gt; 1</code>
+          永远比 <code>i</code> 小，这条思路就有了落脚点。
         </div>
       </section>
 

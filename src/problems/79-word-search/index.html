@@ -74,20 +74,28 @@
       <section class="article__section">
         <h2>🔑 第二步：为什么是 DFS + 回溯，而不是简单遍历</h2>
         <p>
-          单纯遍历网格找第一个字母没用——找到 <code>word[0]</code> 之后，还要在它的邻居里继续找
-          <code>word[1]</code>，再在 <code>word[1]</code> 的邻居里找 <code>word[2]</code>……
-          这是一条<strong>沿着相邻关系往前探索的路径</strong>，天然适合用<strong>深度优先搜索（DFS）</strong>：
-          一条路走到黑，走不通就退回上一步换路。
+          单纯把网格扫一遍找第一个字母是没用的——找到 <code>word[0]</code> 之后，
+          还要在它的邻居里继续找 <code>word[1]</code>，再在 <code>word[1]</code> 的邻居里找
+          <code>word[2]</code>……这是一条环环相扣、<strong>一步扣一步往前探路</strong>的过程，
+          很像你去走一个迷宫：站在岔路口，你不会同时走所有方向，而是<strong>先选一条路狠狠走到底</strong>，
+          走不通再退回来换另一条。这种「先一头扎到底，不行再退」的搜索方式，
+          就是大家常说的<strong>深度优先搜索（Depth-First Search，简称 DFS）</strong>——名字听着唬人，
+          其实说的就是这一件很朴素的事。
         </p>
         <p>
-          走不通有三种情况：① 越界了；② 这个格子在当前路径里已经用过了；③ 这个格子的字母对不上
-          <code>word</code> 的下一个字符。只要踩中任何一种，这条分支就要<strong>回溯</strong>——
-          把刚才标记的「已用」状态撤销，退回上一格，换下一个方向继续试。
+          每走到一个岔路口，摆在你面前的每一个可选方向，我们都叫它一个<strong>「分支」</strong>——
+          你可以把它理解成「一种可能的走法」。走不通有三种情况：① 走出网格边界了；
+          ② 这个格子在<strong>这一趟路径里</strong>已经走过了（同一格不能重复用）；
+          ③ 这个格子的字母对不上 <code>word</code> 的下一个字符。
+          只要踩中任何一种，当前这个分支就宣告失败，需要<strong>回溯</strong>——
+          「回溯」这个词听起来抽象，其实就是字面意思：<strong>沿着刚才走过来的路退回去</strong>，
+          回到上一个格子，撤销掉刚才做的选择，换下一个方向继续试。
         </p>
         <div class="callout callout--warn">
-          <strong>「标记 + 撤销」是回溯的灵魂：</strong>进入一个格子时标记它「已用」（防止本趟路径重复走），
-          这条分支失败、要退回去尝试别的可能性时，必须把标记<strong>撤销回去</strong>——
-          因为同一个格子在<strong>另一条候选路径</strong>里完全可以重新被用到。忘记撤销，是这道题最常见的 bug。
+          <strong>「标记 + 撤销」是回溯的灵魂：</strong>走进一个格子时，先在心里给它打个标记「这一趟已经用过了」
+          （防止同一趟路径里绕回来重复踩这一格）；等这个分支彻底走不通、要退回上一格换别的方向时，
+          必须把这个标记<strong>撤销掉</strong>——因为同一个格子在<strong>另一条候选路径</strong>里完全可能被重新用到。
+          忘记撤销，是这道题最常见的 bug：会把明明还能走的格子，误判成「已经用过、不能再走」。
         </div>
       </section>
 
@@ -97,7 +105,7 @@
         <p>
           从网格里每一个等于 <code>word[0]</code> 的格子出发，按「上、下、左、右」固定顺序尝试相邻格：
           能接上 <code>word</code> 的下一个字符就走过去，接不上 / 越界 / 已用过就跳过；
-          四个方向都试过仍然走不通，就回溯到上一格，换其他方向（或者换下一个起点）继续。
+          四个方向都试过仍然走不通，就回溯（退回上一格），换其他方向（或者换下一个起点）继续。
         </p>
 
         <div class="viz-legend">
@@ -114,6 +122,13 @@
       <!-- 4. Java -->
       <section class="article__section">
         <h2>☕ 第四步：写成 Java 代码</h2>
+        <p>
+          下面的 <code>dfs</code> 函数会在自己内部再调用一次 <code>dfs</code>——这种「函数自己调用自己」
+          的写法叫<strong>递归</strong>：可以把它想象成往下一格派出一个和自己长得一模一样的「分身」，
+          这个分身只管接手下一个字符的匹配，走不通了再把结果原路传回来，就像照镜子时镜子里还有一面镜子。
+          递归看起来绕，但对应到这道题非常直接：<code>dfs(i, j, k)</code> 就表示「现在站在 (i, j) 格，
+          已经成功匹配了 <code>word</code> 的前 k+1 个字符，接下来交给它去试各个方向」。
+        </p>
         <pre class="code-block"><code><span class="kw">class</span> <span class="ty">Solution</span> {
     <span class="kw">private</span> <span class="ty">int</span> m, n;
     <span class="kw">private</span> <span class="ty">char</span>[][] board;
@@ -169,7 +184,11 @@
           <div>
             <span class="complexity__label">空间复杂度</span>
             <code>O(m·n + L)</code>
-            <p><code>visited</code> 网格占 O(m·n)，递归栈深度最多到单词长度 L。</p>
+            <p>
+              <code>visited</code> 网格占 O(m·n)；另外，每递归调用一层 <code>dfs</code>，
+              程序就会在内存里多叠一层「待处理的现场」，这一层层叠起来的记录叫<strong>递归栈</strong>——
+              有点像一摞盘子，最先进去的最后才被处理完。最深能叠到单词长度 L 层，所以是 O(L)。
+            </p>
           </div>
         </div>
       </section>

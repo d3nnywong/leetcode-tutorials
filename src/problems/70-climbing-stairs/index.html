@@ -36,8 +36,9 @@
         <h1 id="article-title"></h1>
         <p id="article-subtitle" class="article__subtitle"></p>
         <p class="article__lead">
-          全网最经典的动态规划入门题。看完你会发现：它换了个壳，其实就是小学就听说过的
-          「斐波那契数列」——而动态规划，不过是把递归里重复算的部分「记下来」而已。
+          全网最经典的动态规划入门题。看完你会发现：它换了个壳，其实就是数学里那串很有名的
+          「斐波那契数列」（<code>1、1、2、3、5、8、13……</code>，每一项都等于前面两项相加）
+          ——而动态规划，说白了就是把「反复重新计算」的那部分「记下来，用第二遍就不用再算」。
         </p>
       </header>
 
@@ -84,15 +85,30 @@
           所以「走到第 n 阶的方法数」就是「走到第 n−1 阶的方法数」加上「走到第 n−2 阶的方法数」。
         </p>
         <div class="callout callout--warn">
-          <strong>如果直接写递归：</strong><code>f(n) = f(n-1) + f(n-2)</code> 能算对，
-          但 <code>f(n-2)</code> 这种子问题会在不同分支里被<strong>反复重新计算</strong>，
-          n 一大，递归树指数级爆炸。动态规划要做的，就是把每个子问题<strong>只算一次、记下来</strong>。
+          <strong>如果直接把这个式子写成程序：</strong>
+          <code>f(n) = f(n-1) + f(n-2)</code>——这其实是在写<strong>递归</strong>：
+          让一个函数在自己的定义里再调用自己一次，去解决一个更小的同类问题
+          （有点像对着两面镜子照，镜子里还套着更小的镜子；也像俄罗斯套娃，
+          大娃娃里永远藏着一个更小的娃娃）。这样写<strong>能算对</strong>，
+          但仔细看会发现同一个子问题被<strong>反复算了好多遍</strong>：
+          比如算 <code>f(5)</code> 要用到 <code>f(4)</code> 和 <code>f(3)</code>，
+          可 <code>f(4)</code> 自己又要再算一遍 <code>f(3)</code> 和 <code>f(2)</code>——
+          于是 <code>f(3)</code> 就从两条不同的路上各被算了一次。
+          n 稍微一大，这种重复就像细胞分裂一样一层层翻倍，计算量爆炸式增长。
+          动态规划要做的，就是把每个子问题<strong>只算一次、记下来</strong>，
+          下次要用直接拿现成答案，不用再重算。
         </div>
       </section>
 
       <!-- 3. DP 三件套 + 动画 -->
       <section class="article__section">
         <h2>🧠 第三步：动态规划三件套</h2>
+        <p>
+          刚才说的「只算一次、记下来」，具体做法就是拿一张表，把每一步算出来的答案存进去，
+          下次要用就直接查表，不用再重算。这张表我们通常叫它
+          <code>dp</code>（是「动态规划」英文 dynamic programming 的缩写），
+          <code>dp[i]</code> 就是这张表<strong>第 i 格</strong>里存的那个数字。
+        </p>
         <div class="dp-steps">
           <article class="dp-step card">
             <span class="dp-step__num">1</span>

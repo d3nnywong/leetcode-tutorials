@@ -55,9 +55,21 @@
       <section class="article__section">
         <h2>🧩 第一步：题目到底要什么</h2>
         <p>
-          给你一棵二叉树的根节点 <code>root</code>，判断它是不是一棵<strong>合法的二叉搜索树（BST）</strong>。
-          合法的意思是：对树里<strong>每一个</strong>节点，它的左子树里所有节点都要严格小于它，
-          右子树里所有节点都要严格大于它——而且这个要求对左右子树自己也要成立（递归地）。
+          先认识一下积木：<strong>二叉树</strong>有点像一张家谱图——最顶上那个人叫<strong>根节点</strong>
+          （<code>root</code>），每个人最多能有两个「孩子」，分别叫<strong>左孩子</strong>和
+          <strong>右孩子</strong>。以某个节点为「新起点」、往下挂着的那一整块（它自己 + 它所有的后代），
+          就叫这个节点的<strong>子树</strong>——挂在左边的一整块是<strong>左子树</strong>，
+          挂在右边的一整块是<strong>右子树</strong>。
+        </p>
+        <p>
+          给你一棵二叉树的根节点 <code>root</code>，判断它是不是一棵<strong>合法的二叉搜索树
+          （BST，Binary Search Tree）</strong>。BST 的规则其实很朴素：对树里<strong>每一个</strong>
+          节点，它<strong>整个左子树</strong>（不只是左孩子一个人，是左边挂着的所有节点）都要严格小于它，
+          它<strong>整个右子树</strong>都要严格大于它。而且这条规则不是只在根节点这一层管用——
+          对树里任何一个节点，把它当成「新的根」往下看，同一条规则也要重新成立一遍。这种「一条规则，
+          在每一层、每一棵子树里都要反复满足一次」的思路，就是<strong>递归</strong>：
+          把一个大问题拆成一个个和它长得一模一样、但范围更小的小问题（这里就是「每一棵子树自己也必须是合法
+          BST」），一层套一层地检查下去，很像俄罗斯套娃，或者两面镜子面对面互相照。
         </p>
         <div class="example-box">
           <div><span class="example-box__label">root</span><code>[5,1,4,null,null,3,6]</code></div>
@@ -92,11 +104,20 @@
       <section class="article__section">
         <h2>⚡ 第三步：用一个显式栈做「区间收缩」</h2>
         <p>
-          用一个栈模拟「先序遍历」：栈里每一项是 <code>(节点, low, high)</code>。
-          弹出一个节点先检查 <code>low &lt; node.val &lt; high</code>；不满足直接判 false。
+          先认识一个小工具：<strong>栈</strong>。栈就像一摞叠起来的盘子——你只能从最上面
+          「放一个盘子上去」（这个动作叫<strong>压栈</strong>），或者「从最上面拿走一个」
+          （这个动作叫<strong>弹出</strong>），碰不到中间和底下的盘子，永远是「最后放的、最先被拿走」。
+          这里我们用栈来记住「接下来还欠着哪些节点没检查」，效果和函数自己调用自己（递归）是一样的，
+          只是不用真的一层层往下调函数，看起来更直观。
+        </p>
+        <p>
+          具体做法是：用一个栈模拟<strong>先序遍历</strong>——先序遍历就是「先看节点自己，
+          再看它的左子树，最后看它的右子树」这种访问顺序。栈里每一项存
+          <code>(节点, low, high)</code>，表示这个节点从它所有祖先那里继承到的合法区间。
+          每次弹出一个节点，先检查 <code>low &lt; node.val &lt; high</code>；不满足直接判 false。
           满足的话，把它的右孩子（区间下界收紧成 <code>node.val</code>）和左孩子（区间上界收紧成
-          <code>node.val</code>）都压栈继续检查——先压右孩子、再压左孩子，这样左子树会先被弹出处理，
-          顺序和递归「先左后右」一致。
+          <code>node.val</code>）都压栈，留着接下来检查——要先压右孩子、再压左孩子，这样左孩子会
+          压在栈顶、先被弹出处理，顺序才能和先序遍历「先左后右」保持一致。
         </p>
 
         <div class="viz-legend">
@@ -145,7 +166,12 @@
           <div>
             <span class="complexity__label">空间复杂度</span>
             <code>O(h)</code>
-            <p>h 是树高，来自递归栈（或显式栈）；平衡树 O(log n)，最坏（链状树）退化到 O(n)。</p>
+            <p>
+              h 是<strong>树高</strong>——从根节点走到最深的<strong>叶子节点</strong>（没有孩子的节点）
+              要经过的层数，这些层数就对应着递归调用（或显式栈）里同时存在的节点数。树越「胖」越平衡，
+              h 就越接近 O(log n)；最坏情况下树退化成一条链（每个节点只有一个孩子，像排队一样一路排下去），
+              h 就变成 O(n)。
+            </p>
           </div>
         </div>
       </section>
