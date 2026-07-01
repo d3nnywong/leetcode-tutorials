@@ -55,6 +55,9 @@ export function mountAppShell({ activeSlug = null } = {}) {
   const countEl = sidebar.querySelector('#problem-count')
   const searchEl = sidebar.querySelector('#problem-search')
 
+  // 当前所在题目的专题（用于默认展开它那一组）
+  const activeCat = problems.find((p) => p.slug === activeSlug)?.category ?? null
+
   function itemMarkup(p, lang) {
     const isActive = p.slug === activeSlug
     const planned = p.status !== 'done'
@@ -89,19 +92,34 @@ export function mountAppShell({ activeSlug = null } = {}) {
       if (!byCat.has(p.category)) byCat.set(p.category, [])
       byCat.get(p.category).push(p)
     }
+    // 搜索时全部展开；否则只展开当前题所在的专题
+    const searching = q !== ''
     listEl.innerHTML = CATEGORIES.filter((c) => byCat.has(c.zh))
       .map((c) => {
         const items = byCat.get(c.zh)
-        const head = `<li class="sidebar__cat"><span>${categoryName(
-          c.zh,
-          lang,
-        )}</span><span class="sidebar__cat-count">${items.length}</span></li>`
-        return head + items.map((p) => itemMarkup(p, lang)).join('')
+        const open = searching || c.zh === activeCat
+        return `<li class="sidebar__group${open ? ' is-open' : ''}">
+          <button type="button" class="sidebar__cat" aria-expanded="${open}">
+            <span class="sidebar__caret" aria-hidden="true"></span>
+            <span class="sidebar__cat-name">${categoryName(c.zh, lang)}</span>
+            <span class="sidebar__cat-count">${items.length}</span>
+          </button>
+          <ul class="sidebar__group-items">${items.map((p) => itemMarkup(p, lang)).join('')}</ul>
+        </li>`
       })
       .join('')
     countEl.textContent = matched.length
     emptyEl.hidden = matched.length > 0
   }
+
+  // 点击专题标题展开 / 收起该组
+  listEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.sidebar__cat')
+    if (!btn) return
+    const group = btn.closest('.sidebar__group')
+    const open = group.classList.toggle('is-open')
+    btn.setAttribute('aria-expanded', String(open))
+  })
 
   // —— 语言切换 —— //
   const langBtns = sidebar.querySelectorAll('.lang-switch__btn')

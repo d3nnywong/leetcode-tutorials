@@ -157,27 +157,72 @@
   display: grid;
   gap: 2px;
 }
-/* 侧边栏专题小标题 */
+/* 侧边栏专题分组（可折叠） */
+.sidebar__group {
+  list-style: none;
+}
 .sidebar__cat {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
-  margin-top: var(--space-3);
-  padding: var(--space-1) var(--space-3);
-  font-size: 0.72rem;
+  width: 100%;
+  margin: 2px 0 0;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  color: var(--color-text-soft);
+  text-align: left;
   text-transform: uppercase;
+  color: var(--color-text-soft);
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
 }
-.sidebar__cat:first-child {
-  margin-top: 0;
+.sidebar__cat:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+.sidebar__cat:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+.sidebar__caret {
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform var(--duration) var(--ease);
+}
+.sidebar__group.is-open .sidebar__caret {
+  transform: rotate(90deg);
+}
+.sidebar__cat-name {
+  flex: 1;
 }
 .sidebar__cat-count {
   font-family: var(--font-mono);
   font-weight: 400;
   opacity: 0.7;
+}
+.sidebar__group-items {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 var(--space-2);
+  display: none;
+}
+.sidebar__group.is-open .sidebar__group-items {
+  display: grid;
+  gap: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__caret {
+    transition: none;
+  }
 }
 .sidebar__item {
   display: flex;
@@ -211,6 +256,10 @@ a.sidebar__item:hover {
 }
 .sidebar__item-title {
   flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sidebar__item-soon {
   font-size: 0.7rem;
