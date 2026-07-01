@@ -175,3 +175,30 @@ export function difficulty(zh, lang = getLang()) {
 export function tag(zh, lang = getLang()) {
   return lang === 'en' ? (TAGS[zh] ?? zh) : zh
 }
+
+/* ---------- 专题分类（首页 / 侧边栏分组，顺序即展示顺序）---------- */
+export const CATEGORIES = [
+  { zh: '数组与哈希', en: 'Arrays & Hashing' },
+  { zh: '双指针', en: 'Two Pointers' },
+  { zh: '滑动窗口', en: 'Sliding Window' },
+  { zh: '栈', en: 'Stack' },
+  { zh: '二分查找', en: 'Binary Search' },
+  { zh: '链表', en: 'Linked List' },
+  { zh: '树', en: 'Trees' },
+  { zh: '字典树', en: 'Tries' },
+  { zh: '堆', en: 'Heap / Priority Queue' },
+  { zh: '回溯', en: 'Backtracking' },
+  { zh: '图', en: 'Graphs' },
+  { zh: '高级图论', en: 'Advanced Graphs' },
+  { zh: '一维 DP', en: '1-D DP' },
+  { zh: '二维 DP', en: '2-D DP' },
+  { zh: '贪心', en: 'Greedy' },
+  { zh: '区间', en: 'Intervals' },
+  { zh: '数学与几何', en: 'Math & Geometry' },
+  { zh: '位运算', en: 'Bit Manipulation' },
+]
+
+export function categoryName(zh, lang = getLang()) {
+  const c = CATEGORIES.find((x) => x.zh === zh)
+  return c ? (lang === 'en' ? c.en : c.zh) : zh
+}

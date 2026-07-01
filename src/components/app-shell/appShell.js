@@ -8,7 +8,7 @@
  * 语言：中 / EN 切换，题目标题与界面文案随之切换（深入讲解正文保持中文）。
  */
 import { problems } from '../../data/problems.js'
-import { getLang, setLang, onLang, applyStatic } from '../../lib/i18n.js'
+import { getLang, setLang, onLang, applyStatic, CATEGORIES, categoryName } from '../../lib/i18n.js'
 
 export function mountAppShell({ activeSlug = null } = {}) {
   const sidebar = document.querySelector('#app-sidebar')
@@ -77,10 +77,28 @@ export function mountAppShell({ activeSlug = null } = {}) {
     const lang = getLang()
     const q = query.trim().toLowerCase()
     const matched = problems.filter((p) => {
-      const hay = `${p.id} ${p.title} ${p.titleEn} ${p.tags.join(' ')}`.toLowerCase()
+      const hay = `${p.id} ${p.title} ${p.titleEn} ${p.tags.join(' ')} ${p.category} ${categoryName(
+        p.category,
+        'en',
+      )}`.toLowerCase()
       return hay.includes(q)
     })
-    listEl.innerHTML = matched.map((p) => itemMarkup(p, lang)).join('')
+    // 按专题分组：每组一个小标题，组内是题目条目
+    const byCat = new Map()
+    for (const p of matched) {
+      if (!byCat.has(p.category)) byCat.set(p.category, [])
+      byCat.get(p.category).push(p)
+    }
+    listEl.innerHTML = CATEGORIES.filter((c) => byCat.has(c.zh))
+      .map((c) => {
+        const items = byCat.get(c.zh)
+        const head = `<li class="sidebar__cat"><span>${categoryName(
+          c.zh,
+          lang,
+        )}</span><span class="sidebar__cat-count">${items.length}</span></li>`
+        return head + items.map((p) => itemMarkup(p, lang)).join('')
+      })
+      .join('')
     countEl.textContent = matched.length
     emptyEl.hidden = matched.length > 0
   }

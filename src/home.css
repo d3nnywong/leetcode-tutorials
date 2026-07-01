@@ -28,10 +28,44 @@
   border-bottom: 2px solid var(--color-border);
 }
 
+/* 专题分组 */
+.problem-groups {
+  margin-bottom: var(--space-section);
+}
+.cat-block {
+  margin-bottom: var(--space-12);
+}
+.cat-heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+}
+.cat-heading__name {
+  position: relative;
+  padding-left: var(--space-4);
+}
+.cat-heading__name::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  bottom: 0.1em;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+.cat-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-soft);
+}
+
 .problem-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 var(--space-section);
+  margin: 0;
   display: grid;
   gap: var(--space-4);
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));

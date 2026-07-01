@@ -2,7 +2,7 @@
 import { problems, difficultyColor } from './data/problems.js'
 import { mountAppShell } from './components/app-shell/appShell.js'
 import { mountNotes } from './components/notes/notes.js'
-import { getLang, onLang, difficulty, tag } from './lib/i18n.js'
+import { getLang, onLang, difficulty, tag, CATEGORIES, categoryName } from './lib/i18n.js'
 
 mountAppShell({ activeSlug: null })
 mountNotes({ key: 'home', title: { zh: '学习总笔记', en: 'My Notes' } })
@@ -43,7 +43,25 @@ function cardMarkup(p, lang) {
 
 function renderCards() {
   const lang = getLang()
-  listEl.innerHTML = problems.map((p) => cardMarkup(p, lang)).join('')
+  // 按专题分组（顺序取 CATEGORIES），每组一个小标题 + 卡片网格
+  const byCat = new Map()
+  for (const p of problems) {
+    if (!byCat.has(p.category)) byCat.set(p.category, [])
+    byCat.get(p.category).push(p)
+  }
+  listEl.innerHTML = CATEGORIES.filter((c) => byCat.has(c.zh))
+    .map((c) => {
+      const list = byCat.get(c.zh)
+      const cards = list.map((p) => cardMarkup(p, lang)).join('')
+      return `<section class="cat-block">
+        <h3 class="cat-heading">
+          <span class="cat-heading__name">${categoryName(c.zh, lang)}</span>
+          <span class="cat-count">${list.length}</span>
+        </h3>
+        <ul class="problem-list">${cards}</ul>
+      </section>`
+    })
+    .join('')
 }
 
 renderCards()
