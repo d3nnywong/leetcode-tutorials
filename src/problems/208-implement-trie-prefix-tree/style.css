@@ -43,9 +43,10 @@
 }
 .tn__svg {
   display: block;
-  width: 100%;
-  max-width: 40rem;
+  width: auto;
   height: auto;
+  max-width: 100%;
+  max-height: 460px;
   margin: 0 auto;
 }
 

@@ -264,7 +264,7 @@ export class WordDictionaryViz extends VizPlayer {
           ${isRoot ? '' : `<text class="asw-val" x="${cx(n)}" y="${cy(n)}">${n.char}</text>`}
         </g>`
     }
-    this.chartEl.innerHTML = `<svg class="asw__svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img">
+    this.chartEl.innerHTML = `<svg class="asw__svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img">
       <g class="asw-edges">${edgesHtml}</g>
       <g class="asw-nodes">${nodesHtml}</g>
     </svg>`

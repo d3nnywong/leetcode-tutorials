@@ -272,7 +272,7 @@ export class TrieViz extends VizPlayer {
         </g>`
     }
 
-    return `<svg class="tn__svg" viewBox="0 0 ${geo.W} ${geo.H}" preserveAspectRatio="xMidYMid meet" role="img">
+    return `<svg class="tn__svg" width="${geo.W}" height="${geo.H}" viewBox="0 0 ${geo.W} ${geo.H}" preserveAspectRatio="xMidYMid meet" role="img">
       <g class="tn-edges">${edges}</g>
       <g class="tn-nodes">${circles}</g>
     </svg>`
